@@ -49,8 +49,60 @@ export const workspaceFiles = sqliteTable(
 	]
 );
 
+export const workspaceEvents = sqliteTable(
+	"workspace_events",
+	{
+		actor: text("actor"),
+		createdAt: text("created_at").notNull(),
+		id: text("id").primaryKey(),
+		path: text("path"),
+		payload: text("payload").default("{}").notNull(),
+		type: text("type").notNull(),
+		version: integer("version"),
+		workspaceId: text("workspace_id")
+			.notNull()
+			.references(() => workspaces.id, { onDelete: "cascade" }),
+	},
+	(table) => [
+		index("workspace_events_workspace_created_idx").on(
+			table.workspaceId,
+			table.createdAt
+		),
+		index("workspace_events_workspace_path_idx").on(
+			table.workspaceId,
+			table.path
+		),
+	]
+);
+
+export const workspaceFileVersions = sqliteTable(
+	"workspace_file_versions",
+	{
+		contentType: text("content_type").default("text/markdown").notNull(),
+		createdAt: text("created_at").notNull(),
+		objectKey: text("object_key").notNull(),
+		path: text("path").notNull(),
+		sha256: text("sha256"),
+		sizeBytes: integer("size_bytes").notNull(),
+		updatedBy: text("updated_by"),
+		version: integer("version").notNull(),
+		workspaceId: text("workspace_id")
+			.notNull()
+			.references(() => workspaces.id, { onDelete: "cascade" }),
+	},
+	(table) => [
+		primaryKey({ columns: [table.workspaceId, table.path, table.version] }),
+		index("workspace_file_versions_workspace_path_idx").on(
+			table.workspaceId,
+			table.path
+		),
+	]
+);
+
 export const workspacesRelations = relations(workspaces, ({ many }) => ({
+	events: many(workspaceEvents),
 	files: many(workspaceFiles),
+	fileVersions: many(workspaceFileVersions),
 }));
 
 export const workspaceFilesRelations = relations(workspaceFiles, ({ one }) => ({
@@ -59,3 +111,23 @@ export const workspaceFilesRelations = relations(workspaceFiles, ({ one }) => ({
 		references: [workspaces.id],
 	}),
 }));
+
+export const workspaceEventsRelations = relations(
+	workspaceEvents,
+	({ one }) => ({
+		workspace: one(workspaces, {
+			fields: [workspaceEvents.workspaceId],
+			references: [workspaces.id],
+		}),
+	})
+);
+
+export const workspaceFileVersionsRelations = relations(
+	workspaceFileVersions,
+	({ one }) => ({
+		workspace: one(workspaces, {
+			fields: [workspaceFileVersions.workspaceId],
+			references: [workspaces.id],
+		}),
+	})
+);

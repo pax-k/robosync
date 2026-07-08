@@ -2,7 +2,7 @@
 id: V1-008
 title: Ship core HA2HA agent skill alpha
 version: v1
-state: ready
+state: done
 priority: medium
 depends_on: [V1-001, V1-002, V1-003, V1-004, V1-005, V1-007]
 area: agent-adoption
@@ -13,7 +13,17 @@ acceptance:
   - Evidence workflow writes minimal metadata: linked task or target, kind, result, actor, and timestamp.
   - At least one manual trial shows two separate agent contexts coordinating through the same workspace using v1 raw/API semantics.
   - The skill alpha does not claim v3 coordination, trust, evidence/review, or engineering profile conformance.
-evidence: []
+evidence:
+  - "Added repo-local Codex skill package at `docs/v1/skills/core-ha2ha-agent-alpha/SKILL.md` with `agents/openai.yaml` metadata."
+  - "Skill alpha covers publish workspace, join workspace, versioned file updates, `STATUS.md` updates, task claims, evidence writing, and conflict handling without claiming v3 coordination/trust/evidence-review/engineering profiles."
+  - "Mutating workflows declare allowed paths, token/write scope, actor handles, `baseVersion` behavior, retry-once conflict handling, evidence output, and stop conditions."
+  - "Manual local trial evidence saved at `docs/v1/evidence/core-ha2ha-agent-alpha-trial-2026-07-08.json` and summarized in `docs/v1/evidence/core-ha2ha-agent-alpha-trial-2026-07-08.md`."
+  - "Trial used workspace `8aexIZ0gscbw` on `http://localhost:3000` with actors `agent-context-a` and `agent-context-b`; it proved publish, join/read, task claim, evidence add/link, `STATUS.md` update, first conflict surfacing, and second-conflict stop behavior."
+  - "`python3 /Users/pax/.codex/skills/.system/skill-creator/scripts/init_skill.py core-ha2ha-agent-alpha --path docs/v1/skills ...` created the initial skill scaffold."
+  - "`python3 /Users/pax/.codex/skills/.system/skill-creator/scripts/quick_validate.py docs/v1/skills/core-ha2ha-agent-alpha` passed with a temporary YAML shim because PyYAML was not available in the local Python runtime."
+  - "`rg -n \"publish workspace|join workspace|baseVersion|add evidence|claim\" docs scripts` passed on 2026-07-08."
+  - "`pnpm run check` passed on 2026-07-08."
+  - "`pnpm run check-types` passed on 2026-07-08."
 ---
 
 ## Intent

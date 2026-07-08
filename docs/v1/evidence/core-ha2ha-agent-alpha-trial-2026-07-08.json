@@ -1,0 +1,80 @@
+{
+  "actorHandles": ["agent-context-a", "agent-context-b"],
+  "generatedAt": "2026-07-08T18:47:06.690Z",
+  "ok": true,
+  "operations": [
+    {
+      "id": "publish workspace",
+      "result": "pass",
+      "surface": "scripts/upload-workspace.mjs"
+    },
+    {
+      "id": "join workspace",
+      "result": "pass",
+      "surface": "GET /w/:workspaceId/raw"
+    },
+    {
+      "baseVersion": 1,
+      "id": "claim task",
+      "result": "pass",
+      "version": 2
+    },
+    {
+      "id": "add evidence",
+      "path": "evidence/RS-TRIAL-001/agent-a-claim.md",
+      "result": "pass",
+      "version": 1
+    },
+    {
+      "baseVersion": 2,
+      "id": "link evidence from task",
+      "result": "pass",
+      "version": 3
+    },
+    {
+      "actor": "agent-context-b",
+      "baseVersion": 1,
+      "id": "update STATUS.md",
+      "result": "pass",
+      "version": 2
+    },
+    {
+      "id": "first conflict surfaced",
+      "latest": {
+        "content": "# Status\n\n- RS-TRIAL-001 claimed by agent-context-a.\n- agent-context-b joined via raw listing and read task version 3.\n\n- agent-context-a wrote before agent-context-b merge attempt.\n",
+        "contentType": "text/markdown; charset=utf-8",
+        "path": "STATUS.md",
+        "updatedAt": "2026-07-08T18:47:06.668Z",
+        "updatedBy": "agent-context-a",
+        "version": 3,
+        "workspaceId": "8aexIZ0gscbw"
+      },
+      "result": "pass",
+      "status": 409
+    },
+    {
+      "id": "second conflict stop condition",
+      "latest": {
+        "content": "# Status\n\n- RS-TRIAL-001 claimed by agent-context-a.\n- agent-context-b joined via raw listing and read task version 3.\n\n- agent-context-a wrote before agent-context-b merge attempt.\n\n- agent-context-a wrote before agent-context-b retry.\n",
+        "contentType": "text/markdown; charset=utf-8",
+        "path": "STATUS.md",
+        "updatedAt": "2026-07-08T18:47:06.680Z",
+        "updatedBy": "agent-context-a",
+        "version": 4,
+        "workspaceId": "8aexIZ0gscbw"
+      },
+      "result": "pass",
+      "status": 409
+    }
+  ],
+  "simulated": [
+    "Two agent contexts were represented by isolated actor handles and independent baseVersion snapshots within one operator-run script."
+  ],
+  "stopCondition": "agent-context-b stopped after the second 409 and performed no further writes.",
+  "target": "http://localhost:3000",
+  "unproven": [
+    "Deployed MDSync target",
+    "v3 leases, approvals, review gates, trust profile, and engineering-profile conformance"
+  ],
+  "workspaceId": "8aexIZ0gscbw"
+}

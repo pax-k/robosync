@@ -38,6 +38,23 @@ export const web = deployWeb
 			entrypoint: "src/worker.ts",
 		})
 	: undefined;
+export const ha2ha = deployWeb
+	? await Vite("ha2ha", {
+			assets: {
+				directory: "dist",
+				run_worker_first: true,
+			},
+			build: {
+				command: "pnpm build",
+			},
+			cwd: "../../apps/ha2ha",
+			dev: {
+				command: "pnpm dev",
+				domain: "localhost:5174",
+			},
+			entrypoint: "src/worker.ts",
+		})
+	: undefined;
 
 const betterAuthSecret = requiredValue(
 	"BETTER_AUTH_SECRET",
@@ -74,6 +91,11 @@ if (web) {
 	console.log(`Web    -> ${web.url}`);
 } else {
 	console.log("Web    -> skipped (ROBOSYNC_SERVER_ONLY=1)");
+}
+if (ha2ha) {
+	console.log(`HA2HA  -> ${ha2ha.url}`);
+} else {
+	console.log("HA2HA  -> skipped (ROBOSYNC_SERVER_ONLY=1)");
 }
 console.log(`Server -> ${server.url}`);
 

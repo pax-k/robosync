@@ -1,0 +1,117 @@
+{
+  "checks": [
+    {
+      "id": "workspace.create",
+      "message": "pass",
+      "ok": true,
+      "profile": "core-workspace"
+    },
+    {
+      "id": "file.read-json",
+      "message": "pass",
+      "ok": true,
+      "profile": "core-workspace"
+    },
+    {
+      "id": "raw.listing",
+      "message": "pass",
+      "ok": true,
+      "profile": "core-workspace"
+    },
+    {
+      "id": "raw.file.headers",
+      "message": "pass",
+      "ok": true,
+      "profile": "http-profile"
+    },
+    {
+      "id": "tree.read",
+      "message": "pass",
+      "ok": true,
+      "profile": "http-profile"
+    },
+    {
+      "id": "file.update.requires-actor",
+      "message": "pass",
+      "ok": true,
+      "profile": "http-profile"
+    },
+    {
+      "id": "file.update.actor-base-version",
+      "message": "pass",
+      "ok": true,
+      "profile": "http-profile"
+    },
+    {
+      "id": "file.update.conflict",
+      "message": "pass",
+      "ok": true,
+      "profile": "http-profile"
+    },
+    {
+      "id": "file.create.actor",
+      "message": "pass",
+      "ok": true,
+      "profile": "core-workspace"
+    },
+    {
+      "id": "file.delete.requires-actor",
+      "message": "pass",
+      "ok": true,
+      "profile": "http-profile"
+    },
+    {
+      "id": "file.delete.requires-base-version",
+      "message": "pass",
+      "ok": true,
+      "profile": "http-profile"
+    },
+    {
+      "id": "file.delete.actor-base-version",
+      "message": "pass",
+      "ok": true,
+      "profile": "http-profile"
+    },
+    {
+      "id": "file.read-updated-target",
+      "message": "pass",
+      "ok": true,
+      "profile": "core-workspace"
+    },
+    {
+      "id": "events.read",
+      "message": "pass",
+      "ok": true,
+      "profile": "event-profile"
+    },
+    {
+      "id": "events.raw-read",
+      "message": "pass",
+      "ok": true,
+      "profile": "event-profile"
+    },
+    {
+      "id": "file-history.list",
+      "message": "pass",
+      "ok": true,
+      "profile": "file-history-profile"
+    },
+    {
+      "id": "file-history.read",
+      "message": "pass",
+      "ok": true,
+      "profile": "file-history-profile"
+    }
+  ],
+  "implementation": "mdsync",
+  "ok": true,
+  "profiles": [
+    "core-workspace",
+    "workspace-convention",
+    "http-profile",
+    "event-profile",
+    "file-history-profile"
+  ],
+  "target": "http://localhost:3000",
+  "timestamp": "2026-07-08T18:42:47.286Z"
+}

@@ -91,6 +91,11 @@ Each run should produce machine-readable evidence:
 }
 ```
 
+Measured implementation evidence:
+
+- MDSync local conformance:
+  [mdsync-conformance.md](mdsync-conformance.md)
+
 ## Failure Semantics
 
 Conformance failures should identify:

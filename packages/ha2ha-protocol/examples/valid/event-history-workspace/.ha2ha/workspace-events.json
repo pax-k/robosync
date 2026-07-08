@@ -1,0 +1,14 @@
+[
+  {
+    "id": "evt-001",
+    "workspaceId": "event-history-workspace",
+    "type": "file.updated",
+    "path": "tasks/RS-020.md",
+    "version": 2,
+    "actor": "codex-pax",
+    "createdAt": "2026-07-08T14:00:00Z",
+    "payload": {
+      "baseVersion": 1
+    }
+  }
+]

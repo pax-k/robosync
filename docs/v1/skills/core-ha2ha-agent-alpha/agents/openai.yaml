@@ -1,0 +1,4 @@
+interface:
+  display_name: "Core HA2HA Agent Alpha"
+  short_description: "Coordinate through HA2HA v1 workspaces"
+  default_prompt: "Use $core-ha2ha-agent-alpha to join this HA2HA workspace and update a task with evidence."

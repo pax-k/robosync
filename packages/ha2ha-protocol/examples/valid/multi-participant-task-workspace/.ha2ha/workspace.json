@@ -1,0 +1,23 @@
+{
+  "protocol": "ha2ha",
+  "protocolVersion": "1.0.0",
+  "workspaceId": "multi-participant-task-workspace",
+  "title": "Multi-Participant Task Workspace",
+  "paths": {
+    "manifestMarkdown": "HA2HA.md",
+    "status": "STATUS.md",
+    "participants": "participants/",
+    "tasks": "tasks/",
+    "evidence": "evidence/",
+    "decisions": "decisions/",
+    "logs": "logs/",
+    "workspaceManifest": ".ha2ha/workspace.json"
+  },
+  "capabilities": ["raw-read", "file-write"],
+  "routes": {
+    "rawListing": "/w/multi-participant-task-workspace/raw",
+    "rawFile": "/w/multi-participant-task-workspace/raw/{path}",
+    "file": "/api/workspaces/multi-participant-task-workspace/files"
+  },
+  "conflictPolicy": "baseVersion-required"
+}

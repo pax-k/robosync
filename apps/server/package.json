@@ -13,6 +13,7 @@
     "@mdsync/auth": "workspace:*",
     "@mdsync/db": "workspace:*",
     "@mdsync/env": "workspace:*",
+    "@mdsync/ha2ha-protocol": "workspace:*",
     "@trpc/server": "catalog:",
     "better-auth": "catalog:",
     "dotenv": "catalog:",

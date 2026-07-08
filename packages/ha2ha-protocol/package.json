@@ -1,0 +1,35 @@
+{
+  "name": "@mdsync/ha2ha-protocol",
+  "type": "module",
+  "exports": {
+    ".": {
+      "default": "./src/constants.ts"
+    },
+    "./constants": {
+      "default": "./src/constants.ts"
+    },
+    "./schemas": {
+      "default": "./src/schemas.ts"
+    },
+    "./validator": {
+      "default": "./src/validator.ts"
+    },
+    "./*": {
+      "default": "./src/*.ts"
+    }
+  },
+  "scripts": {
+    "check-types": "tsc -b",
+    "test": "pnpm run check-types && tsx --test src/**/*.test.ts",
+    "validate": "tsx src/cli.ts"
+  },
+  "dependencies": {
+    "yaml": "^2.9.0",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@mdsync/config": "workspace:*",
+    "tsx": "^4.23.0",
+    "typescript": "catalog:"
+  }
+}

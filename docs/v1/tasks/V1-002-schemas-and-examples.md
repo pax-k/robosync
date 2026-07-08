@@ -2,7 +2,7 @@
 id: V1-002
 title: Add HA2HA schemas and examples
 version: v1
-state: ready
+state: done
 priority: high
 depends_on: [V1-001]
 area: protocol
@@ -11,7 +11,12 @@ acceptance:
   - Valid and invalid example workspaces cover core, event, and history behavior.
   - Examples cover actor-attributed file writes, minimal task claims, minimal evidence metadata, and import/export preservation expectations.
   - Examples are portable and do not require MDSync to run.
-evidence: []
+evidence:
+  - "2026-07-08: Added HA2HA schemas in packages/ha2ha-protocol/src/schemas.ts for manifest, task frontmatter, participant frontmatter, evidence metadata, target coordinates, events, file versions, conflict responses, actor-attributed file writes, deletes, and task claims."
+  - "2026-07-08: Added 41 portable example fixture files under packages/ha2ha-protocol/examples covering valid core, multi-participant task, event/history, and named invalid cases."
+  - "2026-07-08: pnpm --filter @mdsync/ha2ha-protocol test passed."
+  - "2026-07-08: pnpm run check-types passed."
+  - "2026-07-08: pnpm run check passed."
 ---
 
 ## Intent

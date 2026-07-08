@@ -1,0 +1,26 @@
+{
+  "protocol": "ha2ha",
+  "protocolVersion": "1.0.0",
+  "workspaceId": "event-history-workspace",
+  "title": "Event And History Workspace",
+  "paths": {
+    "manifestMarkdown": "HA2HA.md",
+    "status": "STATUS.md",
+    "participants": "participants/",
+    "tasks": "tasks/",
+    "evidence": "evidence/",
+    "decisions": "decisions/",
+    "logs": "logs/",
+    "workspaceManifest": ".ha2ha/workspace.json"
+  },
+  "capabilities": ["raw-read", "file-write", "events", "file-history"],
+  "routes": {
+    "rawListing": "/w/event-history-workspace/raw",
+    "rawFile": "/w/event-history-workspace/raw/{path}",
+    "events": "/api/workspaces/event-history-workspace/events",
+    "rawEvents": "/w/event-history-workspace/raw/events",
+    "fileVersions": "/api/workspaces/event-history-workspace/files/versions",
+    "fileVersion": "/api/workspaces/event-history-workspace/files/versions/{version}"
+  },
+  "conflictPolicy": "baseVersion-required"
+}

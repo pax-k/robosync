@@ -1,0 +1,12 @@
+{
+  "error": "version_conflict",
+  "message": "File changed since baseVersion.",
+  "latest": {
+    "workspaceId": "invalid-conflict-response",
+    "path": "tasks/RS-007.md",
+    "contentType": "text/markdown; charset=utf-8",
+    "content": "# RS-007\n",
+    "updatedAt": "2026-07-08T15:10:00Z",
+    "updatedBy": "codex-pax"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "protocol": "ha2ha",
+  "protocolVersion": "1.0.0",
+  "workspaceId": "invalid-task-state",
+  "title": "Invalid Task State",
+  "paths": {
+    "manifestMarkdown": "HA2HA.md",
+    "status": "STATUS.md",
+    "participants": "participants/",
+    "tasks": "tasks/",
+    "evidence": "evidence/",
+    "decisions": "decisions/",
+    "logs": "logs/",
+    "workspaceManifest": ".ha2ha/workspace.json"
+  },
+  "capabilities": ["raw-read", "file-write"],
+  "routes": {
+    "rawListing": "/w/invalid-task-state/raw",
+    "rawFile": "/w/invalid-task-state/raw/{path}"
+  },
+  "conflictPolicy": "baseVersion-required"
+}

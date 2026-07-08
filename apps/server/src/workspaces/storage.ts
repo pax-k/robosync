@@ -38,6 +38,29 @@ export interface WorkspaceFileRow {
 	workspace_id: string;
 }
 
+export interface WorkspaceEventRow {
+	actor: string | null;
+	created_at: string;
+	id: string;
+	path: string | null;
+	payload: string;
+	type: string;
+	version: number | null;
+	workspace_id: string;
+}
+
+export interface WorkspaceFileVersionRow {
+	content_type: string;
+	created_at: string;
+	object_key: string;
+	path: string;
+	sha256: string | null;
+	size_bytes: number;
+	updated_by: string | null;
+	version: number;
+	workspace_id: string;
+}
+
 export interface WorkspaceTreeFile {
 	contentType: string;
 	path: string;
@@ -54,8 +77,12 @@ export async function deleteObjectBestEffort(objectKey: string) {
 	}
 }
 
-export async function fetchObjectText(file: WorkspaceFileRow) {
-	const object = await env.FILES.get(file.object_key);
+export function fetchObjectText(file: WorkspaceFileRow) {
+	return fetchObjectTextByKey(file.object_key);
+}
+
+export async function fetchObjectTextByKey(objectKey: string) {
+	const object = await env.FILES.get(objectKey);
 	if (!object) {
 		throw new WorkspaceError(
 			500,
@@ -64,6 +91,24 @@ export async function fetchObjectText(file: WorkspaceFileRow) {
 		);
 	}
 	return object.text();
+}
+
+export function getWorkspaceFileVersion({
+	path,
+	version,
+	workspaceId,
+}: {
+	path: string;
+	version: number;
+	workspaceId: string;
+}) {
+	return env.DB.prepare(
+		`select workspace_id, path, version, object_key, content_type, size_bytes, sha256, updated_by, created_at
+     from workspace_file_versions
+     where workspace_id = ? and path = ? and version = ?`
+	)
+		.bind(workspaceId, path, version)
+		.first<WorkspaceFileVersionRow>();
 }
 
 export function getFile(workspaceId: string, path: string) {
@@ -111,6 +156,35 @@ export async function listWorkspaceFiles(workspaceId: string) {
 			version: row.version,
 		})
 	);
+}
+
+export async function listWorkspaceEvents(workspaceId: string) {
+	const { results } = await env.DB.prepare(
+		`select id, workspace_id, type, path, version, actor, created_at, payload
+     from workspace_events
+     where workspace_id = ?
+     order by created_at asc, id asc`
+	)
+		.bind(workspaceId)
+		.all<WorkspaceEventRow>();
+
+	return results;
+}
+
+export async function listWorkspaceFileVersions(
+	workspaceId: string,
+	path: string
+) {
+	const { results } = await env.DB.prepare(
+		`select workspace_id, path, version, object_key, content_type, size_bytes, sha256, updated_by, created_at
+     from workspace_file_versions
+     where workspace_id = ? and path = ?
+     order by version asc`
+	)
+		.bind(workspaceId, path)
+		.all<WorkspaceFileVersionRow>();
+
+	return results;
 }
 
 export async function putFileObject({

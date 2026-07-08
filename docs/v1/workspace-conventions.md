@@ -171,6 +171,9 @@ Mutating v1 skills must declare:
 Packaging as a Codex skill, instruction pack, npm package, or bundled script is
 not protocol authority.
 
+The v1 alpha Codex skill package is
+[skills/core-ha2ha-agent-alpha/SKILL.md](skills/core-ha2ha-agent-alpha/SKILL.md).
+
 ## Import, Export, And Snapshot Preservation
 
 Import/export UX is product scope. When an implementation offers import,

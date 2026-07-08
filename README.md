@@ -66,7 +66,7 @@ The Vite workspace UI lives in `apps/web/src`. Static styles are in `apps/web/sr
 
 ### Cloudflare via Alchemy
 
-- Target: web + server
+- Target: web + HA2HA docs + server
 - Dev: pnpm run dev
 - Deploy: pnpm run deploy
 - Destroy: pnpm run destroy

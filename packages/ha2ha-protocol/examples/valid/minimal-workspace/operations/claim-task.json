@@ -1,0 +1,10 @@
+{
+  "actor": "codex-pax",
+  "baseVersion": 1,
+  "path": "tasks/RS-001.md",
+  "next": {
+    "state": "claimed",
+    "owner": "codex-pax",
+    "updated_by": "codex-pax"
+  }
+}

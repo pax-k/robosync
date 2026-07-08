@@ -1,4 +1,9 @@
 import { env } from "@mdsync/env/server";
+import {
+	HA2HA_CONFLICT,
+	HA2HA_EVENT_TYPES,
+	HA2HA_HEADERS,
+} from "@mdsync/ha2ha-protocol";
 import type { EvlogVariables } from "evlog/hono";
 import { type Context, Hono } from "hono";
 import { z } from "zod";
@@ -19,19 +24,28 @@ import {
 import {
 	deleteObjectBestEffort,
 	fetchObjectText,
+	fetchObjectTextByKey,
 	getFile,
 	getWorkspace,
+	getWorkspaceFileVersion,
+	listWorkspaceEvents,
 	listWorkspaceFiles,
+	listWorkspaceFileVersions,
 	putFileObject,
 	readObjectBody,
+	type WorkspaceEventRow,
 	type WorkspaceFileRow,
+	type WorkspaceFileVersionRow,
 	type WorkspaceRow,
 } from "./storage";
 
 const DEFAULT_CONTENT_TYPE = "text/markdown; charset=utf-8";
 const INVALID_PERCENT_ESCAPE_PATTERN = /%(?![0-9A-Fa-f]{2})/;
 
+const actorSchema = z.string().trim().min(1).max(120);
+
 const createWorkspaceSchema = z.object({
+	actor: actorSchema.optional(),
 	files: z
 		.array(
 			z.object({
@@ -45,8 +59,6 @@ const createWorkspaceSchema = z.object({
 	title: z.string().min(1).max(200).optional(),
 	writeAccess: z.enum(["none", "public", "token"]).default("token"),
 });
-
-const actorSchema = z.string().trim().min(1).max(120);
 
 const updateFileSchema = z.object({
 	actor: actorSchema,
@@ -68,6 +80,7 @@ workspaceRoutes.post("/api/workspaces", async (c) => {
 		const parsed = createWorkspaceSchema.parse(await c.req.json());
 		assertValidAccess(parsed.readAccess, parsed.writeAccess);
 
+		const actor = parsed.actor ?? "workspace-create";
 		const id = createWorkspaceId();
 		const now = new Date().toISOString();
 		const r2Prefix = createR2Prefix(id);
@@ -123,10 +136,34 @@ workspaceRoutes.post("/api/workspaces", async (c) => {
 						file.contentType,
 						file.sizeBytes,
 						file.sha256,
-						null,
+						actor,
 						now,
 						now
 					)
+				),
+				...uploadedObjects.map((file) =>
+					createFileVersionStatement({
+						contentType: file.contentType,
+						createdAt: now,
+						objectKey: file.objectKey,
+						path: file.path,
+						sha256: file.sha256,
+						sizeBytes: file.sizeBytes,
+						updatedBy: actor,
+						version: 1,
+						workspaceId: id,
+					})
+				),
+				...uploadedObjects.map((file) =>
+					createWorkspaceEventStatement({
+						actor,
+						createdAt: now,
+						path: file.path,
+						payload: { sizeBytes: file.sizeBytes },
+						type: HA2HA_EVENT_TYPES.fileCreated,
+						version: 1,
+						workspaceId: id,
+					})
 				),
 			]);
 		} catch (error) {
@@ -178,6 +215,73 @@ workspaceRoutes.get("/api/workspaces/:workspaceId/tree", async (c) => {
 		return handleWorkspaceError(c, error);
 	}
 });
+
+workspaceRoutes.get("/api/workspaces/:workspaceId/events", async (c) => {
+	try {
+		const workspace = await requireWorkspace(c.req.param("workspaceId"));
+		await authorizeRead(workspace, c.req.raw);
+		const events = await listWorkspaceEvents(workspace.id);
+		return c.json({
+			events: events.map(serializeWorkspaceEvent),
+			workspaceId: workspace.id,
+		});
+	} catch (error) {
+		return handleWorkspaceError(c, error);
+	}
+});
+
+workspaceRoutes.get(
+	"/api/workspaces/:workspaceId/files/versions",
+	async (c) => {
+		try {
+			const workspace = await requireWorkspace(c.req.param("workspaceId"));
+			await authorizeRead(workspace, c.req.raw);
+			const path = normalizeFilePath(c.req.query("path") ?? "");
+			const versions = await listWorkspaceFileVersions(workspace.id, path);
+			return c.json({
+				path,
+				versions: versions.map(serializeFileVersionMetadata),
+				workspaceId: workspace.id,
+			});
+		} catch (error) {
+			return handleWorkspaceError(c, error);
+		}
+	}
+);
+
+workspaceRoutes.get(
+	"/api/workspaces/:workspaceId/files/versions/:version",
+	async (c) => {
+		try {
+			const workspace = await requireWorkspace(c.req.param("workspaceId"));
+			await authorizeRead(workspace, c.req.raw);
+			const path = normalizeFilePath(c.req.query("path") ?? "");
+			const version = Number(c.req.param("version"));
+			if (!(Number.isInteger(version) && version > 0)) {
+				throw new WorkspaceError(
+					400,
+					"invalid_version",
+					"File version must be a positive integer."
+				);
+			}
+			const fileVersion = await getWorkspaceFileVersion({
+				path,
+				version,
+				workspaceId: workspace.id,
+			});
+			if (!fileVersion) {
+				throw new WorkspaceError(
+					404,
+					"file_version_not_found",
+					"File version not found."
+				);
+			}
+			return c.json(await serializeHistoricalFile(fileVersion));
+		} catch (error) {
+			return handleWorkspaceError(c, error);
+		}
+	}
+);
 
 workspaceRoutes.get("/api/workspaces/:workspaceId/files", async (c) => {
 	try {
@@ -262,7 +366,29 @@ workspaceRoutes.put("/api/workspaces/:workspaceId/files", async (c) => {
 				sizeDelta: uploaded.sizeBytes - current.size_bytes,
 				workspaceId: workspace.id,
 			});
-			await deleteObjectBestEffort(current.object_key);
+			await env.DB.batch([
+				createFileVersionStatementFromRow(current),
+				createFileVersionStatement({
+					contentType: uploaded.contentType,
+					createdAt: now,
+					objectKey: uploaded.objectKey,
+					path,
+					sha256: uploaded.sha256,
+					sizeBytes: uploaded.sizeBytes,
+					updatedBy: parsed.actor,
+					version: current.version + 1,
+					workspaceId: workspace.id,
+				}),
+				createWorkspaceEventStatement({
+					actor: parsed.actor,
+					createdAt: now,
+					path,
+					payload: { baseVersion: parsed.baseVersion },
+					type: HA2HA_EVENT_TYPES.fileUpdated,
+					version: current.version + 1,
+					workspaceId: workspace.id,
+				}),
+			]);
 			return c.json({
 				path,
 				updatedAt: now,
@@ -273,13 +399,13 @@ workspaceRoutes.put("/api/workspaces/:workspaceId/files", async (c) => {
 		}
 
 		try {
-			await env.DB.prepare(
-				`insert into workspace_files (
+			await env.DB.batch([
+				env.DB.prepare(
+					`insert into workspace_files (
           workspace_id, path, object_key, content_type, size_bytes, sha256, version,
           updated_by, created_at, updated_at
         ) values (?, ?, ?, ?, ?, ?, 1, ?, ?, ?)`
-			)
-				.bind(
+				).bind(
 					workspace.id,
 					path,
 					uploaded.objectKey,
@@ -289,8 +415,28 @@ workspaceRoutes.put("/api/workspaces/:workspaceId/files", async (c) => {
 					parsed.actor,
 					now,
 					now
-				)
-				.run();
+				),
+				createFileVersionStatement({
+					contentType: uploaded.contentType,
+					createdAt: now,
+					objectKey: uploaded.objectKey,
+					path,
+					sha256: uploaded.sha256,
+					sizeBytes: uploaded.sizeBytes,
+					updatedBy: parsed.actor,
+					version: 1,
+					workspaceId: workspace.id,
+				}),
+				createWorkspaceEventStatement({
+					actor: parsed.actor,
+					createdAt: now,
+					path,
+					payload: { baseVersion: null },
+					type: HA2HA_EVENT_TYPES.fileCreated,
+					version: 1,
+					workspaceId: workspace.id,
+				}),
+			]);
 		} catch {
 			await deleteObjectBestEffort(uploaded.objectKey);
 			return c.json(await versionConflictPayload(workspace.id, path), 409);
@@ -338,7 +484,18 @@ workspaceRoutes.delete("/api/workspaces/:workspaceId/files", async (c) => {
 			sizeDelta: -current.size_bytes,
 			workspaceId: workspace.id,
 		});
-		await deleteObjectBestEffort(current.object_key);
+		await env.DB.batch([
+			createFileVersionStatementFromRow(current),
+			createWorkspaceEventStatement({
+				actor: parsed.actor,
+				createdAt: now,
+				path,
+				payload: { baseVersion: parsed.baseVersion },
+				type: HA2HA_EVENT_TYPES.fileDeleted,
+				version: current.version,
+				workspaceId: workspace.id,
+			}),
+		]);
 
 		return c.json({
 			deleted: true,
@@ -373,6 +530,20 @@ workspaceRoutes.get("/w/:workspaceId/raw", async (c) => {
 	}
 });
 
+workspaceRoutes.get("/w/:workspaceId/raw/events", async (c) => {
+	try {
+		const workspace = await requireWorkspace(c.req.param("workspaceId"));
+		await authorizeRead(workspace, c.req.raw);
+		const events = await listWorkspaceEvents(workspace.id);
+		return c.json({
+			events: events.map(serializeWorkspaceEvent),
+			workspaceId: workspace.id,
+		});
+	} catch (error) {
+		return handleWorkspaceError(c, error);
+	}
+});
+
 workspaceRoutes.get("/w/:workspaceId/raw/*", async (c) => {
 	try {
 		const workspaceId = c.req.param("workspaceId");
@@ -388,8 +559,8 @@ workspaceRoutes.get("/w/:workspaceId/raw/*", async (c) => {
 			headers: {
 				"Content-Type": file.content_type,
 				ETag: `"${file.version}"`,
-				"X-HA2HA-File-Version": String(file.version),
-				"X-HA2HA-Path": file.path,
+				[HA2HA_HEADERS.fileVersion]: String(file.version),
+				[HA2HA_HEADERS.path]: file.path,
 			},
 		});
 	} catch (error) {
@@ -537,6 +708,48 @@ function serializeWorkspace(workspace: WorkspaceRow) {
 	};
 }
 
+function serializeWorkspaceEvent(event: WorkspaceEventRow) {
+	return {
+		actor: event.actor,
+		createdAt: event.created_at,
+		id: event.id,
+		path: event.path,
+		payload: parseEventPayload(event.payload),
+		type: event.type,
+		version: event.version,
+		workspaceId: event.workspace_id,
+	};
+}
+
+function serializeFileVersionMetadata(fileVersion: WorkspaceFileVersionRow) {
+	return {
+		contentType: fileVersion.content_type,
+		createdAt: fileVersion.created_at,
+		path: fileVersion.path,
+		sha256: fileVersion.sha256,
+		sizeBytes: fileVersion.size_bytes,
+		updatedBy: fileVersion.updated_by,
+		version: fileVersion.version,
+		workspaceId: fileVersion.workspace_id,
+	};
+}
+
+async function serializeHistoricalFile(fileVersion: WorkspaceFileVersionRow) {
+	return {
+		...serializeFileVersionMetadata(fileVersion),
+		content: await fetchObjectTextByKey(fileVersion.object_key),
+	};
+}
+
+function parseEventPayload(payload: string) {
+	try {
+		const parsed: unknown = JSON.parse(payload);
+		return parsed && typeof parsed === "object" ? parsed : {};
+	} catch {
+		return {};
+	}
+}
+
 async function updateWorkspaceTotals({
 	fileCountDelta,
 	now,
@@ -557,12 +770,97 @@ async function updateWorkspaceTotals({
 		.run();
 }
 
+function createFileVersionStatement({
+	contentType,
+	createdAt,
+	objectKey,
+	path,
+	sha256,
+	sizeBytes,
+	updatedBy,
+	version,
+	workspaceId,
+}: {
+	contentType: string;
+	createdAt: string;
+	objectKey: string;
+	path: string;
+	sha256: string | null;
+	sizeBytes: number;
+	updatedBy: string | null;
+	version: number;
+	workspaceId: string;
+}) {
+	return env.DB.prepare(
+		`insert or ignore into workspace_file_versions (
+      workspace_id, path, version, object_key, content_type, size_bytes, sha256, updated_by, created_at
+    ) values (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+	).bind(
+		workspaceId,
+		path,
+		version,
+		objectKey,
+		contentType,
+		sizeBytes,
+		sha256,
+		updatedBy,
+		createdAt
+	);
+}
+
+function createFileVersionStatementFromRow(file: WorkspaceFileRow) {
+	return createFileVersionStatement({
+		contentType: file.content_type,
+		createdAt: file.updated_at,
+		objectKey: file.object_key,
+		path: file.path,
+		sha256: file.sha256,
+		sizeBytes: file.size_bytes,
+		updatedBy: file.updated_by,
+		version: file.version,
+		workspaceId: file.workspace_id,
+	});
+}
+
+function createWorkspaceEventStatement({
+	actor,
+	createdAt,
+	path,
+	payload,
+	type,
+	version,
+	workspaceId,
+}: {
+	actor: string | null;
+	createdAt: string;
+	path: string;
+	payload: Record<string, unknown>;
+	type: string;
+	version: number;
+	workspaceId: string;
+}) {
+	return env.DB.prepare(
+		`insert into workspace_events (
+      id, workspace_id, type, path, version, actor, created_at, payload
+    ) values (?, ?, ?, ?, ?, ?, ?, ?)`
+	).bind(
+		crypto.randomUUID(),
+		workspaceId,
+		type,
+		path,
+		version,
+		actor,
+		createdAt,
+		JSON.stringify(payload)
+	);
+}
+
 async function versionConflictPayload(workspaceId: string, path: string) {
 	const latest = await getFile(workspaceId, path);
 	return {
-		error: "version_conflict",
+		error: HA2HA_CONFLICT.error,
 		latest: latest ? await serializeLatestConflictFile(latest) : null,
-		message: "File changed since baseVersion.",
+		message: HA2HA_CONFLICT.message,
 	};
 }
 

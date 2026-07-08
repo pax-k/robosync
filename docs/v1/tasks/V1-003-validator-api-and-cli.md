@@ -2,7 +2,7 @@
 id: V1-003
 title: Add HA2HA validator API and CLI
 version: v1
-state: ready
+state: done
 priority: high
 depends_on: [V1-001, V1-002]
 area: tooling
@@ -11,7 +11,15 @@ acceptance:
   - CLI validates example workspaces from the repo.
   - Validator checks actor attribution, target coordinates, minimal claim metadata, and minimal evidence metadata for v1 examples.
   - Validator can be used without MDSync server or web app.
-evidence: []
+evidence:
+  - "2026-07-08: Added validator API in packages/ha2ha-protocol/src/validator.ts with structured path, ruleId, severity, message, and repairHint issues."
+  - "2026-07-08: Added validator CLI in packages/ha2ha-protocol/src/cli.ts through the package validate script."
+  - "2026-07-08: Added validator runtime tests covering all valid fixtures and named invalid fixtures with stable rule IDs."
+  - "2026-07-08: pnpm --filter @mdsync/ha2ha-protocol test passed."
+  - "2026-07-08: pnpm --filter @mdsync/ha2ha-protocol validate examples/valid/minimal-workspace examples/valid/multi-participant-task-workspace examples/valid/event-history-workspace returned ok true."
+  - "2026-07-08: pnpm --filter @mdsync/ha2ha-protocol validate examples/invalid/missing-manifest returned expected HA2HA_MISSING_MANIFEST failure."
+  - "2026-07-08: pnpm run check-types passed."
+  - "2026-07-08: pnpm run check passed."
 ---
 
 ## Intent

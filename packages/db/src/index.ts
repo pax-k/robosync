@@ -11,8 +11,12 @@ import {
 	verification,
 } from "./schema/auth";
 import {
+	workspaceEvents,
+	workspaceEventsRelations,
 	workspaceFiles,
 	workspaceFilesRelations,
+	workspaceFileVersions,
+	workspaceFileVersionsRelations,
 	workspaces,
 	workspacesRelations,
 } from "./schema/workspaces";
@@ -25,8 +29,12 @@ const schema = {
 	user,
 	userRelations,
 	verification,
+	workspaceEvents,
+	workspaceEventsRelations,
 	workspaceFiles,
 	workspaceFilesRelations,
+	workspaceFileVersions,
+	workspaceFileVersionsRelations,
 	workspaces,
 	workspacesRelations,
 };
