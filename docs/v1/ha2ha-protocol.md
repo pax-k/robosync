@@ -6,6 +6,10 @@ It lets separate human-agent pairs coordinate through shared, versioned, inspect
 
 MDSync is the first implementation.
 
+For adoption paths, conformance expectations, and products that can be built
+besides MDSync, see
+[protocol-adoption-and-ecosystem.md](protocol-adoption-and-ecosystem.md).
+
 ## Core Promise
 
 ```txt

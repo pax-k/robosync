@@ -18,7 +18,8 @@
   "scripts": {
     "check-types": "tsc -b",
     "conformance": "tsx src/cli.ts",
-    "test": "pnpm run check-types && tsx --test src/**/*.test.ts"
+    "test": "pnpm run check-types && tsx --test src/**/*.test.ts",
+    "test:integration": "pnpm run test"
   },
   "dependencies": {
     "@mdsync/ha2ha-protocol": "workspace:*"

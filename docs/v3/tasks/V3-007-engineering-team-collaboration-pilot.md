@@ -56,10 +56,18 @@ deployment systems remain external systems of action.
 - The pilot does not claim that HA2HA replaces Git, CI, issue tracking, chat, or
   deployment tools.
 
+## Test Requirements
+
+- Add an e2e or dogfood test proving two independent agent contexts and one human reviewer can coordinate through one workspace.
+- Add tests or scripted checks proving task completion is blocked when required evidence, review, approval, or check state is missing, stale, or failing.
+- Add conformance evidence proving the pilot preserves v1 file/version/conflict semantics while claiming v3 profiles.
+
 ## Verification
 
 ```bash
 rg -n "engineering-team|claim|handoff|evidence|review|approval|check" docs/v3
 pnpm run check
 pnpm run check-types
+pnpm run test
+pnpm run test:e2e
 ```

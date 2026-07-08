@@ -7,12 +7,14 @@
     "build": "tsc -b && vite build",
     "check-types": "tsc -b",
     "dev:bare": "vite --host 0.0.0.0 --port 5173",
-    "preview": "vite preview --host 0.0.0.0 --port 5173"
+    "preview": "vite preview --host 0.0.0.0 --port 5173",
+    "test": "pnpm run check-types && tsx --test src/**/*.test.ts"
   },
   "dependencies": {
     "@mdsync/ui": "workspace:*",
     "@mdxeditor/editor": "^4.0.4",
     "lucide-react": "catalog:",
+    "prismjs": "1.30.0",
     "react": "catalog:",
     "react-dom": "catalog:",
     "react-markdown": "^10.1.0",

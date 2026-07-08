@@ -32,9 +32,16 @@ Keep v3 extensible without making every implementation adopt every collaboration
 - v3 profile adoption remains partial and explicit.
 - Conformance expectations are clear enough for future validators.
 
+## Test Requirements
+
+- Add conformance tests for independently claimed profiles.
+- Add valid and invalid fixtures for each profile claim level.
+- Add migration fixture tests from v1/v2 data into claimed v3 profile records.
+
 ## Verification
 
 ```bash
 rg -n "Conformance Levels|migration|profile" docs/v3
 pnpm run check
+pnpm run test
 ```

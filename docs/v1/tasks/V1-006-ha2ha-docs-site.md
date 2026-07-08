@@ -18,7 +18,7 @@ evidence:
   - "`pnpm run check-types` passed on 2026-07-08."
   - "`pnpm run check` passed on 2026-07-08."
   - "Playwright screenshots captured after local dev-server QA: `output/playwright/ha2ha-desktop-1440.png` and `output/playwright/ha2ha-mobile-390.png`."
-  - "`apps/ha2ha` was wired into `packages/infra/alchemy.run.ts` as a Cloudflare Vite deployment target on 2026-07-08."
+  - "`apps/ha2ha` was wired into `packages/infra/alchemy.run.ts` as a Cloudflare Vite deployment target on 2026-07-08 and deployed to `https://mdsync-ha2ha-pax.pax.workers.dev`."
 ---
 
 ## Intent

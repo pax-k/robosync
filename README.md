@@ -9,6 +9,7 @@ This project started from Better-T-Stack and now uses a Vite React web app plus 
 ## Protocol And Product Docs
 
 - [Docs Index](docs/README.md)
+- [Testing Strategy](TESTING_STRATEGY.md)
 - [v0 Foundation And Demo Scope](docs/v0/README.md)
 - [HA2HA Protocol](docs/v1/ha2ha-protocol.md)
 - [MDSync Product Roadmap](docs/v2/product-roadmap.md)

@@ -32,8 +32,16 @@ Define who acted, what they were allowed to do, and which human authority stands
 - Trust profile is useful without mandating one auth provider.
 - Sensitive data handling rules are explicit.
 
+## Test Requirements
+
+- Add valid and invalid fixtures for principals, participants, roles, authority grants, delegation, and audit events.
+- Add negative tests proving secrets and raw tokens are rejected from manifests, logs, evidence, and audit events.
+- Add conformance tests once trust profile schemas exist.
+
 ## Verification
 
 ```bash
 rg -n "Trust Profile|delegation|authority|audit|secrets" docs/v3
+pnpm run check
+pnpm run test
 ```

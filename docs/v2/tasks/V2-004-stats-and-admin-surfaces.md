@@ -33,10 +33,18 @@ Give operators and workspace owners visibility into usage, health, and cleanup n
 - Operators can inspect workspace health and storage state.
 - Product-only stats do not become required protocol data.
 
+## Test Requirements
+
+- Add unit or integration tests for stats aggregation over files, versions, events, task state, and conflicts.
+- Add permission tests for admin-only actions once identity exists.
+- Add Playwright smoke coverage for admin visibility, empty states, and error states.
+
 ## Verification
 
 ```bash
 pnpm run check
 pnpm run check-types
+pnpm run test
+pnpm run test:e2e
 pnpm run build
 ```

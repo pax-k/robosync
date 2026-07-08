@@ -26,6 +26,10 @@ This sequencing lets teams dogfood pieces early without claiming that MDSync is
 ready for engineering-team governance before the protocol and product gates
 exist.
 
+For the broader product workflow catalog, including solo engineering and
+non-engineering workflows, see
+[../v2/high-impact-workflows.md](../v2/high-impact-workflows.md).
+
 ## Core Model
 
 Engineering teams use HA2HA as a shared work ledger around existing tools.

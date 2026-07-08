@@ -20,6 +20,7 @@ authority. v2 remains the MDSync product layer. v3 is future protocol direction.
 | --- | --- | --- | --- |
 | Encryption | Scoped yes | v2 product decision first, possible future protocol metadata later | Valuable for trust, but key ownership changes preview, raw routes, search, comments, and indexing. |
 | Real-time data | Scoped yes | Product event delivery over protocol event/history records | Useful for freshness, but HA2HA should not become a real-time editor or agent RPC protocol. |
+| Transport, validation, and methods | Strong yes | Cross-profile v3 contracts over v1 workspace semantics | Needed so implementations do not invent incompatible provisioning, action, validation, and failure behavior. |
 | Skills to offer | Strong yes | Agent adoption layer over v0/v1 workflows | Skills are the easiest way for agents to read, publish, update, and coordinate through HA2HA workspaces. |
 | Bundled scripts with skills | Scoped yes | Small audited reference scripts with explicit env vars and permissions | Scripts make skills reliable, but bundled executable code needs a low-trust install and review model. |
 | Webhooks and tunnels | Defer | Product integration adapters, not core protocol | Webhooks are useful after event semantics stabilize. Tunnels are useful for local dev, but risky as a default workflow. |
@@ -113,6 +114,62 @@ Decision questions:
   WebSockets after event semantics stabilize?
 - What must clients do after reconnect: replay events, refetch current files,
   or both?
+
+## Transport, Validation, And Methods
+
+Assessment: strong yes.
+
+v1 already defines an HTTP profile, file operation semantics, schemas,
+validators, and conformance checks. v3 should document which additional
+transport, validation, provisioning, and method contracts become portable
+profile behavior.
+
+This should be cross-profile instead of hidden inside coordination or
+engineering. Otherwise each profile will invent its own action names, failure
+classes, idempotency rules, validation output, and event expectations.
+
+Good v3 protocol scope:
+
+- optional workspace provisioning methods such as create, import, export,
+  snapshot, restore, and validate
+- method contracts for task claims, handoffs, evidence, reviews, questions,
+  approvals, checks, and decisions
+- shared failure classes for validation failures, version conflicts, authority
+  failures, state conflicts, missing evidence, unresolved reviews, unsupported
+  profiles, and human-input stops
+- offline validation output with stable rule IDs
+- live conformance checks for claimed profiles
+- optional delivery transports over durable event and history records
+
+Poor v3 protocol scope:
+
+- choosing or controlling an LLM provider
+- direct agent-to-agent RPC
+- agent runtime discovery
+- character-level collaborative editing
+- provider-specific GitHub, GitLab, Slack, Linear, or CI payloads
+- hidden state that cannot be rebuilt from workspace records
+
+Recommendation:
+
+- Keep v1 HTTP/file semantics as the base.
+- Add a cross-profile transport, validation, and method contract document.
+- Treat workspace provisioning as optional until a second implementation needs
+  it.
+- Treat method semantics as portable only when the persisted workspace effect
+  can be validated independently.
+- Let products expose methods through HTTP, CLI, MCP tools, local adapters,
+  skills, or UI commands, as long as the workspace records remain authoritative.
+
+Decision questions:
+
+- Which methods are generic enough for protocol ownership?
+- Should mutating methods require idempotency keys?
+- Should method attempts be recorded as operation records, event records, or
+  only as resulting file changes?
+- Should MCP tools be documented as an adapter over HA2HA methods?
+- Which failed-method details can be recorded without leaking secrets or
+  provider internals?
 
 ## Skills To Offer
 
@@ -262,6 +319,7 @@ These discussions should become decision records before implementation:
 
 - Encryption key ownership model.
 - Real-time delivery boundary and source-of-truth rule.
+- Transport, validation, provisioning, method, and failure-class boundaries.
 - Canonical first-party HA2HA/MDSync agent skills.
 - Script packaging and compatibility policy.
 - Webhook event model, signing, retries, and authority.

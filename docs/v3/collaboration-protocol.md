@@ -49,11 +49,18 @@ v3 should add protocol profiles over the v1 workspace substrate:
 
 ```txt
 v1 core workspace
+  + v3 transport, validation, and method contracts
   + v3 coordination profile
   + v3 trust profile
   + v3 evidence and review profile
   + v3 engineering profile
 ```
+
+Transport, validation, provisioning, method boundaries, and shared failure
+classes are captured in
+[transport-validation-methods.md](transport-validation-methods.md). Those
+contracts should remain cross-cutting so individual profiles do not invent
+incompatible action semantics.
 
 Each profile should have:
 
@@ -330,6 +337,13 @@ v3 should keep partial adoption possible:
 
 - `ha2ha-core`: v1 workspace, file, version, conflict, event, and history
   behavior.
+- `ha2ha-transport-http`: v1 HTTP profile plus any v3 transport additions.
+- `ha2ha-provisioning`: workspace create, import, export, snapshot, restore,
+  and preservation behavior.
+- `ha2ha-validation`: offline validator rules, fixtures, rule IDs, and profile
+  validation output.
+- `ha2ha-methods`: method schemas, preconditions, allowed write sets, failure
+  classes, event emission, evidence emission, and idempotency behavior.
 - `ha2ha-coordination`: work items, dependencies, claims, leases, handoffs,
   acceptance, questions, and approvals.
 - `ha2ha-trust`: participant identity, roles, delegation, authority grants, and
@@ -352,6 +366,7 @@ HA2HA v3 should own:
 - event types
 - conflict, claim, handoff, review, approval, and evidence semantics
 - profile conformance requirements
+- cross-profile method and failure semantics
 
 Products should own:
 

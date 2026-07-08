@@ -2,7 +2,9 @@
 
 ## Goal
 
-Define future HA2HA profiles for broad human-agent collaboration: coordination, trust/delegation, evidence/review, engineering references, conformance, and migration from v1/v2.
+Define future HA2HA profiles for broad human-agent collaboration: transport,
+validation, methods, coordination, trust/delegation, evidence/review,
+engineering references, conformance, and migration from v1/v2.
 
 ## Current State
 
@@ -14,12 +16,14 @@ Define future HA2HA profiles for broad human-agent collaboration: coordination, 
 ## Execution Order
 
 1. Convert open questions into decision records.
-2. Define the coordination profile.
-3. Define the trust and delegation profile.
-4. Define the evidence and review profile.
-5. Define the engineering profile.
-6. Add profile conformance and migration guidance.
-7. Run an engineering-team collaboration pilot over the validated profiles.
+2. Define transport, validation, provisioning, method, and failure-class
+   contracts.
+3. Define the coordination profile.
+4. Define the trust and delegation profile.
+5. Define the evidence and review profile.
+6. Define the engineering profile.
+7. Add profile conformance and migration guidance.
+8. Run an engineering-team collaboration pilot over the validated profiles.
 
 ## Tasks
 
@@ -30,10 +34,13 @@ Define future HA2HA profiles for broad human-agent collaboration: coordination, 
 - [V3-005 Engineering Profile](tasks/V3-005-engineering-profile.md)
 - [V3-006 Profile Conformance And Migration](tasks/V3-006-profile-conformance-and-migration.md)
 - [V3-007 Engineering Team Collaboration Pilot](tasks/V3-007-engineering-team-collaboration-pilot.md)
+- [V3-008 Transport Validation Method Contracts](tasks/V3-008-transport-validation-method-contracts.md)
 
 ## Done Definition
 
 - v3 decisions are captured before schema work starts.
+- Cross-profile transport, validation, method, provisioning, and failure-class
+  contracts are defined before individual profiles depend on them.
 - Each profile has vocabulary, file conventions, schema direction, examples, and conformance expectations.
 - Profiles remain optional and independently conformable.
 - v3 does not weaken v1 core workspace semantics.
@@ -45,6 +52,6 @@ Define future HA2HA profiles for broad human-agent collaboration: coordination, 
 ## Verification Commands
 
 ```bash
-rg -n "Open Decisions|coordination|trust|evidence|engineering|conformance" docs/v3
+rg -n "Open Decisions|transport|validation|methods|coordination|trust|evidence|engineering|conformance" docs/v3
 pnpm run check
 ```

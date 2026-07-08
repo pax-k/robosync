@@ -22,6 +22,9 @@ Markdown hosting is the entry point. HA2HA-compatible synchronization is the
 collaboration primitive. The hosted app, CLI, and agent skills are the product
 packaging that make the primitive usable by real teams.
 
+For workflow examples where the product should create a meaningful before/after
+difference, see [high-impact-workflows.md](high-impact-workflows.md).
+
 ## Use Case Ladder
 
 ### 1. Publish One Markdown Artifact

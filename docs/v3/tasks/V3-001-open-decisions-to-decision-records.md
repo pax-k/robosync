@@ -33,8 +33,14 @@ Prevent v3 from becoming vague future scope by recording decisions before implem
 - v3 profile work has clear decision authority.
 - Unresolved decisions remain visible and blocking where appropriate.
 
+## Test Requirements
+
+- Add docs validation or searchable checks proving each open decision has owner, options, recommendation, accepted outcome or blocking state, and scope.
+- Keep schema or conformance tests blocked until the relevant decision record is accepted.
+
 ## Verification
 
 ```bash
 rg -n "Open Decisions|accepted|decision" docs/v3
+pnpm run check
 ```

@@ -1,4 +1,3 @@
-import { env } from "@mdsync/env/server";
 import {
 	HA2HA_CONFLICT,
 	HA2HA_EVENT_TYPES,
@@ -7,6 +6,7 @@ import {
 import type { EvlogVariables } from "evlog/hono";
 import { type Context, Hono } from "hono";
 import { z } from "zod";
+import { workspaceBindings } from "./bindings";
 import {
 	assertValidAccess,
 	buildWorkspaceUrls,
@@ -104,42 +104,46 @@ workspaceRoutes.post("/api/workspaces", async (c) => {
 				(total, file) => total + file.sizeBytes,
 				0
 			);
-			await env.DB.batch([
-				env.DB.prepare(
-					`insert into workspaces (
+			await workspaceBindings().DB.batch([
+				workspaceBindings()
+					.DB.prepare(
+						`insert into workspaces (
             id, title, read_access, write_access, read_token_hash, write_token_hash, r2_prefix,
             file_count, total_size_bytes, created_at, updated_at, last_accessed_at
           ) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, null)`
-				).bind(
-					id,
-					parsed.title ?? null,
-					parsed.readAccess,
-					parsed.writeAccess,
-					readTokenHash,
-					writeTokenHash,
-					r2Prefix,
-					uploadedObjects.length,
-					totalSizeBytes,
-					now,
-					now
-				),
+					)
+					.bind(
+						id,
+						parsed.title ?? null,
+						parsed.readAccess,
+						parsed.writeAccess,
+						readTokenHash,
+						writeTokenHash,
+						r2Prefix,
+						uploadedObjects.length,
+						totalSizeBytes,
+						now,
+						now
+					),
 				...uploadedObjects.map((file) =>
-					env.DB.prepare(
-						`insert into workspace_files (
+					workspaceBindings()
+						.DB.prepare(
+							`insert into workspace_files (
               workspace_id, path, object_key, content_type, size_bytes, sha256, version,
               updated_by, created_at, updated_at
             ) values (?, ?, ?, ?, ?, ?, 1, ?, ?, ?)`
-					).bind(
-						id,
-						file.path,
-						file.objectKey,
-						file.contentType,
-						file.sizeBytes,
-						file.sha256,
-						actor,
-						now,
-						now
-					)
+						)
+						.bind(
+							id,
+							file.path,
+							file.objectKey,
+							file.contentType,
+							file.sizeBytes,
+							file.sha256,
+							actor,
+							now,
+							now
+						)
 				),
 				...uploadedObjects.map((file) =>
 					createFileVersionStatement({
@@ -182,7 +186,7 @@ workspaceRoutes.post("/api/workspaces", async (c) => {
 					origin: new URL(c.req.url).origin,
 					readAccess: parsed.readAccess,
 					readToken,
-					webOrigin: env.WEB_ORIGIN,
+					webOrigin: workspaceBindings().WEB_ORIGIN,
 					writeAccess: parsed.writeAccess,
 				}),
 			},
@@ -336,12 +340,13 @@ workspaceRoutes.put("/api/workspaces/:workspaceId/files", async (c) => {
 		});
 
 		if (current) {
-			const result = await env.DB.prepare(
-				`update workspace_files
+			const result = await workspaceBindings()
+				.DB.prepare(
+					`update workspace_files
          set object_key = ?, content_type = ?, size_bytes = ?, sha256 = ?,
              version = version + 1, updated_by = ?, updated_at = ?
          where workspace_id = ? and path = ? and version = ?`
-			)
+				)
 				.bind(
 					uploaded.objectKey,
 					uploaded.contentType,
@@ -366,7 +371,7 @@ workspaceRoutes.put("/api/workspaces/:workspaceId/files", async (c) => {
 				sizeDelta: uploaded.sizeBytes - current.size_bytes,
 				workspaceId: workspace.id,
 			});
-			await env.DB.batch([
+			await workspaceBindings().DB.batch([
 				createFileVersionStatementFromRow(current),
 				createFileVersionStatement({
 					contentType: uploaded.contentType,
@@ -399,23 +404,25 @@ workspaceRoutes.put("/api/workspaces/:workspaceId/files", async (c) => {
 		}
 
 		try {
-			await env.DB.batch([
-				env.DB.prepare(
-					`insert into workspace_files (
+			await workspaceBindings().DB.batch([
+				workspaceBindings()
+					.DB.prepare(
+						`insert into workspace_files (
           workspace_id, path, object_key, content_type, size_bytes, sha256, version,
           updated_by, created_at, updated_at
         ) values (?, ?, ?, ?, ?, ?, 1, ?, ?, ?)`
-				).bind(
-					workspace.id,
-					path,
-					uploaded.objectKey,
-					uploaded.contentType,
-					uploaded.sizeBytes,
-					uploaded.sha256,
-					parsed.actor,
-					now,
-					now
-				),
+					)
+					.bind(
+						workspace.id,
+						path,
+						uploaded.objectKey,
+						uploaded.contentType,
+						uploaded.sizeBytes,
+						uploaded.sha256,
+						parsed.actor,
+						now,
+						now
+					),
 				createFileVersionStatement({
 					contentType: uploaded.contentType,
 					createdAt: now,
@@ -468,9 +475,10 @@ workspaceRoutes.delete("/api/workspaces/:workspaceId/files", async (c) => {
 		const parsed = deleteFileSchema.parse(await parseOptionalJson(c.req.raw));
 		const current = await requireFile(workspace.id, path);
 		const now = new Date().toISOString();
-		const result = await env.DB.prepare(
-			"delete from workspace_files where workspace_id = ? and path = ? and version = ?"
-		)
+		const result = await workspaceBindings()
+			.DB.prepare(
+				"delete from workspace_files where workspace_id = ? and path = ? and version = ?"
+			)
 			.bind(workspace.id, path, parsed.baseVersion)
 			.run();
 
@@ -484,7 +492,7 @@ workspaceRoutes.delete("/api/workspaces/:workspaceId/files", async (c) => {
 			sizeDelta: -current.size_bytes,
 			workspaceId: workspace.id,
 		});
-		await env.DB.batch([
+		await workspaceBindings().DB.batch([
 			createFileVersionStatementFromRow(current),
 			createWorkspaceEventStatement({
 				actor: parsed.actor,
@@ -761,11 +769,12 @@ async function updateWorkspaceTotals({
 	sizeDelta: number;
 	workspaceId: string;
 }) {
-	await env.DB.prepare(
-		`update workspaces
+	await workspaceBindings()
+		.DB.prepare(
+			`update workspaces
      set file_count = file_count + ?, total_size_bytes = total_size_bytes + ?, updated_at = ?
      where id = ?`
-	)
+		)
 		.bind(fileCountDelta, sizeDelta, now, workspaceId)
 		.run();
 }
@@ -791,21 +800,23 @@ function createFileVersionStatement({
 	version: number;
 	workspaceId: string;
 }) {
-	return env.DB.prepare(
-		`insert or ignore into workspace_file_versions (
+	return workspaceBindings()
+		.DB.prepare(
+			`insert or ignore into workspace_file_versions (
       workspace_id, path, version, object_key, content_type, size_bytes, sha256, updated_by, created_at
     ) values (?, ?, ?, ?, ?, ?, ?, ?, ?)`
-	).bind(
-		workspaceId,
-		path,
-		version,
-		objectKey,
-		contentType,
-		sizeBytes,
-		sha256,
-		updatedBy,
-		createdAt
-	);
+		)
+		.bind(
+			workspaceId,
+			path,
+			version,
+			objectKey,
+			contentType,
+			sizeBytes,
+			sha256,
+			updatedBy,
+			createdAt
+		);
 }
 
 function createFileVersionStatementFromRow(file: WorkspaceFileRow) {
@@ -839,20 +850,22 @@ function createWorkspaceEventStatement({
 	version: number;
 	workspaceId: string;
 }) {
-	return env.DB.prepare(
-		`insert into workspace_events (
+	return workspaceBindings()
+		.DB.prepare(
+			`insert into workspace_events (
       id, workspace_id, type, path, version, actor, created_at, payload
     ) values (?, ?, ?, ?, ?, ?, ?, ?)`
-	).bind(
-		crypto.randomUUID(),
-		workspaceId,
-		type,
-		path,
-		version,
-		actor,
-		createdAt,
-		JSON.stringify(payload)
-	);
+		)
+		.bind(
+			crypto.randomUUID(),
+			workspaceId,
+			type,
+			path,
+			version,
+			actor,
+			createdAt,
+			JSON.stringify(payload)
+		);
 }
 
 async function versionConflictPayload(workspaceId: string, path: string) {

@@ -33,10 +33,18 @@ Add asynchronous human discussion without turning comments into v1 protocol scop
 - Comments survive file changes without ambiguous anchors.
 - HA2HA conformance does not depend on comments.
 
+## Test Requirements
+
+- Add data and route tests for comments anchored to workspace, path, version, and optional selector.
+- Add regression tests proving changed files do not silently move comment anchors.
+- Add Playwright coverage for creating, listing, resolving, and inspecting comments.
+
 ## Verification
 
 ```bash
 pnpm run check
 pnpm run check-types
+pnpm run test
+pnpm run test:e2e
 pnpm run build
 ```

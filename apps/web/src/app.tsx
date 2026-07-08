@@ -29,11 +29,15 @@ import {
 import type { MarkdownEditorError } from "./components/markdown-editor";
 import { MarkdownPreview } from "./components/markdown-preview";
 
-const MarkdownEditor = lazy(() =>
-	import("./components/markdown-editor").then((module) => ({
-		default: module.MarkdownEditor,
-	}))
-);
+const MarkdownEditor = lazy(async () => {
+	const prismModule = await import("prismjs");
+	(globalThis as { Prism?: unknown }).Prism =
+		prismModule.default ?? prismModule;
+
+	const module = await import("./components/markdown-editor");
+
+	return { default: module.MarkdownEditor };
+});
 
 type AccessMode = "public" | "token";
 type WriteAccessMode = "none" | "public" | "token";

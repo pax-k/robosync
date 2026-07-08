@@ -32,8 +32,16 @@ Make delegation, claiming, handoff, review, and completion portable across HA2HA
 - Coordination can be claimed independently from trust, review, or engineering profiles.
 - A simple v1 workspace does not need this profile.
 
+## Test Requirements
+
+- Add valid and invalid fixtures for claims, leases, handoffs, blockers, dependencies, acceptance criteria, questions, and approvals.
+- Add validator or conformance tests once coordination schemas exist.
+- Add regression coverage proving coordination claims preserve v1 file conflict behavior.
+
 ## Verification
 
 ```bash
 rg -n "Coordination Profile|claim|handoff|acceptance|approval" docs/v3
+pnpm run check
+pnpm run test
 ```

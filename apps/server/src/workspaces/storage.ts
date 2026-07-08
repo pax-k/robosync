@@ -1,5 +1,4 @@
-import { env } from "@mdsync/env/server";
-
+import { workspaceBindings } from "./bindings";
 import {
 	contentSizeBytes,
 	createObjectKey,
@@ -71,7 +70,7 @@ export interface WorkspaceTreeFile {
 
 export async function deleteObjectBestEffort(objectKey: string) {
 	try {
-		await env.FILES.delete(objectKey);
+		await workspaceBindings().FILES.delete(objectKey);
 	} catch {
 		// Cleanup is best-effort; callers preserve the canonical D1 state.
 	}
@@ -82,7 +81,7 @@ export function fetchObjectText(file: WorkspaceFileRow) {
 }
 
 export async function fetchObjectTextByKey(objectKey: string) {
-	const object = await env.FILES.get(objectKey);
+	const object = await workspaceBindings().FILES.get(objectKey);
 	if (!object) {
 		throw new WorkspaceError(
 			500,
@@ -102,42 +101,46 @@ export function getWorkspaceFileVersion({
 	version: number;
 	workspaceId: string;
 }) {
-	return env.DB.prepare(
-		`select workspace_id, path, version, object_key, content_type, size_bytes, sha256, updated_by, created_at
+	return workspaceBindings()
+		.DB.prepare(
+			`select workspace_id, path, version, object_key, content_type, size_bytes, sha256, updated_by, created_at
      from workspace_file_versions
      where workspace_id = ? and path = ? and version = ?`
-	)
+		)
 		.bind(workspaceId, path, version)
 		.first<WorkspaceFileVersionRow>();
 }
 
 export function getFile(workspaceId: string, path: string) {
-	return env.DB.prepare(
-		`select workspace_id, path, object_key, content_type, size_bytes, sha256, version, updated_by, created_at, updated_at
+	return workspaceBindings()
+		.DB.prepare(
+			`select workspace_id, path, object_key, content_type, size_bytes, sha256, version, updated_by, created_at, updated_at
      from workspace_files
      where workspace_id = ? and path = ?`
-	)
+		)
 		.bind(workspaceId, path)
 		.first<WorkspaceFileRow>();
 }
 
 export function getWorkspace(id: string) {
-	return env.DB.prepare(
-		`select id, title, read_access, write_access, read_token_hash, write_token_hash, r2_prefix, file_count, total_size_bytes, created_at, updated_at, last_accessed_at
+	return workspaceBindings()
+		.DB.prepare(
+			`select id, title, read_access, write_access, read_token_hash, write_token_hash, r2_prefix, file_count, total_size_bytes, created_at, updated_at, last_accessed_at
      from workspaces
      where id = ?`
-	)
+		)
 		.bind(id)
 		.first<WorkspaceRow>();
 }
 
 export async function listWorkspaceFiles(workspaceId: string) {
-	const { results } = await env.DB.prepare(
-		`select path, content_type, version, updated_by, updated_at
+	const { results } = await workspaceBindings()
+		.DB.prepare(
+			`select path, content_type, version, updated_by, updated_at
      from workspace_files
      where workspace_id = ?
      order by path asc`
-	)
+		)
 		.bind(workspaceId)
 		.all<{
 			content_type: string;
@@ -159,12 +162,13 @@ export async function listWorkspaceFiles(workspaceId: string) {
 }
 
 export async function listWorkspaceEvents(workspaceId: string) {
-	const { results } = await env.DB.prepare(
-		`select id, workspace_id, type, path, version, actor, created_at, payload
+	const { results } = await workspaceBindings()
+		.DB.prepare(
+			`select id, workspace_id, type, path, version, actor, created_at, payload
      from workspace_events
      where workspace_id = ?
      order by created_at asc, id asc`
-	)
+		)
 		.bind(workspaceId)
 		.all<WorkspaceEventRow>();
 
@@ -175,12 +179,13 @@ export async function listWorkspaceFileVersions(
 	workspaceId: string,
 	path: string
 ) {
-	const { results } = await env.DB.prepare(
-		`select workspace_id, path, version, object_key, content_type, size_bytes, sha256, updated_by, created_at
+	const { results } = await workspaceBindings()
+		.DB.prepare(
+			`select workspace_id, path, version, object_key, content_type, size_bytes, sha256, updated_by, created_at
      from workspace_file_versions
      where workspace_id = ? and path = ?
      order by version asc`
-	)
+		)
 		.bind(workspaceId, path)
 		.all<WorkspaceFileVersionRow>();
 
@@ -202,7 +207,7 @@ export async function putFileObject({
 	const sha256 = await sha256Hex(content);
 	const sizeBytes = contentSizeBytes(content);
 
-	await env.FILES.put(objectKey, content, {
+	await workspaceBindings().FILES.put(objectKey, content, {
 		customMetadata: {
 			path,
 			sha256,
@@ -223,7 +228,7 @@ export async function putFileObject({
 }
 
 export async function readObjectBody(file: WorkspaceFileRow) {
-	const object = await env.FILES.get(file.object_key);
+	const object = await workspaceBindings().FILES.get(file.object_key);
 	if (!object) {
 		throw new WorkspaceError(
 			500,

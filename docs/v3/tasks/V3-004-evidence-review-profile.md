@@ -33,8 +33,16 @@ Make proof, feedback, questions, and approvals portable rather than product-priv
 - Evidence and review records can be exchanged between implementations.
 - Product review UI remains separate from portable record semantics.
 
+## Test Requirements
+
+- Add valid and invalid fixtures for evidence records, check results, review anchors, questions, responses, and approvals.
+- Add tests proving review anchors use stable workspace coordinates.
+- Add conformance coverage proving blocking review semantics compose with the coordination profile.
+
 ## Verification
 
 ```bash
 rg -n "Evidence And Review Profile|review|question|approval|workspaceId" docs/v3
+pnpm run check
+pnpm run test
 ```

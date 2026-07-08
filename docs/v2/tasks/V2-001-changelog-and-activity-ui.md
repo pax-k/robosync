@@ -33,10 +33,18 @@ Turn protocol events into a useful human-facing changelog.
 - Users can inspect recent workspace changes.
 - Event presentation remains separate from the protocol record shape.
 
+## Test Requirements
+
+- Add integration tests for event listing, filtering, and grouping over v1 event data.
+- Add Playwright coverage for activity UI file, actor, type, and time filters.
+- Add regression coverage proving product-only activity presentation does not mutate the HA2HA event record shape.
+
 ## Verification
 
 ```bash
 pnpm run check
 pnpm run check-types
+pnpm run test
+pnpm run test:e2e
 pnpm run build
 ```

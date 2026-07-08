@@ -10,7 +10,10 @@
     }
   },
   "scripts": {
-    "db:generate": "drizzle-kit generate"
+    "check-types": "tsc -b",
+    "db:generate": "drizzle-kit generate",
+    "test": "pnpm run check-types && tsx --test src/**/*.test.ts",
+    "test:integration": "pnpm run test"
   },
   "dependencies": {
     "@libsql/client": "0.17.4",

@@ -7,7 +7,8 @@
     "build": "tsc -b && vite build",
     "check-types": "tsc -b",
     "dev": "vite --host 0.0.0.0 --port 5174",
-    "preview": "vite preview --host 0.0.0.0 --port 5174"
+    "preview": "vite preview --host 0.0.0.0 --port 5174",
+    "test": "pnpm run check-types && tsx --test src/**/*.test.ts"
   },
   "dependencies": {
     "@mdsync/ha2ha-protocol": "workspace:*",

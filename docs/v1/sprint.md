@@ -11,7 +11,7 @@ Turn HA2HA from documented direction into an enforceable protocol with reusable 
 - `packages/ha2ha-http` runs the HA2HA HTTP conformance suite against mock and live targets.
 - MDSync is the first measured conformance target for core workspace, workspace convention, HTTP, event, and file-history profiles.
 - Deployed MDSync conformance passes at `https://mdsync-server-pax.pax.workers.dev`.
-- `apps/ha2ha` publishes the protocol docs independently from MDSync product UX.
+- `apps/ha2ha` publishes the protocol docs independently from MDSync product UX at `https://mdsync-ha2ha-pax.pax.workers.dev`.
 - Event and file-history capabilities are protocol-level v1 work, not v2 product UI.
 - The core HA2HA agent skill alpha exists as a repo-local Codex skill package.
 
@@ -25,6 +25,7 @@ Turn HA2HA from documented direction into an enforceable protocol with reusable 
 6. Build the HA2HA docs site.
 7. Publish MDSync conformance evidence.
 8. Ship a core HA2HA agent skill alpha over the validated protocol surface.
+9. Backfill automated regression tests for existing v0/v1 behavior.
 
 ## Tasks
 
@@ -36,6 +37,7 @@ Turn HA2HA from documented direction into an enforceable protocol with reusable 
 - [V1-006 HA2HA Docs Site](tasks/V1-006-ha2ha-docs-site.md)
 - [V1-007 MDSync Conformance Evidence](tasks/V1-007-mdsync-conformance-evidence.md)
 - [V1-008 Core HA2HA Agent Skill Alpha](tasks/V1-008-core-ha2ha-agent-skill-alpha.md)
+- [V1-009 Automated Regression Backfill](tasks/V1-009-automated-regression-backfill.md)
 
 ## Done Definition
 
@@ -52,6 +54,8 @@ Turn HA2HA from documented direction into an enforceable protocol with reusable 
 - Conformance evidence identifies the exact MDSync profile claims.
 - A core agent skill alpha proves publish, read, update, conflict, status, task,
   and evidence workflows without claiming v3 engineering-team governance.
+- Existing done behavior has automated regression coverage or a documented
+  live-harness gap.
 
 ## Verification Commands
 
@@ -59,6 +63,8 @@ Turn HA2HA from documented direction into an enforceable protocol with reusable 
 pnpm run check
 pnpm run check-types
 pnpm run build
+pnpm run test
+pnpm run test:e2e
 pnpm --filter @mdsync/ha2ha-protocol test
 pnpm --filter @mdsync/ha2ha-http test
 HA2HA_BASE_URL=http://localhost:3000 pnpm --filter @mdsync/ha2ha-http conformance

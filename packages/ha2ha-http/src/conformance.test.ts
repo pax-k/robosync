@@ -29,7 +29,15 @@ interface MockFileVersion extends MockFile {
 	workspaceId: string;
 }
 
-const createMockFetch = (): typeof fetch => {
+interface MockFetchOptions {
+	disableEventsRoute?: boolean;
+	disableFileHistoryRoute?: boolean;
+	failCreate?: boolean;
+	invalidConflictResponse?: boolean;
+	omitRawFileHeaders?: boolean;
+}
+
+const createMockFetch = (options: MockFetchOptions = {}): typeof fetch => {
 	const events: MockEvent[] = [];
 	const files = new Map<string, MockFile>();
 	const fileVersions = new Map<string, MockFileVersion[]>();
@@ -41,6 +49,9 @@ const createMockFetch = (): typeof fetch => {
 		const method = init?.method ?? "GET";
 
 		if (method === "POST" && url.pathname === "/api/workspaces") {
+			if (options.failCreate) {
+				return respond(jsonResponse({ error: "create_failed" }, 500));
+			}
 			const body = parseBody(init);
 			workspaceId = "mock-workspace";
 			const inputFiles = Array.isArray(body.files) ? body.files : [];
@@ -99,6 +110,9 @@ const createMockFetch = (): typeof fetch => {
 		}
 
 		if (method === "GET" && url.pathname === `/w/${workspaceId}/raw/events`) {
+			if (options.disableEventsRoute) {
+				return respond(jsonResponse({ error: "not_found" }, 404));
+			}
 			return respond(jsonResponse({ events, workspaceId }));
 		}
 
@@ -107,14 +121,15 @@ const createMockFetch = (): typeof fetch => {
 				url.pathname.slice(`/w/${workspaceId}/raw/`.length)
 			);
 			const file = requireFile(files, filePath);
-			return respond(
-				textResponse(file.content, 200, {
-					"Content-Type": file.contentType,
-					ETag: `"${file.version}"`,
-					"X-HA2HA-File-Version": String(file.version),
-					"X-HA2HA-Path": filePath,
-				})
-			);
+			const headers: Record<string, string> = {
+				"Content-Type": file.contentType,
+			};
+			if (!options.omitRawFileHeaders) {
+				headers.ETag = `"${file.version}"`;
+				headers["X-HA2HA-File-Version"] = String(file.version);
+				headers["X-HA2HA-Path"] = filePath;
+			}
+			return respond(textResponse(file.content, 200, headers));
 		}
 
 		if (
@@ -136,6 +151,9 @@ const createMockFetch = (): typeof fetch => {
 			method === "GET" &&
 			url.pathname === `/api/workspaces/${workspaceId}/events`
 		) {
+			if (options.disableEventsRoute) {
+				return respond(jsonResponse({ error: "not_found" }, 404));
+			}
 			return respond(jsonResponse({ events, workspaceId }));
 		}
 
@@ -143,6 +161,9 @@ const createMockFetch = (): typeof fetch => {
 			method === "GET" &&
 			url.pathname === `/api/workspaces/${workspaceId}/files/versions`
 		) {
+			if (options.disableFileHistoryRoute) {
+				return respond(jsonResponse({ error: "not_found" }, 404));
+			}
 			const filePath = String(url.searchParams.get("path"));
 			return respond(
 				jsonResponse({
@@ -159,6 +180,9 @@ const createMockFetch = (): typeof fetch => {
 			method === "GET" &&
 			url.pathname.startsWith(`/api/workspaces/${workspaceId}/files/versions/`)
 		) {
+			if (options.disableFileHistoryRoute) {
+				return respond(jsonResponse({ error: "not_found" }, 404));
+			}
 			const filePath = String(url.searchParams.get("path"));
 			const version = Number(
 				url.pathname.slice(
@@ -207,6 +231,20 @@ const createMockFetch = (): typeof fetch => {
 			const filePath = String(body.path);
 			const current = files.get(filePath);
 			if (current && body.baseVersion !== current.version) {
+				if (options.invalidConflictResponse) {
+					return respond(
+						jsonResponse(
+							{
+								error: "version_conflict",
+								latest: {
+									path: filePath,
+								},
+								message: "File changed since baseVersion.",
+							},
+							409
+						)
+					);
+				}
 				return respond(
 					jsonResponse(
 						{
@@ -317,6 +355,64 @@ test("HTTP conformance passes against a conforming mock implementation", async (
 	);
 });
 
+test("HTTP conformance records a failed create and stops dependent checks", async () => {
+	const result = await runHa2haHttpConformance({
+		baseUrl: "http://mock.local",
+		fetch: createMockFetch({ failCreate: true }),
+	});
+
+	assert.equal(result.ok, false);
+	assert.deepEqual(
+		result.checks.map((check) => check.id),
+		["workspace.create"]
+	);
+	assert.equal(getCheck(result, "workspace.create").ok, false);
+});
+
+test("HTTP conformance fails when raw file headers are missing", async () => {
+	const result = await runHa2haHttpConformance({
+		baseUrl: "http://mock.local",
+		fetch: createMockFetch({ omitRawFileHeaders: true }),
+	});
+
+	assert.equal(result.ok, false);
+	assert.equal(getCheck(result, "raw.file.headers").ok, false);
+});
+
+test("HTTP conformance fails invalid conflict response shapes", async () => {
+	const result = await runHa2haHttpConformance({
+		baseUrl: "http://mock.local",
+		fetch: createMockFetch({ invalidConflictResponse: true }),
+	});
+
+	assert.equal(result.ok, false);
+	assert.equal(getCheck(result, "file.update.conflict").ok, false);
+});
+
+test("HTTP conformance reports missing event profile routes", async () => {
+	const result = await runHa2haHttpConformance({
+		baseUrl: "http://mock.local",
+		fetch: createMockFetch({ disableEventsRoute: true }),
+	});
+
+	assert.equal(result.ok, false);
+	assert.equal(getCheck(result, "workspace.create").ok, true);
+	assert.equal(getCheck(result, "events.read").ok, false);
+	assert.equal(getCheck(result, "events.raw-read").ok, false);
+});
+
+test("HTTP conformance reports missing file-history profile routes", async () => {
+	const result = await runHa2haHttpConformance({
+		baseUrl: "http://mock.local",
+		fetch: createMockFetch({ disableFileHistoryRoute: true }),
+	});
+
+	assert.equal(result.ok, false);
+	assert.equal(getCheck(result, "workspace.create").ok, true);
+	assert.equal(getCheck(result, "file-history.list").ok, false);
+	assert.equal(getCheck(result, "file-history.read").ok, false);
+});
+
 const parseBody = (init?: RequestInit): Record<string, unknown> => {
 	if (typeof init?.body !== "string") {
 		return {};
@@ -372,4 +468,13 @@ const requireFile = (
 		throw new Error(`Missing mock file ${filePath}.`);
 	}
 	return file;
+};
+
+const getCheck = (
+	result: Awaited<ReturnType<typeof runHa2haHttpConformance>>,
+	id: string
+) => {
+	const check = result.checks.find((candidate) => candidate.id === id);
+	assert.ok(check, `Missing check ${id}`);
+	return check;
 };

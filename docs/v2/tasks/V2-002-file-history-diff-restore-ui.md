@@ -33,10 +33,18 @@ Make v1 durable file history useful to humans.
 - File history UI works over protocol file-version data.
 - Restore behavior is auditable and creates a new current version.
 
+## Test Requirements
+
+- Add integration tests for file-version listing and historical file reads.
+- Add unit tests for diff and restore planning if restore logic is extracted from UI code.
+- Add Playwright coverage proving restore creates a new current version without mutating immutable history.
+
 ## Verification
 
 ```bash
 pnpm run check
 pnpm run check-types
+pnpm run test
+pnpm run test:e2e
 pnpm run build
 ```

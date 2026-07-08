@@ -5,7 +5,8 @@
   "scripts": {
     "build": "tsdown",
     "check-types": "tsc -b",
-    "compile": "bun build --compile --minify --sourcemap --bytecode ./src/index.ts --outfile server"
+    "compile": "bun build --compile --minify --sourcemap --bytecode ./src/index.ts --outfile server",
+    "test": "pnpm run check-types && tsx --test src/**/*.test.ts"
   },
   "dependencies": {
     "@hono/trpc-server": "^0.4.2",
@@ -23,6 +24,7 @@
   },
   "devDependencies": {
     "@cloudflare/workers-types": "catalog:",
+    "@libsql/client": "0.17.4",
     "@mdsync/config": "workspace:*",
     "@types/node": "^22.13.14",
     "alchemy": "catalog:",

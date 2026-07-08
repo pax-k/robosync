@@ -33,10 +33,19 @@ Mature access control while preserving v0 capability-link simplicity where it st
 - Users can rotate and revoke capabilities safely.
 - Identity is product scope unless a future protocol version standardizes it.
 
+## Test Requirements
+
+- Add integration tests for read and edit token rotation and revocation.
+- Add regression tests proving old tokens fail and new tokens work after rotation.
+- Add assertions or log/evidence checks proving raw tokens are not stored in plaintext or emitted in logs/evidence.
+- Add session tests only for product behavior introduced by this task.
+
 ## Verification
 
 ```bash
 pnpm run check
 pnpm run check-types
+pnpm run test
+pnpm run test:e2e
 pnpm run build
 ```

@@ -33,8 +33,14 @@ Avoid adding encryption as a vague toggle without deciding what MDSync can inspe
 - Product and security tradeoffs are explicit.
 - No encryption code is added before the decision exists.
 
+## Test Requirements
+
+- Record the required implementation test plan in the encryption decision before opening code tasks.
+- Do not add encryption code in this task; later implementation tasks must name unit, integration, and e2e tests for the chosen model.
+
 ## Verification
 
 ```bash
 rg -n "Encryption|key ownership|server-managed|end-to-end" docs/v2
+pnpm run check
 ```

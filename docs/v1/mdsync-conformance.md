@@ -27,7 +27,7 @@ Current machine-readable evidence:
 - Result: passing
 - Checks: 17 passing, 0 failing
 - Deployed target URL: `https://mdsync-server-pax.pax.workers.dev`
-- Deployed timestamp: `2026-07-08T18:58:02.431Z`
+- Deployed timestamp: `2026-07-08T18:59:41.248Z`
 - Deployed result: passing
 - Deployed checks: 17 passing, 0 failing
 

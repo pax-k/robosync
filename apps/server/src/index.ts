@@ -12,7 +12,10 @@ import { type EvlogVariables, evlog } from "evlog/hono";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 
+import { setWorkspaceBindings } from "./workspaces/bindings";
 import { workspaceRoutes } from "./workspaces/routes";
+
+setWorkspaceBindings(env);
 
 initLogger({
 	env: { service: "mdsync-server" },

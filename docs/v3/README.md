@@ -22,6 +22,7 @@ not enough for broad collaboration. v3 adds the missing protocol profiles.
 - [sprint.md](sprint.md)
 - [tasks/](tasks/)
 - [collaboration-protocol.md](collaboration-protocol.md)
+- [transport-validation-methods.md](transport-validation-methods.md)
 - [engineering-team-workflows.md](engineering-team-workflows.md)
 - [open-discussions.md](open-discussions.md)
 
@@ -30,6 +31,9 @@ not enough for broad collaboration. v3 adds the missing protocol profiles.
 HA2HA v3 should preserve the v1 promise that shared state remains visible as
 files, while adding optional profiles for:
 
+- transport, validation, and methods: provisioning, optional delivery
+  transports, offline validation, live conformance, operation semantics, and
+  shared failure classes.
 - coordination: richer work items, dependencies, claims, handoffs, review, and
   approvals.
 - trust: participant identity, authority, delegation, scoped permissions, and

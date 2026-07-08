@@ -52,10 +52,18 @@ while agents continue to use the portable v1 workflow.
 - Remaining needs for claims, leases, trust/delegation, approvals, engineering
   references, and required checks are forwarded to v3.
 
+## Test Requirements
+
+- Add an e2e pilot test or scripted dogfood run with one human reviewer and two separate agent contexts.
+- Add tests proving activity, history, comments, token or identity status, task state, and evidence are inspectable in the product UI.
+- Add evidence proving the pilot uses v1 HA2HA skill workflows instead of product-private agent behavior.
+
 ## Verification
 
 ```bash
 rg -n "team-workspace|activity|history|comments|identity|evidence" docs/v2 docs/v3
 pnpm run check
 pnpm run check-types
+pnpm run test
+pnpm run test:e2e
 ```

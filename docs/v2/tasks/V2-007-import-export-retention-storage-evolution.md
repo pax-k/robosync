@@ -33,10 +33,17 @@ Make MDSync durable and operable without prematurely increasing storage complexi
 - Product data can be exported and retained predictably.
 - Storage evolution is justified by evidence, not architectural preference.
 
+## Test Requirements
+
+- Add round-trip import/export fixture tests for canonical protocol paths, manifests, file contents, events, file history, comments, and evidence where available.
+- Add retention and cleanup integration tests for expired records and orphaned objects.
+- Add migration or storage tests before pursuing per-workspace D1.
+
 ## Verification
 
 ```bash
 pnpm run check
 pnpm run check-types
+pnpm run test
 pnpm run build
 ```
