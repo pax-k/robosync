@@ -4,6 +4,27 @@
 
 v0 starts with one application D1 database and one R2 bucket.
 
+V2 keeps this baseline. Import/export, comments, admin events, retention policy,
+and cleanup are implemented on the existing app D1 plus R2 topology. There is no
+current isolation or scale evidence that justifies provisioning one D1 database
+per workspace.
+
+## V2 Import Export And Retention
+
+The current topology supports product durability without a storage split:
+
+- export reads current file rows, file-version rows, HA2HA protocol events,
+  product comments, product admin events, and corresponding R2 object contents
+- import writes a new workspace into the same app D1, uploads new R2 objects,
+  and assigns fresh capability links
+- retention policy is exposed as product metadata to write-capability holders
+- cleanup prunes selected old rows and explicit orphan object keys under the
+  workspace R2 prefix
+
+This proves the product behavior first. Per-workspace D1 remains a future
+migration only if the simpler topology fails an isolation, export, or scale
+requirement.
+
 ## Per-Workspace D1
 
 Per-workspace D1 is a later architecture option for stronger isolation, cleaner per-workspace export, or scale needs.

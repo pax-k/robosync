@@ -8,10 +8,15 @@ HA2HA v1 defines shared workspace semantics, event/history protocol data, schema
 
 MDSync v2 turns those primitives into product experiences: dashboards, file-history UI, diff/restore UI, comments, admin tools, identity, encryption UX, and storage evolution.
 
+MDSync skills are product adoption artifacts. They may use HA2HA protocol
+primitives, but hosted routes, tokens, dashboards, comments, history, provider
+sync, and team-pilot onboarding remain MDSync product scope.
+
 ## Files
 
 - [sprint.md](sprint.md)
 - [tasks/](tasks/)
+- [client-sdk.md](client-sdk.md)
 - [product-use-cases.md](product-use-cases.md)
 - [high-impact-workflows.md](high-impact-workflows.md)
 - [product-roadmap.md](product-roadmap.md)
@@ -20,3 +25,5 @@ MDSync v2 turns those primitives into product experiences: dashboards, file-hist
 - [product-data-model.md](product-data-model.md)
 - [storage-evolution.md](storage-evolution.md)
 - [security-and-identity.md](security-and-identity.md)
+- [encryption-ux-decision.md](encryption-ux-decision.md)
+- [team-workspace-pilot.md](team-workspace-pilot.md)

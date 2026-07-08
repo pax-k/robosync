@@ -2,7 +2,7 @@
 
 ## Goal
 
-Turn HA2HA from documented direction into an enforceable protocol with reusable packages, schemas, examples, validators, HTTP conformance checks, event/history profiles, a public docs site, and measured MDSync conformance.
+Turn HA2HA from documented direction into an enforceable protocol with reusable packages, schemas, examples, validators, HTTP conformance checks, event/history profiles, a public docs site, measured MDSync conformance, and an honest external developer adoption path.
 
 ## Current State
 
@@ -14,6 +14,15 @@ Turn HA2HA from documented direction into an enforceable protocol with reusable 
 - `apps/ha2ha` publishes the protocol docs independently from MDSync product UX at `https://mdsync-ha2ha-pax.pax.workers.dev`.
 - Event and file-history capabilities are protocol-level v1 work, not v2 product UI.
 - The core HA2HA agent skill alpha exists as a repo-local Codex skill package.
+- No installable HA2HA or MDSync first-party skill package exists yet. The
+  current skill surface is the repo-local alpha under
+  `docs/v1/skills/core-ha2ha-agent-alpha`.
+- Developer package adoption is not yet externally ready. On 2026-07-08,
+  `@mdsync/ha2ha-protocol` and `@mdsync/ha2ha-http` were repo-local packages:
+  npm registry lookup returned `404`, and `npm pack --dry-run --json` failed
+  because both package manifests lacked `version`.
+- No `@ha2ha/client` package exists yet. SDK-like methods are documented only as
+  target contracts, not shipped public APIs.
 
 ## Execution Order
 
@@ -26,6 +35,9 @@ Turn HA2HA from documented direction into an enforceable protocol with reusable 
 7. Publish MDSync conformance evidence.
 8. Ship a core HA2HA agent skill alpha over the validated protocol surface.
 9. Backfill automated regression tests for existing v0/v1 behavior.
+10. Harden HA2HA packages for external developer adoption.
+11. Package first-party HA2HA protocol skills for installation.
+12. Document and ship the HA2HA client SDK.
 
 ## Tasks
 
@@ -38,6 +50,9 @@ Turn HA2HA from documented direction into an enforceable protocol with reusable 
 - [V1-007 MDSync Conformance Evidence](tasks/V1-007-mdsync-conformance-evidence.md)
 - [V1-008 Core HA2HA Agent Skill Alpha](tasks/V1-008-core-ha2ha-agent-skill-alpha.md)
 - [V1-009 Automated Regression Backfill](tasks/V1-009-automated-regression-backfill.md)
+- [V1-010 HA2HA Developer Package Adoption Readiness](tasks/V1-010-developer-package-adoption-readiness.md)
+- [V1-011 HA2HA Installable Skill Package](tasks/V1-011-ha2ha-installable-skill-package.md)
+- [V1-012 HA2HA Client SDK](tasks/V1-012-ha2ha-client-sdk.md)
 
 ## Done Definition
 
@@ -56,6 +71,13 @@ Turn HA2HA from documented direction into an enforceable protocol with reusable 
   and evidence workflows without claiming v3 engineering-team governance.
 - Existing done behavior has automated regression coverage or a documented
   live-harness gap.
+- Public package claims distinguish repo-local/source-level availability from
+  installable registry or tarball availability, with package dry-run and
+  empty-project install evidence before claiming easy external adoption.
+- First-party skill claims distinguish the repo-local alpha from an installable
+  HA2HA skill package, with package validation and at least one dogfood trial.
+- HA2HA client SDK claims distinguish target adapter contracts from a shipped
+  `@ha2ha/client` package, with install smoke and conformance or dogfood proof.
 
 ## Verification Commands
 

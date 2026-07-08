@@ -59,6 +59,10 @@ Implementations may expose these contracts over HTTP, CLI, MCP tools, local
 filesystem adapters, product UIs, or agent skills. The protocol authority
 remains the workspace records, schemas, validators, and conformance evidence.
 
+For concrete integration modes across coding agents, hosted agent frameworks,
+local-first folders, MDSync skills, and provider-sync adapters, see
+[agent-harness-integration-playbooks.md](agent-harness-integration-playbooks.md).
+
 ## Relationship To v1
 
 v1 owns the required base layer:

@@ -173,6 +173,9 @@ not protocol authority.
 
 The v1 alpha Codex skill package is
 [skills/core-ha2ha-agent-alpha/SKILL.md](skills/core-ha2ha-agent-alpha/SKILL.md).
+It is repo-local evidence, not the final installable HA2HA skill distribution.
+The installable package work is tracked in
+[tasks/V1-011-ha2ha-installable-skill-package.md](tasks/V1-011-ha2ha-installable-skill-package.md).
 
 ## Import, Export, And Snapshot Preservation
 

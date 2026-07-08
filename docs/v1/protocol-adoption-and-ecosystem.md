@@ -93,6 +93,12 @@ This level is useful for:
 - local workspace repair
 - product import/export validation
 
+Current status as of 2026-07-08: this level exists as a repo-local package
+foundation, not as an easy external install. `packages/ha2ha-protocol` has
+constants, schemas, examples, validator APIs, tests, and a CLI script, but
+`@mdsync/ha2ha-protocol` is not published to npm and its package manifest is not
+yet release-ready.
+
 ### 3. HTTP Profile
 
 Expose a workspace through deterministic HTTP semantics:
@@ -107,6 +113,11 @@ Expose a workspace through deterministic HTTP semantics:
 - actor attribution on mutating writes
 
 This level makes an implementation agent-friendly without requiring MDSync.
+
+Current status as of 2026-07-08: this level exists as repo-local conformance
+tooling. `packages/ha2ha-http` can run HTTP conformance against mock and live
+targets, but `@mdsync/ha2ha-http` is not published to npm and its package
+manifest is not yet release-ready.
 
 ### 4. Event And History Profiles
 
@@ -138,6 +149,13 @@ Skills should not hide state outside the workspace. Mutating skills should
 declare allowed paths, token or identity scope, conflict handling, evidence
 output, and stop conditions.
 
+Current status as of 2026-07-08: the core HA2HA agent skill alpha exists as a
+repo-local Codex skill package under `docs/v1/skills/core-ha2ha-agent-alpha`.
+It is useful for proving the workflow, but it is not yet a packaged,
+installable cross-agent skill distribution. Track the portable HA2HA skill
+package in
+[tasks/V1-011-ha2ha-installable-skill-package.md](tasks/V1-011-ha2ha-installable-skill-package.md).
+
 ### 6. Optional v3 Profiles
 
 Adopt only the profiles the product actually needs:
@@ -154,6 +172,56 @@ Adopt only the profiles the product actually needs:
 Partial adoption is a requirement. A customer onboarding product should not
 need the engineering profile. An engineering product should not need to invent
 its own non-portable task and evidence model.
+
+## Developer Package Readiness
+
+The protocol package foundation is real, but easy external adoption requires
+release artifacts beyond monorepo workspace packages.
+
+Package readiness means:
+
+- the intended public package scope is the protocol split: `@ha2ha/*` for
+  portable HA2HA packages and `@mdsync/*` for hosted product packages
+- package manifests include release metadata, stable built exports, type
+  declarations, `bin` entries, package `files`, and publish policy
+- package READMEs explain why to install each package independently
+- `npm pack --dry-run --json` passes for each publishable package
+- an empty-project smoke test installs the packed tarballs or registry packages
+  and imports the public APIs without monorepo `workspace:*` resolution
+- validator and HTTP conformance commands work outside this repository
+- public docs distinguish repo-local package availability from registry package
+  availability
+- client SDK claims are backed by an actual `@ha2ha/client` package, install
+  smoke, and dogfood or conformance evidence
+
+The first planned public package split should stay small:
+
+- `@ha2ha/protocol`: v1 constants, schemas, types, examples, validator API,
+  and validator CLI
+- `@ha2ha/http`: HTTP profile helpers and conformance runner
+- `@ha2ha/client`: portable high-level operations such as
+  `readWorkspace`, `claimTask`, `addEvidence`, and `handoff`
+- future skill packages: Codex, Claude Code, Cursor, or other agent-surface
+  instruction packs over the same protocol records
+
+The current repo-local package names still use `@mdsync/ha2ha-protocol` and
+`@mdsync/ha2ha-http`; those names are implementation evidence, not the desired
+public protocol namespace.
+
+Skill packages should also split by authority:
+
+- HA2HA skill package: protocol-only, portable across local folders and
+  conformant implementations, with no dependency on MDSync product UX.
+- MDSync skill package: product-specific, allowed to know hosted routes,
+  tokens, dashboards, comments, history, provider sync, and team-pilot UX.
+
+Do not market high-level model, harness, SDK, or skill packages as shipped until
+they exist as installable artifacts with tests, examples, and conformance or
+trial evidence. Track this gap in
+[tasks/V1-010-developer-package-adoption-readiness.md](tasks/V1-010-developer-package-adoption-readiness.md).
+
+For the portable client SDK boundary, see [client-sdk.md](client-sdk.md) and
+[tasks/V1-012-ha2ha-client-sdk.md](tasks/V1-012-ha2ha-client-sdk.md).
 
 ## How A New Implementation Claims Support
 

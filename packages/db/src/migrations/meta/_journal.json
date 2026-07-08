@@ -15,6 +15,20 @@
       "when": 1783535454000,
       "tag": "0001_ha2ha_events_history",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1783540800000,
+      "tag": "0002_comments",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1783544400000,
+      "tag": "0003_workspace_admin_events",
+      "breakpoints": true
     }
   ]
 }

@@ -16,6 +16,7 @@ Implementation-specific infrastructure belongs outside normative protocol docs. 
 - [tasks/](tasks/)
 - [ha2ha-protocol.md](ha2ha-protocol.md)
 - [protocol-adoption-and-ecosystem.md](protocol-adoption-and-ecosystem.md)
+- [client-sdk.md](client-sdk.md)
 - [workspace-conventions.md](workspace-conventions.md)
 - [http-profile.md](http-profile.md)
 - [task-claim-idempotency-and-races.md](task-claim-idempotency-and-races.md)
@@ -42,3 +43,6 @@ Implementation-specific infrastructure belongs outside normative protocol docs. 
 - event/history protocol profiles
 - `X-HA2HA-*` headers
 - schemas, examples, validators, and conformance tests
+- package readiness evidence before public installability claims
+- installable HA2HA skill-package evidence before skill adoption claims
+- HA2HA client SDK evidence before `@ha2ha/client` adoption claims

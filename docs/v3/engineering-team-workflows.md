@@ -48,6 +48,11 @@ internal agents, or custom automation. The common layer is not a shared agent
 runtime. The common layer is a versioned, human-inspectable workspace plus
 skills that teach each agent how to read and write it safely.
 
+For concrete adapter modes and real-world playbooks across Codex, Claude Code,
+Cloudflare Agents SDK, Vercel eve, Vercel AI SDK, Mastra, and internal
+harnesses, see
+[agent-harness-integration-playbooks.md](agent-harness-integration-playbooks.md).
+
 ## Actors
 
 - Engineering lead: creates or governs the workspace, approves sensitive work,

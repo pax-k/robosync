@@ -24,6 +24,8 @@ packaging that make the primitive usable by real teams.
 
 For workflow examples where the product should create a meaningful before/after
 difference, see [high-impact-workflows.md](high-impact-workflows.md).
+For heterogeneous agent and framework integration playbooks, see
+[../v3/agent-harness-integration-playbooks.md](../v3/agent-harness-integration-playbooks.md).
 
 ## Use Case Ladder
 
@@ -184,6 +186,11 @@ The short answer: introduce the full engineering-team use case in v3. Ship the
 skill and product prerequisites earlier so v3 is a credible launch instead of a
 large speculative jump.
 
+The V2 limited team-workspace pilot is recorded in
+[team-workspace-pilot.md](team-workspace-pilot.md). It proves human visibility
+over repo-local v1 alpha skill workflows, but it does not claim installable
+skill packaging or v3 engineering-team profile conformance.
+
 ### HA2HA Protocol
 
 HA2HA owns portable workspace semantics: file layout, versions, conflict
@@ -231,6 +238,32 @@ First-party skills should cover:
 
 Each mutating skill should state which paths it may edit, which tokens it
 requires, how it handles conflicts, and what evidence it leaves behind.
+
+Current status as of 2026-07-08: first-party skills are not yet packaged for
+installation. The only concrete skill artifact is the repo-local v1
+`core-ha2ha-agent-alpha` skill. MDSync needs a dedicated product skill package
+separate from the portable HA2HA protocol skill package:
+
+- HA2HA skills: protocol-only workflows for local folders or conformant
+  implementations.
+- MDSync skills: hosted product workflows for MDSync routes, tokens, dashboards,
+  comments, history, provider sync, and team-pilot onboarding.
+
+Track the product skill package in
+[tasks/V2-009-mdsync-installable-skill-package.md](tasks/V2-009-mdsync-installable-skill-package.md).
+
+### Client SDKs
+
+Client SDKs should split the same way as skills:
+
+- `@ha2ha/client`: portable protocol SDK for local folders and conformant HA2HA
+  implementations.
+- `@mdsync/client`: hosted product SDK for MDSync routes, tokens, dashboards,
+  comments, history, provider sync, and team-pilot onboarding.
+
+The MDSync client may wrap the HA2HA client, but the HA2HA client must not
+depend on MDSync product behavior. Track the product client SDK in
+[tasks/V2-010-mdsync-client-sdk.md](tasks/V2-010-mdsync-client-sdk.md).
 
 ### Provider Adapters
 

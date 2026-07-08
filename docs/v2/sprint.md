@@ -2,14 +2,26 @@
 
 ## Goal
 
-Build product experiences on top of v0 and v1: changelog, file history, diff/restore, comments, stats, admin, token/identity UX, encryption decisions, import/export, retention, and storage evolution.
+Build product experiences on top of v0 and v1: changelog, file history, diff/restore, comments, stats, admin, token/identity UX, encryption decisions, import/export, retention, storage evolution, and installable MDSync agent skills.
 
 ## Current State
 
 - v2 roadmap and product docs exist.
-- v2 product features are not implemented.
-- v1 event/history protocol data should exist before building related product UI.
-- Comments, users, sessions, file locks, encryption UX, and per-workspace D1 remain product scope.
+- V2-001 activity UI, V2-002 file history/diff/restore UI, V2-003
+  comments UI/data, V2-004 stats/admin surfaces, V2-005 token rotation and
+  revocation UX, V2-006 encryption UX decision, V2-007 import/export plus
+  manual retention, and V2-008 limited team-workspace pilot are implemented.
+- Per-workspace D1 remains deferred because current V2 import/export and
+  retention evidence does not show an isolation or scale requirement. Users and
+  sessions remain deferred until capability links no longer satisfy product
+  needs.
+- No dedicated MDSync installable skill package exists yet. V2-008 uses the
+  repo-local v1 HA2HA alpha skill and documents V1-011/V2-009 packaging gaps.
+- No dedicated installable MDSync skill package exists yet. Current skill
+  evidence is the v1 repo-local HA2HA alpha, which is protocol-oriented rather
+  than a hosted MDSync product skill pack.
+- No `@mdsync/client` package exists yet. Hosted product SDK behavior is planned
+  but not shipped.
 
 ## Execution Order
 
@@ -21,6 +33,8 @@ Build product experiences on top of v0 and v1: changelog, file history, diff/res
 6. Decide encryption UX.
 7. Add import/export, retention, and storage evolution.
 8. Package a limited team-workspace product pilot over v1 skills and v2 UX.
+9. Package first-party MDSync product skills for installation.
+10. Document and ship the MDSync client SDK.
 
 ## Tasks
 
@@ -32,6 +46,8 @@ Build product experiences on top of v0 and v1: changelog, file history, diff/res
 - [V2-006 Encryption UX Decision](tasks/V2-006-encryption-ux-decision.md)
 - [V2-007 Import Export Retention Storage Evolution](tasks/V2-007-import-export-retention-storage-evolution.md)
 - [V2-008 Team Workspace Product Pilot](tasks/V2-008-team-workspace-product-pilot.md)
+- [V2-009 MDSync Installable Skill Package](tasks/V2-009-mdsync-installable-skill-package.md)
+- [V2-010 MDSync Client SDK](tasks/V2-010-mdsync-client-sdk.md)
 
 ## Done Definition
 
@@ -42,6 +58,10 @@ Build product experiences on top of v0 and v1: changelog, file history, diff/res
 - Product features have verification evidence before completion.
 - The team-workspace pilot improves human visibility and governance, but does
   not claim full v3 engineering-team profile conformance.
+- MDSync skill-package claims distinguish hosted product workflows from portable
+  HA2HA protocol skills and document token, identity, and product-route scope.
+- MDSync client SDK claims distinguish hosted product integration from portable
+  HA2HA protocol integration and include local or deployed dogfood evidence.
 
 ## Verification Commands
 

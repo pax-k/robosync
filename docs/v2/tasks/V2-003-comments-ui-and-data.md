@@ -2,7 +2,7 @@
 id: V2-003
 title: Add comments UI and product data
 version: v2
-state: ready
+state: done
 priority: medium
 depends_on: [V2-002]
 area: product
@@ -10,7 +10,22 @@ acceptance:
   - Comments are anchored to workspace, path, version, and optional selector.
   - Comments are documented as MDSync product data, not HA2HA v1 protocol.
   - Comment UI handles changed files without silently moving anchors.
-evidence: []
+evidence:
+  - "2026-07-08: Added comments product migration packages/db/src/migrations/0002_comments.sql with workspace/path/version anchors, optional anchor_json, body, author_id, and resolution fields."
+  - "2026-07-08: Updated packages/db/src/schema/workspaces.ts and schema tests so comments require existing workspace_file_versions anchors and cascade with workspace history."
+  - "2026-07-08: Added product routes GET/POST /api/workspaces/:workspaceId/comments and POST /api/workspaces/:workspaceId/comments/:commentId/resolve in apps/server/src/workspaces/routes.ts."
+  - "2026-07-08: Added route tests proving comments can be created, listed, resolved, and remain anchored to v1 after the file advances to v2."
+  - "2026-07-08: Added Comments UI in apps/web/src/app.tsx for listing, creating, resolving, and inspecting version-anchored comments."
+  - "2026-07-08: Added Playwright coverage for creating, listing, resolving, and inspecting a comment after the file changes."
+  - "2026-07-08: Updated docs/v2/product-data-model.md to document comments as MDSync product data, not HA2HA protocol data."
+  - "2026-07-08: pnpm --filter @mdsync/db test passed."
+  - "2026-07-08: pnpm --filter server test passed."
+  - "2026-07-08: pnpm --filter web test passed."
+  - "2026-07-08: pnpm run check passed."
+  - "2026-07-08: pnpm run check-types passed."
+  - "2026-07-08: pnpm run test passed."
+  - "2026-07-08: pnpm run test:e2e passed."
+  - "2026-07-08: pnpm run build passed."
 ---
 
 ## Intent
@@ -20,6 +35,7 @@ Add asynchronous human discussion without turning comments into v1 protocol scop
 ## Current Evidence
 
 - [../product-data-model.md](../product-data-model.md) defines a comments table shape.
+- [../product-data-model.md](../product-data-model.md) documents resolution fields as product state.
 - v3 may later revisit comments as protocol review data.
 
 ## Work

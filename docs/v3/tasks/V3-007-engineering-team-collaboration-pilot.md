@@ -4,7 +4,7 @@ title: Run engineering team collaboration pilot
 version: v3
 state: ready
 priority: high
-depends_on: [V3-002, V3-003, V3-004, V3-005, V3-006, V1-008, V2-008]
+depends_on: [V3-002, V3-003, V3-004, V3-005, V3-006, V3-009, V3-010, V1-008, V2-008]
 area: product-protocol-pilot
 acceptance:
   - Pilot workspace claims coordination, trust, evidence/review, and engineering profiles.
@@ -31,6 +31,11 @@ deployment systems remain external systems of action.
   profile target.
 - [../engineering-team-workflows.md](../engineering-team-workflows.md) describes
   the team workflow and v3 introduction point.
+- [../agent-harness-integration-playbooks.md](../agent-harness-integration-playbooks.md)
+  maps Codex, Claude Code, Cloudflare Agents SDK, Vercel eve, Vercel AI SDK,
+  Mastra, and internal harnesses to integration modes.
+- [../governance-audit-proof-of-work.md](../governance-audit-proof-of-work.md)
+  defines the governance, audit, proof-of-work, and blind-spot direction.
 - [../../v2/product-use-cases.md](../../v2/product-use-cases.md) defines the
   product ladder and says the full engineering-team use case belongs in v3.
 
