@@ -30,9 +30,11 @@ This directory is split by release horizon and authority.
 - [v1 sprint](v1/sprint.md)
 - [v1 tasks](v1/tasks/)
 - [v2 product roadmap](v2/product-roadmap.md)
+- [v2 product use cases](v2/product-use-cases.md)
 - [v2 sprint](v2/sprint.md)
 - [v2 tasks](v2/tasks/)
 - [v3 collaboration protocol target](v3/collaboration-protocol.md)
+- [v3 engineering team workflows](v3/engineering-team-workflows.md)
 - [v3 sprint](v3/sprint.md)
 - [v3 tasks](v3/tasks/)
 

@@ -388,8 +388,8 @@ workspaceRoutes.get("/w/:workspaceId/raw/*", async (c) => {
 			headers: {
 				"Content-Type": file.content_type,
 				ETag: `"${file.version}"`,
-				"X-Robosync-Path": file.path,
-				"X-Robosync-Version": String(file.version),
+				"X-HA2HA-File-Version": String(file.version),
+				"X-HA2HA-Path": file.path,
 			},
 		});
 	} catch (error) {

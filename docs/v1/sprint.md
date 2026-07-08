@@ -20,6 +20,7 @@ Turn HA2HA from documented direction into an enforceable protocol with reusable 
 5. Add event and file-history persistence/routes to MDSync.
 6. Build the HA2HA docs site.
 7. Publish MDSync conformance evidence.
+8. Ship a core HA2HA agent skill alpha over the validated protocol surface.
 
 ## Tasks
 
@@ -30,6 +31,7 @@ Turn HA2HA from documented direction into an enforceable protocol with reusable 
 - [V1-005 MDSync Events And File History](tasks/V1-005-mdsync-events-and-file-history.md)
 - [V1-006 HA2HA Docs Site](tasks/V1-006-ha2ha-docs-site.md)
 - [V1-007 MDSync Conformance Evidence](tasks/V1-007-mdsync-conformance-evidence.md)
+- [V1-008 Core HA2HA Agent Skill Alpha](tasks/V1-008-core-ha2ha-agent-skill-alpha.md)
 
 ## Done Definition
 
@@ -39,6 +41,8 @@ Turn HA2HA from documented direction into an enforceable protocol with reusable 
 - MDSync persists protocol events and durable file versions when claiming those profiles.
 - `apps/ha2ha` documents protocol use without depending on MDSync internals.
 - Conformance evidence identifies the exact MDSync profile claims.
+- A core agent skill alpha proves publish, read, update, conflict, status, task,
+  and evidence workflows without claiming v3 engineering-team governance.
 
 ## Verification Commands
 

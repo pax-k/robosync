@@ -6,11 +6,13 @@ import { type server } from "@mdsync/infra/alchemy.run";
 export type CloudflareEnv = typeof server.Env;
 
 declare global {
-  type Env = CloudflareEnv;
+	type Env = CloudflareEnv;
 }
 
 declare module "cloudflare:workers" {
-  namespace Cloudflare {
-    export interface Env extends CloudflareEnv {}
-  }
+	// biome-ignore lint/style/noNamespace: Cloudflare Workers types expose env through this namespace augmentation.
+	namespace Cloudflare {
+		// biome-ignore lint/suspicious/noShadow: This intentionally augments Cloudflare.Env, distinct from the global Env alias.
+		export interface Env extends CloudflareEnv {}
+	}
 }

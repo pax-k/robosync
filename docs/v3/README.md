@@ -22,6 +22,8 @@ not enough for broad collaboration. v3 adds the missing protocol profiles.
 - [sprint.md](sprint.md)
 - [tasks/](tasks/)
 - [collaboration-protocol.md](collaboration-protocol.md)
+- [engineering-team-workflows.md](engineering-team-workflows.md)
+- [open-discussions.md](open-discussions.md)
 
 ## v3 Protocol Target
 

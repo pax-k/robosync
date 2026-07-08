@@ -123,7 +123,7 @@ export function formatRawListing({
 	updatedAt: string;
 }) {
 	const header = [
-		`# robosync workspace: ${id}`,
+		`# ha2ha workspace: ${id}`,
 		`title: ${title ?? id}`,
 		`updated_at: ${updatedAt}`,
 		"",

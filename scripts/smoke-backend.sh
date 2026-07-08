@@ -63,16 +63,17 @@ json_assert '
 
 echo "Reading raw listing..."
 raw_listing="$(curl -fsS "$raw_url")"
-printf "%s" "$raw_listing" | grep -q "README.md"
-printf "%s" "$raw_listing" | grep -q "TODO.md"
+grep -q "# ha2ha workspace: $workspace_id" <<<"$raw_listing"
+grep -q "README.md" <<<"$raw_listing"
+grep -q "TODO.md" <<<"$raw_listing"
 
 echo "Reading raw file with version headers..."
 raw_headers="$tmp_dir/raw.headers"
 raw_body="$tmp_dir/raw.body"
 curl -fsS -D "$raw_headers" -o "$raw_body" "$(url_with_path "$raw_url" "README.md")"
 grep -q "# Backend smoke" "$raw_body"
-grep -iq "X-Robosync-Version: 1" "$raw_headers"
-grep -iq "X-Robosync-Path: README.md" "$raw_headers"
+grep -iq "X-HA2HA-File-Version: 1" "$raw_headers"
+grep -iq "X-HA2HA-Path: README.md" "$raw_headers"
 
 echo "Reading workspace metadata and tree..."
 workspace_response="$(curl -fsS "$BASE_URL/api/workspaces/$workspace_id?edit=$edit_token")"

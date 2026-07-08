@@ -1,3 +1,13 @@
+import { Button } from "@mdsync/ui/components/button";
+import { Input } from "@mdsync/ui/components/input";
+import { Label } from "@mdsync/ui/components/label";
+import { Textarea } from "@mdsync/ui/components/textarea";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipProvider,
+	TooltipTrigger,
+} from "@mdsync/ui/components/tooltip";
 import {
 	ExternalLink,
 	FileText,
@@ -8,12 +18,22 @@ import {
 } from "lucide-react";
 import {
 	type ChangeEvent,
-	type ReactNode,
+	lazy,
+	Suspense,
 	useCallback,
 	useEffect,
 	useMemo,
 	useState,
 } from "react";
+
+import type { MarkdownEditorError } from "./components/markdown-editor";
+import { MarkdownPreview } from "./components/markdown-preview";
+
+const MarkdownEditor = lazy(() =>
+	import("./components/markdown-editor").then((module) => ({
+		default: module.MarkdownEditor,
+	}))
+);
 
 type AccessMode = "public" | "token";
 type WriteAccessMode = "none" | "public" | "token";
@@ -59,18 +79,10 @@ interface VersionConflictResponse {
 	message: string;
 }
 
-type MarkdownLine =
-	| { kind: "blank" }
-	| { kind: "block"; node: ReactNode }
-	| { kind: "list"; node: ReactNode };
-
 const DEFAULT_PATH = "README.md";
-const DEFAULT_CONTENT = "# Robosync workspace\n\nStart writing here.\n";
+const DEFAULT_CONTENT = "# MDSync workspace\n\nStart writing here.\n";
 const WORKSPACE_PATH_PATTERN = /^\/w\/([^/]+)/;
 const TRAILING_SLASH_PATTERN = /\/$/;
-const HEADING_PATTERN = /^(#{1,4})\s+(.*)$/;
-const CHECKBOX_PATTERN = /^- \[( |x|X)\]\s+(.*)$/;
-const LIST_ITEM_PATTERN = /^- (.*)$/;
 
 export function App() {
 	const workspaceId = getWorkspaceIdFromPath();
@@ -147,13 +159,13 @@ function CreateWorkspaceView() {
 			<section className="create-shell">
 				<header className="topbar">
 					<div>
-						<p className="eyebrow">Robosync</p>
+						<p className="eyebrow">MDSync</p>
 						<h1>Workspace</h1>
 					</div>
 					<a
 						className="icon-link"
 						href={apiBaseUrl}
-						rel="noreferrer"
+						rel="noopener noreferrer"
 						target="_blank"
 					>
 						<ExternalLink aria-hidden="true" size={18} />
@@ -162,23 +174,35 @@ function CreateWorkspaceView() {
 				</header>
 
 				<div className="create-form">
-					<label>
+					<Label className="field-label">
 						<span>Title</span>
-						<input onChange={handleTitleChange} value={title} />
-					</label>
-					<label>
+						<Input
+							className="create-input"
+							onChange={handleTitleChange}
+							value={title}
+						/>
+					</Label>
+					<Label className="field-label">
 						<span>Path</span>
-						<input onChange={handlePathChange} value={path} />
-					</label>
-					<label className="content-field">
+						<Input
+							className="create-input"
+							onChange={handlePathChange}
+							value={path}
+						/>
+					</Label>
+					<Label className="field-label content-field">
 						<span>Markdown</span>
-						<textarea onChange={handleContentChange} value={content} />
-					</label>
+						<Textarea
+							className="source-textarea"
+							onChange={handleContentChange}
+							value={content}
+						/>
+					</Label>
 					<div className="action-row">
-						<button disabled={busy} onClick={createWorkspace} type="button">
+						<Button disabled={busy} onClick={createWorkspace} type="button">
 							<FileText aria-hidden="true" size={17} />
 							<span>{busy ? "Creating" : "Create"}</span>
-						</button>
+						</Button>
 					</div>
 					{error ? <p className="error-text">{error}</p> : null}
 				</div>
@@ -242,6 +266,38 @@ function WorkspaceView({ workspaceId }: { workspaceId: string }) {
 		loadWorkspace();
 	}, [loadWorkspace]);
 
+	const loadSelectedFile = useCallback(
+		async (path: string, signal?: AbortSignal) => {
+			setBusy(true);
+			setError(null);
+
+			try {
+				const payload = await loadWorkspaceFile({
+					apiBaseUrl,
+					path,
+					signal,
+					tokenQuery,
+					workspaceId,
+				});
+				if (!signal?.aborted) {
+					setFile(payload);
+					setDraft(payload.content);
+				}
+			} catch (cause) {
+				if (!signal?.aborted) {
+					setError(
+						cause instanceof Error ? cause.message : "File load failed."
+					);
+				}
+			} finally {
+				if (!signal?.aborted) {
+					setBusy(false);
+				}
+			}
+		},
+		[apiBaseUrl, tokenQuery, workspaceId]
+	);
+
 	useEffect(() => {
 		if (!selectedPath) {
 			setFile(null);
@@ -250,36 +306,10 @@ function WorkspaceView({ workspaceId }: { workspaceId: string }) {
 		}
 
 		const controller = new AbortController();
-		const path = selectedPath;
-		setBusy(true);
-		setError(null);
-
-		loadWorkspaceFile({
-			apiBaseUrl,
-			path,
-			signal: controller.signal,
-			tokenQuery,
-			workspaceId,
-		})
-			.then((payload) => {
-				setFile(payload);
-				setDraft(payload.content);
-			})
-			.catch((cause: unknown) => {
-				if (!controller.signal.aborted) {
-					setError(
-						cause instanceof Error ? cause.message : "File load failed."
-					);
-				}
-			})
-			.finally(() => {
-				if (!controller.signal.aborted) {
-					setBusy(false);
-				}
-			});
+		loadSelectedFile(selectedPath, controller.signal).catch(() => undefined);
 
 		return () => controller.abort();
-	}, [apiBaseUrl, selectedPath, tokenQuery, workspaceId]);
+	}, [loadSelectedFile, selectedPath]);
 
 	const saveFile = useCallback(async () => {
 		if (!(file && editToken)) {
@@ -353,15 +383,20 @@ function WorkspaceView({ workspaceId }: { workspaceId: string }) {
 		}
 	}, [apiBaseUrl, draft, editToken, file, workspaceId]);
 
-	const handleDraftChange = useCallback(
-		(event: ChangeEvent<HTMLTextAreaElement>) => {
-			setDraft(event.target.value);
-		},
-		[]
-	);
-	const handleRefresh = useCallback(() => {
-		loadWorkspace();
-	}, [loadWorkspace]);
+	const handleDraftChange = useCallback((nextMarkdown: string) => {
+		setDraft(nextMarkdown);
+	}, []);
+	const handleEditorError = useCallback((payload: MarkdownEditorError) => {
+		setError(
+			`Markdown editor could not parse this file. Switch to source mode to recover: ${payload.error}`
+		);
+	}, []);
+	const handleRefresh = useCallback(async () => {
+		await loadWorkspace();
+		if (selectedPath) {
+			await loadSelectedFile(selectedPath);
+		}
+	}, [loadSelectedFile, loadWorkspace, selectedPath]);
 	const toggleMode = useCallback(() => {
 		setMode((currentMode) => (currentMode === "edit" ? "preview" : "edit"));
 	}, []);
@@ -369,13 +404,14 @@ function WorkspaceView({ workspaceId }: { workspaceId: string }) {
 	const rawUrl = file
 		? `${apiBaseUrl}/w/${workspaceId}/raw/${encodePathSegments(file.path)}${tokenQuery}`
 		: null;
+	const editorRevisionKey = file ? `${file.path}:${file.version}` : "empty";
 
 	return (
 		<main className="workspace-screen">
 			<aside className="sidebar">
 				<div className="brand-row">
 					<FolderTree aria-hidden="true" size={20} />
-					<span>Robosync</span>
+					<span>MDSync</span>
 				</div>
 				<div className="workspace-title">
 					<h1>{workspace?.title ?? workspaceId}</h1>
@@ -395,56 +431,35 @@ function WorkspaceView({ workspaceId }: { workspaceId: string }) {
 
 			<section className="document-pane">
 				<header className="document-toolbar">
-					<div>
-						<p className="eyebrow">{file?.contentType ?? "markdown"}</p>
-						<h2>{file?.path ?? "No file"}</h2>
-					</div>
-					<div className="toolbar-actions">
-						<button onClick={handleRefresh} title="Refresh" type="button">
-							<RefreshCw aria-hidden="true" size={17} />
-						</button>
-						{rawUrl ? (
-							<a href={rawUrl} rel="noreferrer" target="_blank" title="Raw">
-								<ExternalLink aria-hidden="true" size={17} />
-							</a>
-						) : null}
-						{canEdit ? (
-							<button
-								className={mode === "edit" ? "active" : ""}
-								onClick={toggleMode}
-								title="Edit"
-								type="button"
-							>
-								<SquarePen aria-hidden="true" size={17} />
-							</button>
-						) : null}
-						{canEdit && mode === "edit" ? (
-							<button
-								disabled={busy}
-								onClick={saveFile}
-								title="Save"
-								type="button"
-							>
-								<Save aria-hidden="true" size={17} />
-							</button>
-						) : null}
-					</div>
+					<DocumentToolbar
+						busy={busy}
+						canEdit={canEdit}
+						file={file}
+						mode={mode}
+						onRefresh={handleRefresh}
+						onSave={saveFile}
+						onToggleMode={toggleMode}
+						rawUrl={rawUrl}
+					/>
 				</header>
 
 				{error ? <p className="error-banner">{error}</p> : null}
 
 				<div className="document-surface">
 					{mode === "edit" && canEdit ? (
-						<textarea
-							className="editor"
-							onChange={handleDraftChange}
-							spellCheck={false}
-							value={draft}
-						/>
+						<Suspense
+							fallback={<div className="editor-loading">Loading editor</div>}
+						>
+							<MarkdownEditor
+								baselineMarkdown={file?.content ?? ""}
+								markdown={draft}
+								onEditorError={handleEditorError}
+								onMarkdownChange={handleDraftChange}
+								revisionKey={editorRevisionKey}
+							/>
+						</Suspense>
 					) : (
-						<article className="markdown-preview">
-							{renderMarkdown(file?.content ?? "")}
-						</article>
+						<MarkdownPreview markdown={file?.content ?? ""} />
 					)}
 				</div>
 			</section>
@@ -466,15 +481,125 @@ function FileListItem({
 	}, [item.path, onSelect]);
 
 	return (
-		<button
+		<Button
 			className={isSelected ? "selected" : ""}
 			onClick={selectFile}
 			type="button"
+			variant="ghost"
 		>
 			<FileText aria-hidden="true" size={16} />
 			<span>{item.path}</span>
 			<small>v{item.version}</small>
-		</button>
+		</Button>
+	);
+}
+
+function DocumentToolbar({
+	busy,
+	canEdit,
+	file,
+	mode,
+	onRefresh,
+	onSave,
+	onToggleMode,
+	rawUrl,
+}: {
+	busy: boolean;
+	canEdit: boolean;
+	file: WorkspaceFilePayload | null;
+	mode: ViewMode;
+	onRefresh: () => void;
+	onSave: () => void;
+	onToggleMode: () => void;
+	rawUrl: string | null;
+}) {
+	const modeLabel = mode === "edit" ? "Preview" : "Edit";
+	const contentType = file === null ? "markdown" : file.contentType;
+	const filePath = file === null ? "No file" : file.path;
+
+	return (
+		<>
+			<div>
+				<p className="eyebrow">{contentType}</p>
+				<h2>{filePath}</h2>
+			</div>
+			<TooltipProvider>
+				<div className="toolbar-actions">
+					<Tooltip>
+						<TooltipTrigger
+							render={
+								<Button
+									aria-label="Refresh"
+									onClick={onRefresh}
+									size="icon"
+									type="button"
+									variant="outline"
+								>
+									<RefreshCw aria-hidden="true" size={17} />
+								</Button>
+							}
+						/>
+						<TooltipContent>Refresh</TooltipContent>
+					</Tooltip>
+					{rawUrl ? (
+						<Tooltip>
+							<TooltipTrigger
+								render={
+									<a
+										aria-label="Raw"
+										className="toolbar-link"
+										href={rawUrl}
+										rel="noopener noreferrer"
+										target="_blank"
+									>
+										<ExternalLink aria-hidden="true" size={17} />
+									</a>
+								}
+							/>
+							<TooltipContent>Raw</TooltipContent>
+						</Tooltip>
+					) : null}
+					{canEdit ? (
+						<Tooltip>
+							<TooltipTrigger
+								render={
+									<Button
+										aria-label={modeLabel}
+										className={mode === "edit" ? "active" : ""}
+										onClick={onToggleMode}
+										size="icon"
+										type="button"
+										variant="outline"
+									>
+										<SquarePen aria-hidden="true" size={17} />
+									</Button>
+								}
+							/>
+							<TooltipContent>{modeLabel}</TooltipContent>
+						</Tooltip>
+					) : null}
+					{canEdit && mode === "edit" ? (
+						<Tooltip>
+							<TooltipTrigger
+								render={
+									<Button
+										aria-label="Save"
+										disabled={busy}
+										onClick={onSave}
+										size="icon"
+										type="button"
+										variant="outline"
+									>
+										<Save aria-hidden="true" size={17} />
+									</Button>
+								}
+							/>
+							<TooltipContent>Save</TooltipContent>
+						</Tooltip>
+					) : null}
+				</div>
+			</TooltipProvider>
+		</>
 	);
 }
 
@@ -487,7 +612,7 @@ async function loadWorkspaceFile({
 }: {
 	apiBaseUrl: string;
 	path: string;
-	signal: AbortSignal;
+	signal?: AbortSignal;
 	tokenQuery: string;
 	workspaceId: string;
 }) {
@@ -563,124 +688,4 @@ function resolveApiBaseUrl() {
 		return `${protocol}//${hostname.replace("-web-", "-server-")}`;
 	}
 	return origin;
-}
-
-function renderMarkdown(markdown: string) {
-	const lines = markdown.replace(/\r\n/g, "\n").split("\n");
-	const nodes: ReactNode[] = [];
-	let codeLines: string[] = [];
-	let listItems: ReactNode[] = [];
-	let inCode = false;
-	let keyIndex = 0;
-
-	for (const line of lines) {
-		if (line.startsWith("```")) {
-			if (inCode) {
-				nodes.push(
-					<pre key={nextKey()}>
-						<code>{codeLines.join("\n")}</code>
-					</pre>
-				);
-				codeLines = [];
-				inCode = false;
-			} else {
-				closeList();
-				inCode = true;
-			}
-			continue;
-		}
-
-		if (inCode) {
-			codeLines.push(line);
-			continue;
-		}
-
-		const renderedLine = renderMarkdownLine(line, nextKey);
-		if (renderedLine.kind === "blank") {
-			closeList();
-			continue;
-		}
-		if (renderedLine.kind === "list") {
-			listItems.push(renderedLine.node);
-			continue;
-		}
-		if (renderedLine.kind === "block") {
-			closeList();
-			nodes.push(renderedLine.node);
-		}
-	}
-
-	closeList();
-	if (inCode) {
-		nodes.push(
-			<pre key={nextKey()}>
-				<code>{codeLines.join("\n")}</code>
-			</pre>
-		);
-	}
-
-	return nodes;
-
-	function closeList() {
-		if (listItems.length > 0) {
-			nodes.push(<ul key={nextKey()}>{listItems}</ul>);
-			listItems = [];
-		}
-	}
-
-	function nextKey() {
-		keyIndex += 1;
-		return `markdown-${keyIndex}`;
-	}
-}
-
-function renderMarkdownLine(line: string, nextKey: () => string): MarkdownLine {
-	if (!line.trim()) {
-		return { kind: "blank" };
-	}
-
-	const heading = line.match(HEADING_PATTERN);
-	if (heading) {
-		return {
-			kind: "block",
-			node: renderHeading(heading[1]?.length ?? 1, heading[2] ?? "", nextKey),
-		};
-	}
-
-	const checkbox = line.match(CHECKBOX_PATTERN);
-	if (checkbox) {
-		const checked = checkbox[1]?.toLowerCase() === "x";
-		return {
-			kind: "list",
-			node: (
-				<li key={nextKey()}>
-					<input checked={checked} disabled type="checkbox" />{" "}
-					{checkbox[2] ?? ""}
-				</li>
-			),
-		};
-	}
-
-	const listItem = line.match(LIST_ITEM_PATTERN);
-	if (listItem) {
-		return {
-			kind: "list",
-			node: <li key={nextKey()}>{listItem[1] ?? ""}</li>,
-		};
-	}
-
-	return { kind: "block", node: <p key={nextKey()}>{line}</p> };
-}
-
-function renderHeading(level: number, text: string, nextKey: () => string) {
-	if (level === 1) {
-		return <h1 key={nextKey()}>{text}</h1>;
-	}
-	if (level === 2) {
-		return <h2 key={nextKey()}>{text}</h2>;
-	}
-	if (level === 3) {
-		return <h3 key={nextKey()}>{text}</h3>;
-	}
-	return <h4 key={nextKey()}>{text}</h4>;
 }

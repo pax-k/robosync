@@ -10,15 +10,21 @@
     "preview": "vite preview --host 0.0.0.0 --port 5173"
   },
   "dependencies": {
+    "@mdsync/ui": "workspace:*",
+    "@mdxeditor/editor": "^4.0.4",
     "lucide-react": "catalog:",
     "react": "catalog:",
-    "react-dom": "catalog:"
+    "react-dom": "catalog:",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1"
   },
   "devDependencies": {
     "@mdsync/config": "workspace:*",
+    "@tailwindcss/postcss": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
     "@vitejs/plugin-react": "catalog:",
+    "tailwindcss": "catalog:",
     "typescript": "catalog:",
     "vite": "catalog:"
   }

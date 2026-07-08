@@ -250,6 +250,9 @@ created_at: 2026-07-08T12:30:00Z
 The engineering profile should make software work first-class without turning
 HA2HA into a Git provider API.
 
+Concrete engineering-team product workflows for this profile are captured in
+[engineering-team-workflows.md](engineering-team-workflows.md).
+
 ### Public Primitives
 
 - repository: a source control repository relevant to the workspace.
@@ -392,4 +395,3 @@ Markdown is not enough for v3. Each profile needs:
   semantics.
 - Which engineering checks are generic enough for protocol conformance and
   which remain workspace policy.
-

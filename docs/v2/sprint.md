@@ -20,6 +20,7 @@ Build product experiences on top of v0 and v1: changelog, file history, diff/res
 5. Add token rotation, identity, and session UX as needed.
 6. Decide encryption UX.
 7. Add import/export, retention, and storage evolution.
+8. Package a limited team-workspace product pilot over v1 skills and v2 UX.
 
 ## Tasks
 
@@ -30,6 +31,7 @@ Build product experiences on top of v0 and v1: changelog, file history, diff/res
 - [V2-005 Token Rotation Identity Sessions](tasks/V2-005-token-rotation-identity-sessions.md)
 - [V2-006 Encryption UX Decision](tasks/V2-006-encryption-ux-decision.md)
 - [V2-007 Import Export Retention Storage Evolution](tasks/V2-007-import-export-retention-storage-evolution.md)
+- [V2-008 Team Workspace Product Pilot](tasks/V2-008-team-workspace-product-pilot.md)
 
 ## Done Definition
 
@@ -38,6 +40,8 @@ Build product experiences on top of v0 and v1: changelog, file history, diff/res
 - Product-only tables and UX are documented as MDSync scope.
 - Security and identity changes preserve least privilege and avoid leaking tokens.
 - Product features have verification evidence before completion.
+- The team-workspace pilot improves human visibility and governance, but does
+  not claim full v3 engineering-team profile conformance.
 
 ## Verification Commands
 

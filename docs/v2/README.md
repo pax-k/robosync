@@ -12,8 +12,10 @@ MDSync v2 turns those primitives into product experiences: dashboards, file-hist
 
 - [sprint.md](sprint.md)
 - [tasks/](tasks/)
+- [product-use-cases.md](product-use-cases.md)
 - [product-roadmap.md](product-roadmap.md)
 - [product-features.md](product-features.md)
+- [public-launch-and-monetization.md](public-launch-and-monetization.md)
 - [product-data-model.md](product-data-model.md)
 - [storage-evolution.md](storage-evolution.md)
 - [security-and-identity.md](security-and-identity.md)

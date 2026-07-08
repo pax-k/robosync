@@ -20,6 +20,7 @@ Prevent v3 from becoming vague future scope by recording decisions before implem
 ## Current Evidence
 
 - [../collaboration-protocol.md](../collaboration-protocol.md) lists open decisions for comments, claims, identity, approvals, multi-file work, and engineering checks.
+- [../open-discussions.md](../open-discussions.md) assesses early ideas for encryption, real-time data, skills, bundled scripts, webhooks, and tunnels.
 
 ## Work
 

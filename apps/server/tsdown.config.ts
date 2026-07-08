@@ -1,9 +1,9 @@
 import { defineConfig } from "tsdown";
 
 export default defineConfig({
-  entry: "./src/index.ts",
-  format: "esm",
-  outDir: "./dist",
-  clean: true,
-  noExternal: [/@mdsync\/.*/],
+	clean: true,
+	entry: "./src/index.ts",
+	format: "esm",
+	noExternal: [/@mdsync\/.*/],
+	outDir: "./dist",
 });

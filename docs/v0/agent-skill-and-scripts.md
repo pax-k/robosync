@@ -22,7 +22,7 @@ The workflow should apply when the user asks an agent to:
 ### Upload Single File
 
 ```txt
-scripts/upload-file.mjs <file> [--title <title>] [--public|--private] [--editable|--readonly]
+scripts/upload-file.mjs <file> [--path <path>] [--title <title>] [--public|--private] [--editable|--readonly]
 ```
 
 This creates a workspace with one file. The file should be uploaded as `README.md` by default unless `--path` is provided.
@@ -103,13 +103,19 @@ MDSYNC_BASE_URL
 Default for development:
 
 ```txt
-http://localhost:8787
+http://localhost:3000
 ```
 
 Optional write token:
 
 ```txt
 MDSYNC_WRITE_TOKEN
+```
+
+Optional web origin override for update-script edit links:
+
+```txt
+MDSYNC_WEB_URL
 ```
 
 v0 does not require a global API key, but this variable can be useful for local private deployments later.

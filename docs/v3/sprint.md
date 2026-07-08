@@ -19,6 +19,7 @@ Define future HA2HA profiles for broad human-agent collaboration: coordination, 
 4. Define the evidence and review profile.
 5. Define the engineering profile.
 6. Add profile conformance and migration guidance.
+7. Run an engineering-team collaboration pilot over the validated profiles.
 
 ## Tasks
 
@@ -28,6 +29,7 @@ Define future HA2HA profiles for broad human-agent collaboration: coordination, 
 - [V3-004 Evidence Review Profile](tasks/V3-004-evidence-review-profile.md)
 - [V3-005 Engineering Profile](tasks/V3-005-engineering-profile.md)
 - [V3-006 Profile Conformance And Migration](tasks/V3-006-profile-conformance-and-migration.md)
+- [V3-007 Engineering Team Collaboration Pilot](tasks/V3-007-engineering-team-collaboration-pilot.md)
 
 ## Done Definition
 
@@ -36,6 +38,9 @@ Define future HA2HA profiles for broad human-agent collaboration: coordination, 
 - Profiles remain optional and independently conformable.
 - v3 does not weaken v1 core workspace semantics.
 - Migration notes explain what moves from v2 product scope into protocol scope, if anything.
+- The engineering-team pilot proves that at least two independent agent
+  contexts and one human reviewer can coordinate through a shared workspace
+  without relying on private chat history.
 
 ## Verification Commands
 
