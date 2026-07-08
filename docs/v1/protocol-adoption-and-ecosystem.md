@@ -93,11 +93,11 @@ This level is useful for:
 - local workspace repair
 - product import/export validation
 
-Current status as of 2026-07-08: this level exists as a repo-local package
-foundation, not as an easy external install. `packages/ha2ha-protocol` has
-constants, schemas, examples, validator APIs, tests, and a CLI script, but
-`@mdsync/ha2ha-protocol` is not published to npm and its package manifest is not
-yet release-ready.
+Current status as of 2026-07-08: this level ships as `@ha2ha/protocol` from
+`packages/ha2ha-protocol`. The package has constants, schemas, examples,
+validator APIs, tests, a `ha2ha-validate` CLI, package metadata, built `dist`
+exports, and empty-project tarball install smoke evidence. npm publication is
+deferred until an explicit publish step.
 
 ### 3. HTTP Profile
 
@@ -114,10 +114,11 @@ Expose a workspace through deterministic HTTP semantics:
 
 This level makes an implementation agent-friendly without requiring MDSync.
 
-Current status as of 2026-07-08: this level exists as repo-local conformance
-tooling. `packages/ha2ha-http` can run HTTP conformance against mock and live
-targets, but `@mdsync/ha2ha-http` is not published to npm and its package
-manifest is not yet release-ready.
+Current status as of 2026-07-08: this level ships as `@ha2ha/http` from
+`packages/ha2ha-http`. The package can run HTTP conformance against mock and
+live targets through `ha2ha-http-conformance`, exposes built public APIs, and
+has empty-project tarball install smoke evidence. npm publication is deferred
+until an explicit publish step.
 
 ### 4. Event And History Profiles
 
@@ -149,11 +150,12 @@ Skills should not hide state outside the workspace. Mutating skills should
 declare allowed paths, token or identity scope, conflict handling, evidence
 output, and stop conditions.
 
-Current status as of 2026-07-08: the core HA2HA agent skill alpha exists as a
-repo-local Codex skill package under `docs/v1/skills/core-ha2ha-agent-alpha`.
-It is useful for proving the workflow, but it is not yet a packaged,
-installable cross-agent skill distribution. Track the portable HA2HA skill
-package in
+Current status as of 2026-07-08: the portable protocol-only skill distribution
+ships as `@ha2ha/skills` from `packages/ha2ha-skills`. It contains
+`skills/ha2ha/SKILL.md`, OpenAI-oriented metadata, references, fixtures, README,
+and an install smoke that dogfoods two actor handles against an installed local
+fixture. The earlier `docs/v1/skills/core-ha2ha-agent-alpha` remains historical
+repo-local evidence for V1-008. Track the shipped package in
 [tasks/V1-011-ha2ha-installable-skill-package.md](tasks/V1-011-ha2ha-installable-skill-package.md).
 
 ### 6. Optional v3 Profiles
@@ -175,8 +177,9 @@ its own non-portable task and evidence model.
 
 ## Developer Package Readiness
 
-The protocol package foundation is real, but easy external adoption requires
-release artifacts beyond monorepo workspace packages.
+The protocol package foundation now has release artifacts beyond monorepo
+workspace packages. The packages are tarball-installable and registry-ready,
+but npm publication is deferred until an explicit publish step.
 
 Package readiness means:
 
@@ -189,24 +192,21 @@ Package readiness means:
 - an empty-project smoke test installs the packed tarballs or registry packages
   and imports the public APIs without monorepo `workspace:*` resolution
 - validator and HTTP conformance commands work outside this repository
-- public docs distinguish repo-local package availability from registry package
-  availability
+- public docs distinguish tarball-installable package availability from npm
+  registry publication
 - client SDK claims are backed by an actual `@ha2ha/client` package, install
   smoke, and dogfood or conformance evidence
 
-The first planned public package split should stay small:
+The first public package split stays small:
 
 - `@ha2ha/protocol`: v1 constants, schemas, types, examples, validator API,
   and validator CLI
 - `@ha2ha/http`: HTTP profile helpers and conformance runner
 - `@ha2ha/client`: portable high-level operations such as
-  `readWorkspace`, `claimTask`, `addEvidence`, and `handoff`
-- future skill packages: Codex, Claude Code, Cursor, or other agent-surface
-  instruction packs over the same protocol records
-
-The current repo-local package names still use `@mdsync/ha2ha-protocol` and
-`@mdsync/ha2ha-http`; those names are implementation evidence, not the desired
-public protocol namespace.
+  `validateWorkspace`, `listWorkspace`, `readFile`, `claimTask`,
+  `addEvidence`, `recordDecision`, and `writeHandoff`
+- `@ha2ha/skills`: protocol-only agent-surface instruction pack over the same
+  protocol records
 
 Skill packages should also split by authority:
 
@@ -215,9 +215,9 @@ Skill packages should also split by authority:
 - MDSync skill package: product-specific, allowed to know hosted routes,
   tokens, dashboards, comments, history, provider sync, and team-pilot UX.
 
-Do not market high-level model, harness, SDK, or skill packages as shipped until
-they exist as installable artifacts with tests, examples, and conformance or
-trial evidence. Track this gap in
+Do not market high-level model, harness, or MDSync product packages as shipped
+until they exist as installable artifacts with tests, examples, and conformance
+or trial evidence. Track protocol package evidence in
 [tasks/V1-010-developer-package-adoption-readiness.md](tasks/V1-010-developer-package-adoption-readiness.md).
 
 For the portable client SDK boundary, see [client-sdk.md](client-sdk.md) and

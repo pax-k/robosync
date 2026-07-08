@@ -1,0 +1,40 @@
+{
+  "name": "@ha2ha/client",
+  "version": "0.1.0",
+  "description": "Portable HA2HA v1 client SDK for local folders and conformant HTTP implementations.",
+  "license": "MIT",
+  "homepage": "https://mdsync-ha2ha-pax.pax.workers.dev",
+  "type": "module",
+  "main": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.mts",
+      "default": "./dist/index.mjs"
+    },
+    "./package.json": {
+      "default": "./package.json"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsdown",
+    "check-types": "tsc -b",
+    "pack:dry-run": "npm pack --dry-run --json",
+    "prepack": "pnpm run build",
+    "test": "pnpm run check-types && tsx --test src/**/*.test.ts"
+  },
+  "dependencies": {
+    "@ha2ha/protocol": "0.1.0",
+    "yaml": "^2.9.0"
+  },
+  "devDependencies": {
+    "@mdsync/config": "workspace:*",
+    "tsdown": "^0.22.4",
+    "tsx": "^4.23.0",
+    "typescript": "catalog:"
+  }
+}

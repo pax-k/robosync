@@ -82,14 +82,15 @@ This mode fits Cloudflare Agents SDK, Vercel eve, Vercel AI SDK, Mastra,
 internal TypeScript services, scheduled workers, and workflow engines.
 
 Current implementation status: these tool names are target adapter contracts,
-not shipped public SDK methods. v1 currently provides repo-local protocol and
-HTTP conformance packages. A first-party client or adapter package must exist
-before MDSync claims that external harnesses can integrate through easy
-installable tools.
+not shipped MDSync product SDK methods. v1 now provides tarball-installable
+`@ha2ha/protocol`, `@ha2ha/http`, and `@ha2ha/client` packages for portable
+protocol adoption. A first-party MDSync client or adapter package must exist
+before MDSync claims that external harnesses can integrate through hosted
+product tools.
 
-The same distinction applies to skills. The only current concrete skill is the
-repo-local core HA2HA alpha. Installable first-party skill packages should split
-into:
+The same distinction applies to skills. The portable protocol skill now ships as
+`@ha2ha/skills`; MDSync product skills remain separate. Installable first-party
+skill packages should split into:
 
 - HA2HA skills: protocol-only workflows for local folders or conformant
   implementations.
@@ -338,14 +339,11 @@ The ideal first-party package should support two modes:
 - MDSync mode: uses hosted MDSync routes, auth, dashboards, comments, history,
   and provider adapters
 
-As of 2026-07-08, that ideal package is not yet implemented. The current
-adoption surface is repo-local: `packages/ha2ha-protocol`,
-`packages/ha2ha-http`, the HA2HA docs site, and the core Codex skill alpha.
-External developer adoption needs the v1 package-readiness work tracked in
-`docs/v1/tasks/V1-010-developer-package-adoption-readiness.md`, the HA2HA skill
-package tracked in `docs/v1/tasks/V1-011-ha2ha-installable-skill-package.md`,
-and the MDSync product skill package tracked in
-`docs/v2/tasks/V2-009-mdsync-installable-skill-package.md`.
+As of 2026-07-08, the protocol mode is implemented as installable v1 packages:
+`@ha2ha/protocol`, `@ha2ha/http`, `@ha2ha/client`, and `@ha2ha/skills`.
+MDSync mode remains product work tracked in
+`docs/v2/tasks/V2-009-mdsync-installable-skill-package.md` and
+`docs/v2/tasks/V2-010-mdsync-client-sdk.md`.
 
 ## Non-Goals
 

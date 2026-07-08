@@ -109,6 +109,101 @@ create table team_integrations (
 Integrations are product adapters. Provider-specific payloads should not leak
 into HA2HA protocol records.
 
+## Team Boards
+
+```sql
+create table team_boards (
+  id text primary key,
+  team_id text not null,
+  workspace_id text,
+  name text not null,
+  settings_json text not null default '{}',
+  created_by_user_id text,
+  created_at text not null,
+  updated_at text not null,
+  foreign key (team_id) references teams(id) on delete cascade,
+  foreign key (workspace_id) references workspaces(id) on delete set null,
+  foreign key (created_by_user_id) references user(id) on delete set null
+);
+```
+
+A board is the product view for planning and tracking work. A board may start
+workspace-scoped. Cross-workspace boards should wait until workspace ownership,
+authorization, and aggregate queries are stable.
+
+## Team Work Items
+
+```sql
+create table team_work_items (
+  id text primary key,
+  team_id text not null,
+  board_id text,
+  workspace_id text not null,
+  task_path text,
+  title text not null,
+  description text not null default '',
+  state text not null,
+  priority text not null default 'medium',
+  labels_json text not null default '[]',
+  assignee_user_id text,
+  assignee_service_account_id text,
+  eligible_agents_json text not null default '[]',
+  allowed_paths_json text not null default '[]',
+  required_evidence_json text not null default '[]',
+  external_refs_json text not null default '[]',
+  created_by_user_id text,
+  published_at text,
+  created_at text not null,
+  updated_at text not null,
+  foreign key (team_id) references teams(id) on delete cascade,
+  foreign key (board_id) references team_boards(id) on delete set null,
+  foreign key (workspace_id) references workspaces(id) on delete cascade,
+  foreign key (assignee_user_id) references user(id) on delete set null,
+  foreign key (assignee_service_account_id)
+    references team_service_accounts(id)
+    on delete set null,
+  foreign key (created_by_user_id) references user(id) on delete set null
+);
+```
+
+`team_work_items` indexes dashboard-authored work. Once a work item is
+published to agents as portable HA2HA work, `task_path` should point at a
+workspace task file and the current state should remain reconcilable from that
+file.
+
+`draft` is product-only. Published work should use HA2HA task states:
+`ready`, `claimed`, `working`, `blocked`, `review`, `done`, and `abandoned`.
+
+## Work Item Claims
+
+```sql
+create table team_work_item_claims (
+  id text primary key,
+  team_id text not null,
+  work_item_id text not null,
+  workspace_id text not null,
+  actor_handle text,
+  service_account_id text,
+  user_id text,
+  state text not null,
+  claimed_at text not null,
+  lease_expires_at text,
+  released_at text,
+  release_reason text,
+  foreign key (team_id) references teams(id) on delete cascade,
+  foreign key (work_item_id) references team_work_items(id) on delete cascade,
+  foreign key (workspace_id) references workspaces(id) on delete cascade,
+  foreign key (service_account_id)
+    references team_service_accounts(id)
+    on delete set null,
+  foreign key (user_id) references user(id) on delete set null
+);
+```
+
+Claims are product indexes over workspace task ownership. The versioned task
+file update remains the durable collaboration record. Product claim rows make
+agent inbox queries and board views efficient.
+
 ## Team Audit Events
 
 ```sql
@@ -135,7 +230,8 @@ create table team_audit_events (
 Team audit events are append-oriented product records. Use them for
 authority-bearing actions such as membership changes, service-account rotation,
 integration changes, workspace import, workspace transfer, link rotation,
-retention operations, exports, and sensitive control-panel actions.
+retention operations, exports, work-item publication, claims, releases,
+reassignments, and sensitive control-panel actions.
 
 Do not store raw tokens, credentials, private prompts, or oversized provider
 logs in audit event payloads.
@@ -183,6 +279,10 @@ Recommended first outputs:
 - usage totals
 - role and service-account status
 - integration status
+- board summary
+- ready work item rows
+- agent inbox rows
+- claim and stale-lease status
 
 ## Indexes
 
@@ -198,7 +298,13 @@ create index team_service_accounts_team_idx
   on team_service_accounts(team_id);
 create index team_integrations_team_provider_idx
   on team_integrations(team_id, provider);
+create index team_boards_team_idx on team_boards(team_id);
+create index team_work_items_team_state_idx
+  on team_work_items(team_id, state);
+create index team_work_items_workspace_task_idx
+  on team_work_items(workspace_id, task_path);
+create index team_work_item_claims_work_item_idx
+  on team_work_item_claims(work_item_id);
 ```
 
 Add more only after query plans or usage patterns justify them.
-

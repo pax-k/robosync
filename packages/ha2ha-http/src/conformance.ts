@@ -1,9 +1,5 @@
-import {
-	HA2HA_CONFLICT,
-	HA2HA_HEADERS,
-	HA2HA_PATHS,
-} from "@mdsync/ha2ha-protocol";
-import { ha2haConflictResponseSchema } from "@mdsync/ha2ha-protocol/schemas";
+import { HA2HA_CONFLICT, HA2HA_HEADERS, HA2HA_PATHS } from "@ha2ha/protocol";
+import { ha2haConflictResponseSchema } from "@ha2ha/protocol/schemas";
 
 const CONFORMANCE_ACTOR = "ha2ha-conformance";
 const JSON_INDENT_SPACES = 2;

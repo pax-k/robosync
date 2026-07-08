@@ -18,6 +18,10 @@ workspace
 team control panel
   aggregates work across many workspaces and exposes operational visibility,
   logs, policy state, and high-level controls
+
+dashboard-authored work
+  lets humans create work intent, constraints, and review gates first so
+  eligible agents can pick up the work later
 ```
 
 ## Product Boundary
@@ -35,6 +39,8 @@ longer enough:
 - workspace inventory and lifecycle controls
 - retention, token, integration, and policy settings
 - admin views for work in progress, blockers, evidence, conflicts, and cleanup
+- board-style work authoring where dashboard cards materialize to workspace
+  tasks and agent inboxes
 
 ## Naming
 
@@ -61,6 +67,8 @@ hierarchies later.
 - [sprint.md](sprint.md)
 - [tasks/](tasks/)
 - [team-control-plane.md](team-control-plane.md)
+- [top-down-work-orchestration.md](top-down-work-orchestration.md)
+- [vertical-room-flows.md](vertical-room-flows.md)
 - [product-data-model.md](product-data-model.md)
 
 ## Core Decisions
@@ -75,4 +83,10 @@ hierarchies later.
 6. The first team control panel should be read-mostly: aggregate state,
    interpret logs, expose health, and show next required action before adding
    broad mutating controls.
-
+7. Dashboard-authored work should write durable workspace records before it is
+   offered to agents as portable HA2HA work.
+8. The first top-down agent pickup surface should be pull mode through an agent
+   inbox. Event delivery and hosted runners can follow later.
+9. Domain-specific rooms should reuse the same v4 control-plane substrate:
+   human intent in UI, durable workspace records, bounded agent pickup,
+   evidence-backed review, and human approval before publication or closure.

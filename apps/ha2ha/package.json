@@ -11,7 +11,7 @@
     "test": "pnpm run check-types && tsx --test src/**/*.test.ts"
   },
   "dependencies": {
-    "@mdsync/ha2ha-protocol": "workspace:*",
+    "@ha2ha/protocol": "workspace:*",
     "react": "catalog:",
     "react-dom": "catalog:"
   },

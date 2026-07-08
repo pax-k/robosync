@@ -1,31 +1,47 @@
 {
-  "name": "@mdsync/ha2ha-http",
+  "name": "@ha2ha/http",
+  "version": "0.1.0",
+  "description": "HA2HA v1 HTTP profile conformance runner and CLI.",
+  "license": "MIT",
+  "homepage": "https://mdsync-ha2ha-pax.pax.workers.dev",
   "type": "module",
+  "main": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
   "exports": {
     ".": {
-      "default": "./src/conformance.ts"
-    },
-    "./cli": {
-      "default": "./src/cli.ts"
+      "types": "./dist/index.d.mts",
+      "default": "./dist/index.mjs"
     },
     "./conformance": {
-      "default": "./src/conformance.ts"
+      "types": "./dist/conformance.d.mts",
+      "default": "./dist/conformance.mjs"
     },
-    "./*": {
-      "default": "./src/*.ts"
+    "./package.json": {
+      "default": "./package.json"
     }
   },
+  "bin": {
+    "ha2ha-http-conformance": "./dist/cli.mjs"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "scripts": {
+    "build": "tsdown",
     "check-types": "tsc -b",
     "conformance": "tsx src/cli.ts",
+    "pack:dry-run": "npm pack --dry-run --json",
+    "prepack": "pnpm run build",
     "test": "pnpm run check-types && tsx --test src/**/*.test.ts",
     "test:integration": "pnpm run test"
   },
   "dependencies": {
-    "@mdsync/ha2ha-protocol": "workspace:*"
+    "@ha2ha/protocol": "0.1.0"
   },
   "devDependencies": {
     "@mdsync/config": "workspace:*",
+    "tsdown": "^0.22.4",
     "tsx": "^4.23.0",
     "typescript": "catalog:"
   }

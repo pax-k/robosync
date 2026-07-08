@@ -15,12 +15,12 @@ Build product experiences on top of v0 and v1: changelog, file history, diff/res
   retention evidence does not show an isolation or scale requirement. Users and
   sessions remain deferred until capability links no longer satisfy product
   needs.
-- No dedicated MDSync installable skill package exists yet. V2-008 uses the
-  repo-local v1 HA2HA alpha skill and documents V1-011/V2-009 packaging gaps.
-- No dedicated installable MDSync skill package exists yet. Current skill
-  evidence is the v1 repo-local HA2HA alpha, which is protocol-oriented rather
-  than a hosted MDSync product skill pack.
-- No `@mdsync/client` package exists yet. Hosted product SDK behavior is planned
+- V2-008 used the repo-local v1 HA2HA alpha skill and keeps that historical
+  evidence.
+- `@ha2ha/skills` is now available as the installable, protocol-only v1 skill
+  package. No dedicated MDSync installable skill package exists yet.
+- `@ha2ha/client` is now available as the portable v1 protocol client. No
+  `@mdsync/client` package exists yet; hosted product SDK behavior is planned
   but not shipped.
 
 ## Execution Order
@@ -59,9 +59,11 @@ Build product experiences on top of v0 and v1: changelog, file history, diff/res
 - The team-workspace pilot improves human visibility and governance, but does
   not claim full v3 engineering-team profile conformance.
 - MDSync skill-package claims distinguish hosted product workflows from portable
-  HA2HA protocol skills and document token, identity, and product-route scope.
+  HA2HA protocol skills, should build on `@ha2ha/skills` where useful, and
+  document token, identity, and product-route scope.
 - MDSync client SDK claims distinguish hosted product integration from portable
-  HA2HA protocol integration and include local or deployed dogfood evidence.
+  HA2HA protocol integration, should wrap `@ha2ha/client` one-way where useful,
+  and include local or deployed dogfood evidence.
 
 ## Verification Commands
 

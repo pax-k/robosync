@@ -8,7 +8,7 @@ depends_on: [V4-001, V4-002]
 area: product-ux
 acceptance:
   - Control panel starts as a read-mostly operational surface.
-  - UX exposes workspace inventory, health, recent activity, conflicts, unresolved comments, task state, storage, retention, service accounts, and integrations.
+  - UX exposes workspace inventory, boards, agent inbox state, health, recent activity, conflicts, unresolved comments, task state, storage, retention, service accounts, and integrations.
   - Mutating controls are explicitly gated behind team roles and audit-event requirements.
   - Workspace drilldown preserves the existing workspace UI and admin panel.
 evidence: []
@@ -25,6 +25,8 @@ many workspaces.
 
 - Design team overview.
 - Design workspace inventory.
+- Design board and work-item entry points.
+- Design agent inbox visibility.
 - Design cross-workspace activity and audit logs.
 - Design health and next-required-action sections.
 - Design service-account and integration status sections.
@@ -41,7 +43,6 @@ many workspaces.
 ## Verification
 
 ```bash
-rg -n "control panel|workspace inventory|health|next required action|service account|integration" docs/v4
+rg -n "control panel|workspace inventory|board|agent inbox|health|next required action|service account|integration" docs/v4
 pnpm run check
 ```
-

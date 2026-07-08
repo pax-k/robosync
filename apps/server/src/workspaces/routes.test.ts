@@ -2,13 +2,13 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { test } from "node:test";
+import { HA2HA_EVENT_TYPES, HA2HA_HEADERS } from "@ha2ha/protocol";
 import {
 	type Client,
 	createClient,
 	type InValue,
 	type ResultSet,
 } from "@libsql/client";
-import { HA2HA_EVENT_TYPES, HA2HA_HEADERS } from "@mdsync/ha2ha-protocol";
 
 import {
 	setWorkspaceBindingsForTest,

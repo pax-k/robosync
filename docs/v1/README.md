@@ -26,6 +26,8 @@ Implementation-specific infrastructure belongs outside normative protocol docs. 
 - [mdsync-conformance.md](mdsync-conformance.md)
 - [protocol-leak-review.md](protocol-leak-review.md)
 - [skills/core-ha2ha-agent-alpha/SKILL.md](skills/core-ha2ha-agent-alpha/SKILL.md)
+- [../../packages/ha2ha-skills/README.md](../../packages/ha2ha-skills/README.md)
+- [../../packages/ha2ha-client/README.md](../../packages/ha2ha-client/README.md)
 - [research/a2a-inspired-human-agent-sync.md](research/a2a-inspired-human-agent-sync.md)
 
 ## Required Protocol Surfaces
@@ -43,6 +45,6 @@ Implementation-specific infrastructure belongs outside normative protocol docs. 
 - event/history protocol profiles
 - `X-HA2HA-*` headers
 - schemas, examples, validators, and conformance tests
-- package readiness evidence before public installability claims
+- package readiness evidence before public registry claims
 - installable HA2HA skill-package evidence before skill adoption claims
-- HA2HA client SDK evidence before `@ha2ha/client` adoption claims
+- HA2HA client SDK evidence for `@ha2ha/client` adoption claims

@@ -16,6 +16,7 @@ acceptance:
 evidence:
   - "2026-07-08: No `@mdsync/client` package exists in `packages/`."
   - "2026-07-08: MDSync product skills currently reference future MDSync client packages, but no client package has shipped."
+  - "2026-07-08: V1-012 shipped `@ha2ha/client` from `packages/ha2ha-client`; `@mdsync/client` should depend one-way on it for portable protocol operations."
 ---
 
 ## Intent
@@ -31,8 +32,10 @@ boundary between portable HA2HA protocol behavior and MDSync product behavior.
 - [V2-009](V2-009-mdsync-installable-skill-package.md) tracks installable
   MDSync skills that should use this client.
 - [../../v1/tasks/V1-012-ha2ha-client-sdk.md](../../v1/tasks/V1-012-ha2ha-client-sdk.md)
-  tracks the portable HA2HA client SDK.
+  shipped the portable HA2HA client SDK.
 - There is no dedicated MDSync client SDK package as of 2026-07-08.
+  The future `@mdsync/client` should depend one-way on `@ha2ha/client`; the
+  HA2HA client must not import MDSync product code.
 
 ## Work
 

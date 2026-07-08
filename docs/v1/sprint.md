@@ -13,16 +13,16 @@ Turn HA2HA from documented direction into an enforceable protocol with reusable 
 - Deployed MDSync conformance passes at `https://mdsync-server-pax.pax.workers.dev`.
 - `apps/ha2ha` publishes the protocol docs independently from MDSync product UX at `https://mdsync-ha2ha-pax.pax.workers.dev`.
 - Event and file-history capabilities are protocol-level v1 work, not v2 product UI.
-- The core HA2HA agent skill alpha exists as a repo-local Codex skill package.
-- No installable HA2HA or MDSync first-party skill package exists yet. The
-  current skill surface is the repo-local alpha under
-  `docs/v1/skills/core-ha2ha-agent-alpha`.
-- Developer package adoption is not yet externally ready. On 2026-07-08,
-  `@mdsync/ha2ha-protocol` and `@mdsync/ha2ha-http` were repo-local packages:
-  npm registry lookup returned `404`, and `npm pack --dry-run --json` failed
-  because both package manifests lacked `version`.
-- No `@ha2ha/client` package exists yet. SDK-like methods are documented only as
-  target contracts, not shipped public APIs.
+- The core HA2HA agent skill alpha remains historical repo-local evidence for
+  V1-008.
+- `@ha2ha/protocol` and `@ha2ha/http` are registry-ready, tarball-installable
+  protocol packages built from the existing `packages/ha2ha-protocol` and
+  `packages/ha2ha-http` directories. npm publication is deferred until an
+  explicit publish step.
+- `@ha2ha/skills` is the installable, protocol-only HA2HA skill package. MDSync
+  product skills remain v2 work.
+- `@ha2ha/client` is the portable protocol SDK for local folders and conformant
+  HA2HA HTTP implementations. `@mdsync/client` remains v2 hosted product work.
 
 ## Execution Order
 
@@ -71,13 +71,14 @@ Turn HA2HA from documented direction into an enforceable protocol with reusable 
   and evidence workflows without claiming v3 engineering-team governance.
 - Existing done behavior has automated regression coverage or a documented
   live-harness gap.
-- Public package claims distinguish repo-local/source-level availability from
-  installable registry or tarball availability, with package dry-run and
-  empty-project install evidence before claiming easy external adoption.
-- First-party skill claims distinguish the repo-local alpha from an installable
-  HA2HA skill package, with package validation and at least one dogfood trial.
-- HA2HA client SDK claims distinguish target adapter contracts from a shipped
-  `@ha2ha/client` package, with install smoke and conformance or dogfood proof.
+- Public package claims distinguish source-level availability from registry or
+  tarball availability, with package dry-run and empty-project install evidence
+  before claiming easy external adoption.
+- First-party skill claims distinguish the historical repo-local alpha from the
+  installable HA2HA skill package, with package validation and at least one
+  dogfood trial.
+- HA2HA client SDK claims are backed by the shipped `@ha2ha/client` package,
+  with install smoke and HTTP/local-folder dogfood proof.
 
 ## Verification Commands
 
@@ -87,7 +88,13 @@ pnpm run check-types
 pnpm run build
 pnpm run test
 pnpm run test:e2e
-pnpm --filter @mdsync/ha2ha-protocol test
-pnpm --filter @mdsync/ha2ha-http test
-HA2HA_BASE_URL=http://localhost:3000 pnpm --filter @mdsync/ha2ha-http conformance
+pnpm --filter @ha2ha/protocol test
+pnpm --filter @ha2ha/http test
+pnpm --filter @ha2ha/skills test
+pnpm --filter @ha2ha/client test
+npm pack --dry-run --json ./packages/ha2ha-protocol
+npm pack --dry-run --json ./packages/ha2ha-http
+npm pack --dry-run --json ./packages/ha2ha-skills
+npm pack --dry-run --json ./packages/ha2ha-client
+pnpm run test:ha2ha-packages
 ```

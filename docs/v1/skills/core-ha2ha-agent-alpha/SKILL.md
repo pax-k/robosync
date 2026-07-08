@@ -51,7 +51,7 @@ Use this when creating a new HA2HA workspace from a local directory.
 2. Validate when the protocol package is available:
 
 ```bash
-pnpm --filter @mdsync/ha2ha-protocol validate <workspace-dir>
+ha2ha-validate <workspace-dir>
 ```
 
 3. Publish to MDSync:

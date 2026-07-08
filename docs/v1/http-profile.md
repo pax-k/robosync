@@ -15,6 +15,22 @@ DELETE /api/workspaces/:workspaceId/files?path=<path>
 
 Implementations may expose additional product routes, but HA2HA clients should be able to rely on the profile above.
 
+## Package And CLI
+
+The HTTP profile conformance runner ships from `packages/ha2ha-http` as
+`@ha2ha/http`. The package is tarball-installable and registry-ready, with npm
+publication deferred until an explicit publish step.
+
+CLI usage outside this repository:
+
+```bash
+ha2ha-http-conformance http://localhost:3000
+```
+
+Programmatic consumers import from `@ha2ha/http` or
+`@ha2ha/http/conformance`. The package depends on `@ha2ha/protocol` and does
+not depend on MDSync product code.
+
 ## Raw Workspace Listing
 
 ```txt

@@ -2,7 +2,7 @@
 id: V1-011
 title: Package first-party HA2HA installable skills
 version: v1
-state: ready
+state: done
 priority: high
 depends_on: [V1-008, V1-010]
 area: agent-adoption
@@ -18,6 +18,12 @@ acceptance:
 evidence:
   - "2026-07-08: Current concrete skill artifact is repo-local only: `docs/v1/skills/core-ha2ha-agent-alpha/SKILL.md`."
   - "2026-07-08: No dedicated `packages/ha2ha-skills`, top-level installable `skills/ha2ha`, or published HA2HA skill package exists."
+  - "2026-07-08: Added `packages/ha2ha-skills` as `@ha2ha/skills` with `skills/ha2ha/SKILL.md`, `agents/openai.yaml`, references, fixtures, README, package metadata, and install validation."
+  - "2026-07-08: `pnpm --filter @ha2ha/skills test` passed by packing and installing the skill package, checking metadata and repo-local path absence, dogfooding two actor handles against the installed fixture, and running `ha2ha-validate`."
+  - "2026-07-08: `npm pack --dry-run --json ./packages/ha2ha-skills` passed and listed `skills`, `fixtures`, `README.md`, and `package.json` in `ha2ha-skills-0.1.0.tgz`."
+  - "2026-07-08: `uv run --with pyyaml python /Users/pax/.codex/skills/.system/skill-creator/scripts/quick_validate.py packages/ha2ha-skills/skills/ha2ha` printed `Skill is valid!`."
+  - "2026-07-08: `pnpm run test:ha2ha-packages` passed with `{ ok: true, package: \"@ha2ha/skills\", skill: \"ha2ha\" }` for the skill package smoke."
+  - "2026-07-08: `pnpm run check`, `pnpm run check-types`, `pnpm run test`, and `pnpm run build` passed with `@ha2ha/skills` included in the workspace."
 ---
 
 ## Intent
@@ -36,7 +42,10 @@ must not make MDSync product features a requirement for protocol adoption.
   repo-local Codex skill.
 - [V1-010](V1-010-developer-package-adoption-readiness.md) tracks package
   readiness for protocol and HTTP tooling.
-- There is no dedicated installable HA2HA skill package as of 2026-07-08.
+- `packages/ha2ha-skills` now ships the protocol-only installable HA2HA skill
+  package as `@ha2ha/skills`.
+- The package is tarball-installable and registry-ready; npm publication is
+  deferred until an explicit publish step.
 
 ## Work
 
@@ -62,8 +71,13 @@ must not make MDSync product features a requirement for protocol adoption.
 ## Verification
 
 ```bash
+pnpm --filter @ha2ha/skills test
+npm pack --dry-run --json ./packages/ha2ha-skills
+node scripts/ha2ha-skill-package-smoke.mjs
+uv run --with pyyaml python /Users/pax/.codex/skills/.system/skill-creator/scripts/quick_validate.py packages/ha2ha-skills/skills/ha2ha
+pnpm run test:ha2ha-packages
 pnpm run check
 pnpm run check-types
-pnpm --filter @mdsync/ha2ha-protocol test
-pnpm --filter @mdsync/ha2ha-http test
+pnpm run test
+pnpm run build
 ```

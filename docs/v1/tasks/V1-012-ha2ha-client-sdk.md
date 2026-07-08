@@ -2,7 +2,7 @@
 id: V1-012
 title: Document and ship HA2HA client SDK
 version: v1
-state: ready
+state: done
 priority: high
 depends_on: [V1-010]
 area: developer-adoption
@@ -16,6 +16,13 @@ acceptance:
 evidence:
   - "2026-07-08: No `@ha2ha/client` package exists in `packages/`."
   - "2026-07-08: SDK-like method names such as `ha2ha.readWorkspace`, `ha2ha.claimTask`, `ha2ha.addEvidence`, and `ha2ha.handoff` exist only as target adapter contracts in docs."
+  - "2026-07-08: Added `packages/ha2ha-client` as `@ha2ha/client` with local-folder and HTTP transports, structured result types, typed `version_conflict` errors, package README, built exports, and install smoke."
+  - "2026-07-08: `pnpm --filter @ha2ha/client test` passed with 3 tests."
+  - "2026-07-08: `node scripts/ha2ha-client-package-smoke.mjs` passed by packing/installing `@ha2ha/client`, running HTTP transport against the deterministic local server, running a local-folder claim/evidence flow, and validating the resulting workspace."
+  - "2026-07-08: `npm pack --dry-run --json ./packages/ha2ha-client` passed and listed `dist`, `README.md`, and `package.json` in `ha2ha-client-0.1.0.tgz`."
+  - "2026-07-08: `pnpm run test:ha2ha-packages` passed with `{ ok: true, package: \"@ha2ha/client\" }` for the client package smoke."
+  - "2026-07-08: `pnpm run check`, `pnpm run check-types`, `pnpm run test`, and `pnpm run build` passed with `@ha2ha/client` included in the workspace."
+  - "2026-07-08: `pnpm --filter ha2ha build` passed after switching the docs app to the browser-safe `@ha2ha/protocol/constants` import."
 ---
 
 ## Intent
@@ -35,7 +42,10 @@ semantics.
 - `packages/ha2ha-protocol` currently holds constants, schemas, examples, and
   validator APIs.
 - `packages/ha2ha-http` currently holds HTTP conformance tooling.
-- There is no dedicated HA2HA client SDK package as of 2026-07-08.
+- `packages/ha2ha-client` now ships the portable HA2HA client SDK as
+  `@ha2ha/client`.
+- The package is tarball-installable and registry-ready; npm publication is
+  deferred until an explicit publish step.
 
 ## Work
 
@@ -60,7 +70,12 @@ semantics.
 ## Verification
 
 ```bash
+pnpm --filter @ha2ha/client test
+npm pack --dry-run --json ./packages/ha2ha-client
+node scripts/ha2ha-client-package-smoke.mjs
+pnpm run test:ha2ha-packages
 pnpm run check
 pnpm run check-types
-npm pack --dry-run --json ./packages/ha2ha-client
+pnpm run test
+pnpm run build
 ```

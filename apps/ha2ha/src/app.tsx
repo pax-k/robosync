@@ -4,7 +4,7 @@ import {
 	HA2HA_HTTP_ROUTES,
 	HA2HA_PATHS,
 	HA2HA_TASK_STATES,
-} from "@mdsync/ha2ha-protocol";
+} from "@ha2ha/protocol/constants";
 
 const navItems = [
 	{ href: "#workspace", label: "Workspace" },
@@ -66,8 +66,8 @@ export function App() {
 							human-agent pairs coordinating without hidden state.
 						</p>
 						<div className="command-strip">
-							<code>pnpm --filter @mdsync/ha2ha-protocol validate</code>
-							<code>pnpm --filter @mdsync/ha2ha-http conformance</code>
+							<code>ha2ha-validate ./workspace</code>
+							<code>ha2ha-http-conformance http://localhost:3000</code>
 						</div>
 					</div>
 					<div

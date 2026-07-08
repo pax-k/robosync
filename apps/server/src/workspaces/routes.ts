@@ -2,7 +2,7 @@ import {
 	HA2HA_CONFLICT,
 	HA2HA_EVENT_TYPES,
 	HA2HA_HEADERS,
-} from "@mdsync/ha2ha-protocol";
+} from "@ha2ha/protocol";
 import type { EvlogVariables } from "evlog/hono";
 import { type Context, Hono } from "hono";
 import { z } from "zod";

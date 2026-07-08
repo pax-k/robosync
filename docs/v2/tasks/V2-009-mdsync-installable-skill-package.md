@@ -19,6 +19,7 @@ acceptance:
 evidence:
   - "2026-07-08: No dedicated `packages/mdsync-skills`, top-level installable `skills/mdsync`, or published MDSync skill package exists."
   - "2026-07-08: Current skill evidence is the repo-local v1 `docs/v1/skills/core-ha2ha-agent-alpha/SKILL.md`, which is protocol-aware and implementation-light."
+  - "2026-07-08: V1-011 shipped `@ha2ha/skills` from `packages/ha2ha-skills`; MDSync product skills remain separate V2 work."
 ---
 
 ## Intent
@@ -37,10 +38,13 @@ accelerate product adoption without becoming protocol authority.
 - [V2-008](V2-008-team-workspace-product-pilot.md) depends on v1 skill workflows
   for a team-workspace pilot.
 - [../../v1/tasks/V1-011-ha2ha-installable-skill-package.md](../../v1/tasks/V1-011-ha2ha-installable-skill-package.md)
-  tracks the protocol-only HA2HA skill package.
+  shipped the protocol-only HA2HA skill package.
 - [V2-010](V2-010-mdsync-client-sdk.md) tracks the hosted MDSync client SDK that
   product skills should call once it exists.
 - There is no dedicated installable MDSync skill package as of 2026-07-08.
+  MDSync skills should build on `@ha2ha/skills` for protocol workflows while
+  keeping hosted routes, tokens, dashboards, comments, history, provider sync,
+  and team-pilot onboarding product-specific.
 
 ## Work
 
@@ -49,8 +53,8 @@ accelerate product adoption without becoming protocol authority.
 - Add product-aware workflows for hosted workspace join/publish, raw/API reads,
   versioned writes, dashboard links, token/identity handling, comments/history
   inspection, and team-pilot onboarding.
-- Decide which helper commands call published HA2HA packages, MDSync API routes,
-  or future MDSync client packages.
+- Decide which helper commands call `@ha2ha/skills`, `@ha2ha/client`, MDSync API
+  routes, or future MDSync client packages.
 - Add install, update, version, compatibility, and permission documentation.
 - Run an installed-skill dogfood trial against local or deployed MDSync.
 

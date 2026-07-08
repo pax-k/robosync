@@ -45,6 +45,8 @@ This directory is split by release horizon and authority.
 - [v3 sprint](v3/sprint.md)
 - [v3 tasks](v3/tasks/)
 - [v4 team control plane](v4/team-control-plane.md)
+- [v4 top-down work orchestration](v4/top-down-work-orchestration.md)
+- [v4 vertical room flows](v4/vertical-room-flows.md)
 - [v4 product data model](v4/product-data-model.md)
 - [v4 sprint](v4/sprint.md)
 - [v4 tasks](v4/tasks/)

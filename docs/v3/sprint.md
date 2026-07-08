@@ -16,10 +16,10 @@ integration, conformance, and migration from v1/v2.
 - v3 adapter and typed-tool names are target contracts, not shipped SDK claims.
   External package readiness is tracked in
   [../v1/tasks/V1-010-developer-package-adoption-readiness.md](../v1/tasks/V1-010-developer-package-adoption-readiness.md).
-- Installable skill packages are not yet shipped. HA2HA protocol skills are
+- HA2HA protocol skills are now shipped as the v1 `@ha2ha/skills` package,
   tracked in
   [../v1/tasks/V1-011-ha2ha-installable-skill-package.md](../v1/tasks/V1-011-ha2ha-installable-skill-package.md);
-  MDSync product skills are tracked in
+  MDSync product skills remain v2 work tracked in
   [../v2/tasks/V2-009-mdsync-installable-skill-package.md](../v2/tasks/V2-009-mdsync-installable-skill-package.md).
 
 ## Execution Order

@@ -117,7 +117,7 @@ importers:
 
   apps/ha2ha:
     dependencies:
-      '@mdsync/ha2ha-protocol':
+      '@ha2ha/protocol':
         specifier: workspace:*
         version: link:../../packages/ha2ha-protocol
       react:
@@ -148,6 +148,9 @@ importers:
 
   apps/server:
     dependencies:
+      '@ha2ha/protocol':
+        specifier: workspace:*
+        version: link:../../packages/ha2ha-protocol
       '@hono/trpc-server':
         specifier: ^0.4.2
         version: 0.4.2(@trpc/server@11.18.0(typescript@6.0.3))(hono@4.12.28)
@@ -163,9 +166,6 @@ importers:
       '@mdsync/env':
         specifier: workspace:*
         version: link:../../packages/env
-      '@mdsync/ha2ha-protocol':
-        specifier: workspace:*
-        version: link:../../packages/ha2ha-protocol
       '@trpc/server':
         specifier: 'catalog:'
         version: 11.18.0(typescript@6.0.3)
@@ -379,15 +379,40 @@ importers:
         specifier: 'catalog:'
         version: 6.0.3
 
+  packages/ha2ha-client:
+    dependencies:
+      '@ha2ha/protocol':
+        specifier: 0.1.0
+        version: link:../ha2ha-protocol
+      yaml:
+        specifier: ^2.9.0
+        version: 2.9.0
+    devDependencies:
+      '@mdsync/config':
+        specifier: workspace:*
+        version: link:../config
+      tsdown:
+        specifier: ^0.22.4
+        version: 0.22.4(tsx@4.23.0)(typescript@6.0.3)
+      tsx:
+        specifier: ^4.23.0
+        version: 4.23.0
+      typescript:
+        specifier: 'catalog:'
+        version: 6.0.3
+
   packages/ha2ha-http:
     dependencies:
-      '@mdsync/ha2ha-protocol':
-        specifier: workspace:*
+      '@ha2ha/protocol':
+        specifier: 0.1.0
         version: link:../ha2ha-protocol
     devDependencies:
       '@mdsync/config':
         specifier: workspace:*
         version: link:../config
+      tsdown:
+        specifier: ^0.22.4
+        version: 0.22.4(tsx@4.23.0)(typescript@6.0.3)
       tsx:
         specifier: ^4.23.0
         version: 4.23.0
@@ -401,18 +426,27 @@ importers:
         specifier: ^2.9.0
         version: 2.9.0
       zod:
-        specifier: 'catalog:'
+        specifier: ^4.4.3
         version: 4.4.3
     devDependencies:
       '@mdsync/config':
         specifier: workspace:*
         version: link:../config
+      tsdown:
+        specifier: ^0.22.4
+        version: 0.22.4(tsx@4.23.0)(typescript@6.0.3)
       tsx:
         specifier: ^4.23.0
         version: 4.23.0
       typescript:
         specifier: 'catalog:'
         version: 6.0.3
+
+  packages/ha2ha-skills:
+    dependencies:
+      '@ha2ha/protocol':
+        specifier: 0.1.0
+        version: link:../ha2ha-protocol
 
   packages/infra:
     dependencies:

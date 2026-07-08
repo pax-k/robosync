@@ -6,7 +6,7 @@ Planned, not shipped.
 
 No `@mdsync/client` package exists yet. Current MDSync integration surfaces are
 the hosted app/backend, product docs, repo-local scripts, HA2HA protocol
-packages, HTTP conformance tooling, and alpha skill guidance.
+packages, HTTP conformance tooling, `@ha2ha/skills`, and `@ha2ha/client`.
 
 ## Purpose
 
@@ -19,8 +19,8 @@ comments/history reads, stats/admin reads, or product-specific read models.
 
 ## Boundary
 
-The MDSync client may wrap `@ha2ha/client` for portable HA2HA workspace
-operations.
+The MDSync client should wrap `@ha2ha/client` for portable HA2HA workspace
+operations where useful.
 
 It may also expose MDSync product behavior, but those methods must stay labeled
 as MDSync scope. Product convenience must not redefine HA2HA protocol

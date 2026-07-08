@@ -2,11 +2,11 @@
 
 ## Status
 
-Planned, not shipped.
+Shipped as a tarball-installable v1 protocol package.
 
-No `@ha2ha/client` package exists yet. Current HA2HA implementation evidence is
-repo-local: protocol constants, schemas, validators, examples, HTTP conformance
-tooling, the HA2HA docs site, and the core HA2HA agent skill alpha.
+`@ha2ha/client` lives in `packages/ha2ha-client`. It is registry-ready but not
+published to npm by default. Current install evidence uses `npm pack` tarballs
+and empty-project smoke tests.
 
 ## Purpose
 
@@ -36,22 +36,31 @@ client.
 
 ## Minimum Capabilities
 
-The first useful `@ha2ha/client` should expose typed helpers for:
+The first `@ha2ha/client` exposes typed helpers for:
 
-- validating a workspace
-- reading a workspace listing
-- reading a file and its target coordinate
-- creating or updating a file with `actor` and `baseVersion`
-- deleting a file with `actor` and `baseVersion`
-- surfacing typed `version_conflict` results
-- claiming a task through a v1 task-file update
-- adding evidence with v1 metadata
-- recording a decision file
-- writing a handoff note without claiming v3 coordination semantics
-- using local-folder and HTTP-profile transports
+- `createHa2haClient({ actor, transport, clock? })`
+- `createHttpTransport({ baseUrl, workspaceId, fetch?, authorizeRequest? })`
+- `createLocalFolderTransport({ rootDir, workspaceId? })`
+- `validateWorkspace`
+- `listWorkspace`
+- `readFile`
+- `writeFile`
+- `deleteFile`
+- `claimTask`
+- `addEvidence`
+- `recordDecision`
+- `writeHandoff`
 
 The client should return structured results rather than throwing untyped
 provider or parser errors across package boundaries.
+
+Results use `{ ok: true, data }` or `{ ok: false, error }`. Typed
+`version_conflict` errors expose `latest.workspaceId`, `latest.path`, and
+`latest.version`.
+
+The local-folder transport uses `.ha2ha/file-versions.json` and
+`.ha2ha/workspace-events.json` as its version and event stores. It does not keep
+a private client cache.
 
 ## Value
 
@@ -65,16 +74,16 @@ The client gives each adopter one typed way to integrate HA2HA:
 - competing products can build against the protocol without reverse-engineering
   MDSync
 
-## Not Shipped Until Proven
+## Shipped Evidence
 
-Do not market `@ha2ha/client` as shipped until:
+`@ha2ha/client` is a shipped v1 protocol package when these checks pass:
 
-- the package exists with release metadata and install docs
-- public exports and types are stable enough for a v1 claim
+- package metadata and install docs exist
+- public exports and types point at built `dist` artifacts
 - empty-project install smoke passes
 - local-folder and HTTP-profile behavior have tests
-- conformance or dogfood evidence proves the client against at least one
-  deterministic implementation
+- dogfood evidence proves the client against a deterministic HTTP server and a
+  local HA2HA folder
 
 Track implementation readiness in
 [tasks/V1-012-ha2ha-client-sdk.md](tasks/V1-012-ha2ha-client-sdk.md).

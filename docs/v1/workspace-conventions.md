@@ -171,10 +171,15 @@ Mutating v1 skills must declare:
 Packaging as a Codex skill, instruction pack, npm package, or bundled script is
 not protocol authority.
 
-The v1 alpha Codex skill package is
+The installable v1 protocol skill package is `@ha2ha/skills` under
+`packages/ha2ha-skills`. Its `skills/ha2ha/SKILL.md` workflow is protocol-only:
+local HA2HA folders or conformant HTTP implementations, no MDSync dashboards,
+comments, hosted auth, stats, admin, or provider sync.
+
+The earlier v1 alpha Codex skill package is
 [skills/core-ha2ha-agent-alpha/SKILL.md](skills/core-ha2ha-agent-alpha/SKILL.md).
-It is repo-local evidence, not the final installable HA2HA skill distribution.
-The installable package work is tracked in
+It remains historical V1-008 repo-local evidence. The installable package work
+is tracked in
 [tasks/V1-011-ha2ha-installable-skill-package.md](tasks/V1-011-ha2ha-installable-skill-package.md).
 
 ## Import, Export, And Snapshot Preservation

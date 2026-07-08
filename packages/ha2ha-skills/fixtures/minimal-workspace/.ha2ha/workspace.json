@@ -1,0 +1,22 @@
+{
+  "capabilities": ["raw-read", "file-write"],
+  "conflictPolicy": "baseVersion-required",
+  "paths": {
+    "decisions": "decisions/",
+    "evidence": "evidence/",
+    "logs": "logs/",
+    "manifestMarkdown": "HA2HA.md",
+    "participants": "participants/",
+    "status": "STATUS.md",
+    "tasks": "tasks/",
+    "workspaceManifest": ".ha2ha/workspace.json"
+  },
+  "protocol": "ha2ha",
+  "protocolVersion": "1.0.0",
+  "routes": {
+    "rawFile": "/w/skill-fixture/raw/:path",
+    "rawListing": "/w/skill-fixture/raw"
+  },
+  "title": "HA2HA Skill Fixture",
+  "workspaceId": "skill-fixture"
+}

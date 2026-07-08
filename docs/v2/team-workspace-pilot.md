@@ -37,11 +37,17 @@ It does not use product-private agent behavior. Agent workflows are modeled as
 version-aware HA2HA file updates with `baseVersion`, protocol events, task-file
 state, and evidence files.
 
-No installable HA2HA skill package or MDSync product skill package is claimed by
-this pilot. Those remain tracked separately:
+This pilot did not claim any installable skill package. At the time of the
+pilot, portable HA2HA skill packaging and hosted MDSync skill packaging were
+tracked separately:
 
 - `docs/v1/tasks/V1-011-ha2ha-installable-skill-package.md`
 - `docs/v2/tasks/V2-009-mdsync-installable-skill-package.md`
+
+After V1-011, repeatable external pilots should use the installable
+`@ha2ha/skills` package for protocol workflows. The original V2-008 pilot
+evidence remains accurate because it was run against the repo-local alpha skill
+before that package shipped.
 
 ## Product Visibility Proven
 

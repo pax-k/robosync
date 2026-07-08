@@ -1,34 +1,59 @@
 {
-  "name": "@mdsync/ha2ha-protocol",
+  "name": "@ha2ha/protocol",
+  "version": "0.1.0",
+  "description": "HA2HA v1 protocol constants, schemas, examples, validation API, and validator CLI.",
+  "license": "MIT",
+  "homepage": "https://mdsync-ha2ha-pax.pax.workers.dev",
   "type": "module",
+  "main": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
   "exports": {
     ".": {
-      "default": "./src/constants.ts"
+      "types": "./dist/index.d.mts",
+      "default": "./dist/index.mjs"
     },
     "./constants": {
-      "default": "./src/constants.ts"
+      "types": "./dist/constants.d.mts",
+      "default": "./dist/constants.mjs"
     },
     "./schemas": {
-      "default": "./src/schemas.ts"
+      "types": "./dist/schemas.d.mts",
+      "default": "./dist/schemas.mjs"
     },
     "./validator": {
-      "default": "./src/validator.ts"
+      "types": "./dist/validator.d.mts",
+      "default": "./dist/validator.mjs"
     },
-    "./*": {
-      "default": "./src/*.ts"
+    "./examples/*": {
+      "default": "./examples/*"
+    },
+    "./package.json": {
+      "default": "./package.json"
     }
   },
+  "bin": {
+    "ha2ha-validate": "./dist/cli.mjs"
+  },
+  "files": [
+    "dist",
+    "examples",
+    "README.md"
+  ],
   "scripts": {
-    "check-types": "tsc -b",
+    "build": "tsdown",
+    "check-types": "tsc -b && pnpm run build",
+    "pack:dry-run": "npm pack --dry-run --json",
+    "prepack": "pnpm run build",
     "test": "pnpm run check-types && tsx --test src/**/*.test.ts",
     "validate": "tsx src/cli.ts"
   },
   "dependencies": {
     "yaml": "^2.9.0",
-    "zod": "catalog:"
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@mdsync/config": "workspace:*",
+    "tsdown": "^0.22.4",
     "tsx": "^4.23.0",
     "typescript": "catalog:"
   }

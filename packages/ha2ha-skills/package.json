@@ -1,0 +1,25 @@
+{
+  "name": "@ha2ha/skills",
+  "version": "0.1.0",
+  "description": "Installable HA2HA protocol-only agent skill package.",
+  "license": "MIT",
+  "homepage": "https://mdsync-ha2ha-pax.pax.workers.dev",
+  "type": "module",
+  "exports": {
+    "./package.json": "./package.json",
+    "./skills/ha2ha": "./skills/ha2ha/SKILL.md",
+    "./fixtures/*": "./fixtures/*"
+  },
+  "files": [
+    "fixtures",
+    "README.md",
+    "skills"
+  ],
+  "scripts": {
+    "pack:dry-run": "npm pack --dry-run --json",
+    "test": "node ../../scripts/ha2ha-skill-package-smoke.mjs"
+  },
+  "peerDependencies": {
+    "@ha2ha/protocol": "0.1.0"
+  }
+}

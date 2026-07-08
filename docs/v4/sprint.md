@@ -22,8 +22,10 @@ controls, identity, service accounts, integrations, retention, and audit state.
 1. Define team identity, membership, and workspace ownership.
 2. Add team aggregate stats, logs, and audit-event design.
 3. Design the team control panel as a read-mostly operational surface.
-4. Define migration and capability-link coexistence.
-5. Implement schemas, authorization, APIs, UI, and tests after the docs settle.
+4. Define top-down work orchestration: boards, work items, task
+   materialization, and agent inbox pickup.
+5. Define migration and capability-link coexistence.
+6. Implement schemas, authorization, APIs, UI, and tests after the docs settle.
 
 ## Tasks
 
@@ -31,6 +33,7 @@ controls, identity, service accounts, integrations, retention, and audit state.
 - [V4-002 Team Aggregate Stats And Logs](tasks/V4-002-team-aggregate-stats-logs.md)
 - [V4-003 Team Control Panel UX](tasks/V4-003-team-control-panel-ux.md)
 - [V4-004 Migration And Capability Links](tasks/V4-004-migration-and-capability-links.md)
+- [V4-005 Top-Down Work Orchestration](tasks/V4-005-top-down-work-orchestration.md)
 
 ## Done Definition
 
@@ -43,13 +46,17 @@ controls, identity, service accounts, integrations, retention, and audit state.
 - Capability links remain workspace-scoped and do not grant team-admin access.
 - Mutating team-control actions have audit-event requirements.
 - The first control panel is read-mostly before broad admin actions are added.
+- Dashboard-authored board cards materialize to workspace tasks before they
+  are offered as portable HA2HA work.
+- Pull-mode agent inbox exists before event-mode or hosted-runner execution is
+  treated as product-ready.
 - Tests cover team membership authorization, workspace ownership, aggregate
-  queries, audit events, and legacy capability-link behavior when implemented.
+  queries, board-to-task materialization, agent inbox authorization, audit
+  events, and legacy capability-link behavior when implemented.
 
 ## Verification Commands
 
 ```bash
-rg -n "team|tenant|control panel|audit|aggregate|capability|service account" docs/v4 docs/README.md
+rg -n "team|tenant|control panel|audit|aggregate|capability|service account|board|agent inbox|top-down" docs/v4 docs/README.md
 pnpm run check
 ```
-

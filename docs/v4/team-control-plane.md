@@ -26,6 +26,7 @@ answer questions across the whole body of work:
   recurring?
 - Which integrations and tokens are active?
 - Which workspace should an admin open next?
+- Which ready work should an agent or human pick up next?
 - What happened across the team during an incident, audit, or customer review?
 
 The v4 product wedge is:
@@ -55,6 +56,7 @@ team
   audit events
   usage and limits
   retention and security policy
+  boards and work-item indexes
   workspaces[]
 
 workspace
@@ -70,6 +72,11 @@ workspace
 
 The workspace remains the source of shared work state. The team control plane
 indexes, aggregates, filters, and governs many workspace records.
+
+For top-down work, the control plane may also author board cards and work-item
+metadata. Once those cards are offered to agents as portable work, they must
+materialize into workspace task files or clearly remain product-only draft
+state.
 
 ## Authorization
 
@@ -120,6 +127,10 @@ The first v4 control panel should prioritize read-mostly operational visibility:
 - active capability links, service accounts, and integration status
 - audit log feed
 - next required action
+- board-style work queues
+- agent inbox visibility
+- domain-room dashboards for flows such as RFP/security questionnaires, client
+  delivery, incident/audit, research, hiring, and application packets
 
 Mutating controls can follow once audit events and permission checks are
 reliable:
@@ -130,6 +141,7 @@ reliable:
 - retry cleanup
 - create service accounts
 - connect or revoke integrations
+- create, publish, assign, release, or reassign board work
 - record risk exceptions or approvals when governance profiles exist
 
 Every mutating team-control action should emit a product audit event.
@@ -153,6 +165,8 @@ Useful first aggregates:
 - workspaces with health issues
 - service accounts by last use
 - integration sync status
+- ready work by workspace, priority, label, and eligible agent
+- stale claims and agent inbox health
 
 Keep aggregate stats queryable from canonical tables at first. Add snapshots or
 daily rollups only when performance or billing evidence justifies it.
@@ -173,11 +187,14 @@ Add team product routes separately:
 /teams/:teamSlug
 /teams/:teamSlug/workspaces
 /teams/:teamSlug/activity
+/teams/:teamSlug/boards
 /teams/:teamSlug/logs
 /teams/:teamSlug/settings
 
 /api/teams/:teamId
 /api/teams/:teamId/workspaces
+/api/teams/:teamId/work-items
+/api/teams/:teamId/agent-inbox
 /api/teams/:teamId/stats
 /api/teams/:teamId/audit-events
 /api/teams/:teamId/service-accounts
@@ -211,4 +228,7 @@ compatibility and migration only.
 - Which team stats should be live queries versus persisted daily rollups?
 - Which control-panel actions are safe in v4.0, and which should wait for v3
   governance or evidence profiles?
-
+- Is the first board scoped to one workspace, or can one team board span many
+  workspaces?
+- Which board fields are product-only in v4 versus future HA2HA coordination
+  profile fields?
