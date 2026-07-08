@@ -20,6 +20,7 @@ Implementation-specific infrastructure belongs outside normative protocol docs. 
 - [schemas-and-validation.md](schemas-and-validation.md)
 - [conformance.md](conformance.md)
 - [mdsync-conformance-plan.md](mdsync-conformance-plan.md)
+- [protocol-leak-review.md](protocol-leak-review.md)
 - [research/a2a-inspired-human-agent-sync.md](research/a2a-inspired-human-agent-sync.md)
 
 ## Required Protocol Surfaces

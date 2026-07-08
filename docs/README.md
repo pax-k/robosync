@@ -27,6 +27,7 @@ This directory is split by release horizon and authority.
 - [v1 HA2HA protocol](v1/ha2ha-protocol.md)
 - [v1 HTTP profile](v1/http-profile.md)
 - [v1 conformance](v1/conformance.md)
+- [v1 protocol leak review](v1/protocol-leak-review.md)
 - [v1 sprint](v1/sprint.md)
 - [v1 tasks](v1/tasks/)
 - [v2 product roadmap](v2/product-roadmap.md)
