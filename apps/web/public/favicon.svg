@@ -1,0 +1,11 @@
+<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+	<title>Robosync</title>
+	<rect fill="#18241d" height="64" rx="12" width="64" />
+	<path d="M18 18h28v28H18z" fill="#eef4ee" />
+	<path
+		d="M24 27h16M24 34h10M24 41h16"
+		stroke="#1b7f5a"
+		stroke-linecap="round"
+		stroke-width="4"
+	/>
+</svg>

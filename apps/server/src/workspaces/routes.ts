@@ -1,0 +1,606 @@
+import { env } from "@mdsync/env/server";
+import type { EvlogVariables } from "evlog/hono";
+import { type Context, Hono } from "hono";
+import { z } from "zod";
+import {
+	assertValidAccess,
+	buildWorkspaceUrls,
+	createR2Prefix,
+	createWorkspaceId,
+	extractBearerToken,
+	formatRawListing,
+	normalizeFilePath,
+	randomCapabilityToken,
+	tokenHash,
+	type UploadedObject,
+	validateUniquePaths,
+	WorkspaceError,
+} from "./domain";
+import {
+	deleteObjectBestEffort,
+	fetchObjectText,
+	getFile,
+	getWorkspace,
+	listWorkspaceFiles,
+	putFileObject,
+	readObjectBody,
+	type WorkspaceFileRow,
+	type WorkspaceRow,
+} from "./storage";
+
+const DEFAULT_CONTENT_TYPE = "text/markdown; charset=utf-8";
+const INVALID_PERCENT_ESCAPE_PATTERN = /%(?![0-9A-Fa-f]{2})/;
+
+const createWorkspaceSchema = z.object({
+	files: z
+		.array(
+			z.object({
+				content: z.string(),
+				contentType: z.string().min(1).optional(),
+				path: z.string(),
+			})
+		)
+		.min(1),
+	readAccess: z.enum(["public", "token"]).default("token"),
+	title: z.string().min(1).max(200).optional(),
+	writeAccess: z.enum(["none", "public", "token"]).default("token"),
+});
+
+const updateFileSchema = z.object({
+	actor: z.string().min(1).max(120).optional(),
+	baseVersion: z.number().int().positive().nullable().optional(),
+	content: z.string(),
+	contentType: z.string().min(1).optional(),
+	path: z.string(),
+});
+
+const deleteFileSchema = z.object({
+	actor: z.string().min(1).max(120).optional(),
+	baseVersion: z.number().int().positive().nullable().optional(),
+});
+
+export const workspaceRoutes = new Hono<EvlogVariables>();
+
+workspaceRoutes.post("/api/workspaces", async (c) => {
+	try {
+		const parsed = createWorkspaceSchema.parse(await c.req.json());
+		assertValidAccess(parsed.readAccess, parsed.writeAccess);
+
+		const id = createWorkspaceId();
+		const now = new Date().toISOString();
+		const r2Prefix = createR2Prefix(id);
+		const readToken =
+			parsed.readAccess === "token" ? randomCapabilityToken() : null;
+		const writeToken =
+			parsed.writeAccess === "token" ? randomCapabilityToken() : null;
+		const readTokenHash = readToken ? await tokenHash(readToken) : null;
+		const writeTokenHash = writeToken ? await tokenHash(writeToken) : null;
+		const normalizedFiles = parsed.files.map((file) => ({
+			content: file.content,
+			contentType: normalizeContentType(file.contentType),
+			path: normalizeFilePath(file.path),
+		}));
+
+		validateUniquePaths(normalizedFiles.map((file) => file.path));
+
+		const uploadedObjects = await uploadWorkspaceObjects(normalizedFiles, id);
+		try {
+			const totalSizeBytes = uploadedObjects.reduce(
+				(total, file) => total + file.sizeBytes,
+				0
+			);
+			await env.DB.batch([
+				env.DB.prepare(
+					`insert into workspaces (
+            id, title, read_access, write_access, read_token_hash, write_token_hash, r2_prefix,
+            file_count, total_size_bytes, created_at, updated_at, last_accessed_at
+          ) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, null)`
+				).bind(
+					id,
+					parsed.title ?? null,
+					parsed.readAccess,
+					parsed.writeAccess,
+					readTokenHash,
+					writeTokenHash,
+					r2Prefix,
+					uploadedObjects.length,
+					totalSizeBytes,
+					now,
+					now
+				),
+				...uploadedObjects.map((file) =>
+					env.DB.prepare(
+						`insert into workspace_files (
+              workspace_id, path, object_key, content_type, size_bytes, sha256, version,
+              updated_by, created_at, updated_at
+            ) values (?, ?, ?, ?, ?, ?, 1, ?, ?, ?)`
+					).bind(
+						id,
+						file.path,
+						file.objectKey,
+						file.contentType,
+						file.sizeBytes,
+						file.sha256,
+						null,
+						now,
+						now
+					)
+				),
+			]);
+		} catch (error) {
+			await cleanupUploadedObjects(uploadedObjects);
+			throw error;
+		}
+
+		return c.json(
+			{
+				createdAt: now,
+				id,
+				title: parsed.title ?? null,
+				...buildWorkspaceUrls({
+					editToken: writeToken,
+					id,
+					origin: new URL(c.req.url).origin,
+					readAccess: parsed.readAccess,
+					readToken,
+					webOrigin: env.WEB_ORIGIN,
+					writeAccess: parsed.writeAccess,
+				}),
+			},
+			201
+		);
+	} catch (error) {
+		return handleWorkspaceError(c, error);
+	}
+});
+
+workspaceRoutes.get("/api/workspaces/:workspaceId", async (c) => {
+	try {
+		const workspace = await requireWorkspace(c.req.param("workspaceId"));
+		await authorizeRead(workspace, c.req.raw);
+		return c.json(serializeWorkspace(workspace));
+	} catch (error) {
+		return handleWorkspaceError(c, error);
+	}
+});
+
+workspaceRoutes.get("/api/workspaces/:workspaceId/tree", async (c) => {
+	try {
+		const workspace = await requireWorkspace(c.req.param("workspaceId"));
+		await authorizeRead(workspace, c.req.raw);
+		return c.json({
+			files: await listWorkspaceFiles(workspace.id),
+			workspaceId: workspace.id,
+		});
+	} catch (error) {
+		return handleWorkspaceError(c, error);
+	}
+});
+
+workspaceRoutes.get("/api/workspaces/:workspaceId/files", async (c) => {
+	try {
+		const workspace = await requireWorkspace(c.req.param("workspaceId"));
+		await authorizeRead(workspace, c.req.raw);
+		const path = normalizeFilePath(c.req.query("path") ?? "");
+		const file = await requireFile(workspace.id, path);
+		return c.json({
+			content: await fetchObjectText(file),
+			contentType: file.content_type,
+			path: file.path,
+			updatedAt: file.updated_at,
+			updatedBy: file.updated_by,
+			version: file.version,
+			workspaceId: workspace.id,
+		});
+	} catch (error) {
+		return handleWorkspaceError(c, error);
+	}
+});
+
+workspaceRoutes.put("/api/workspaces/:workspaceId/files", async (c) => {
+	try {
+		const workspace = await requireWorkspace(c.req.param("workspaceId"));
+		await authorizeWrite(workspace, c.req.raw);
+		const parsed = updateFileSchema.parse(await c.req.json());
+		const path = normalizeFilePath(parsed.path);
+		const now = new Date().toISOString();
+		const current = await getFile(workspace.id, path);
+		const contentType = normalizeContentType(parsed.contentType);
+
+		if (current && !parsed.baseVersion) {
+			throw new WorkspaceError(
+				400,
+				"missing_base_version",
+				"baseVersion is required."
+			);
+		}
+		if (!current && parsed.baseVersion) {
+			throw new WorkspaceError(
+				409,
+				"version_conflict",
+				"File already changed."
+			);
+		}
+
+		const uploaded = await putFileObject({
+			content: parsed.content,
+			contentType,
+			path,
+			workspaceId: workspace.id,
+		});
+
+		if (current) {
+			const result = await env.DB.prepare(
+				`update workspace_files
+         set object_key = ?, content_type = ?, size_bytes = ?, sha256 = ?,
+             version = version + 1, updated_by = ?, updated_at = ?
+         where workspace_id = ? and path = ? and version = ?`
+			)
+				.bind(
+					uploaded.objectKey,
+					uploaded.contentType,
+					uploaded.sizeBytes,
+					uploaded.sha256,
+					parsed.actor ?? null,
+					now,
+					workspace.id,
+					path,
+					parsed.baseVersion
+				)
+				.run();
+
+			if ((result.meta.changes ?? 0) === 0) {
+				await deleteObjectBestEffort(uploaded.objectKey);
+				return c.json(await versionConflictPayload(workspace.id, path), 409);
+			}
+
+			await updateWorkspaceTotals({
+				fileCountDelta: 0,
+				now,
+				sizeDelta: uploaded.sizeBytes - current.size_bytes,
+				workspaceId: workspace.id,
+			});
+			await deleteObjectBestEffort(current.object_key);
+			return c.json({
+				path,
+				updatedAt: now,
+				updatedBy: parsed.actor ?? null,
+				version: current.version + 1,
+				workspaceId: workspace.id,
+			});
+		}
+
+		try {
+			await env.DB.prepare(
+				`insert into workspace_files (
+          workspace_id, path, object_key, content_type, size_bytes, sha256, version,
+          updated_by, created_at, updated_at
+        ) values (?, ?, ?, ?, ?, ?, 1, ?, ?, ?)`
+			)
+				.bind(
+					workspace.id,
+					path,
+					uploaded.objectKey,
+					uploaded.contentType,
+					uploaded.sizeBytes,
+					uploaded.sha256,
+					parsed.actor ?? null,
+					now,
+					now
+				)
+				.run();
+		} catch {
+			await deleteObjectBestEffort(uploaded.objectKey);
+			return c.json(await versionConflictPayload(workspace.id, path), 409);
+		}
+
+		await updateWorkspaceTotals({
+			fileCountDelta: 1,
+			now,
+			sizeDelta: uploaded.sizeBytes,
+			workspaceId: workspace.id,
+		});
+		return c.json({
+			path,
+			updatedAt: now,
+			updatedBy: parsed.actor ?? null,
+			version: 1,
+			workspaceId: workspace.id,
+		});
+	} catch (error) {
+		return handleWorkspaceError(c, error);
+	}
+});
+
+workspaceRoutes.delete("/api/workspaces/:workspaceId/files", async (c) => {
+	try {
+		const workspace = await requireWorkspace(c.req.param("workspaceId"));
+		await authorizeWrite(workspace, c.req.raw);
+		const path = normalizeFilePath(c.req.query("path") ?? "");
+		const parsed = deleteFileSchema.parse(await parseOptionalJson(c.req.raw));
+		const current = await requireFile(workspace.id, path);
+		const now = new Date().toISOString();
+		const statement = parsed.baseVersion
+			? env.DB.prepare(
+					"delete from workspace_files where workspace_id = ? and path = ? and version = ?"
+				).bind(workspace.id, path, parsed.baseVersion)
+			: env.DB.prepare(
+					"delete from workspace_files where workspace_id = ? and path = ?"
+				).bind(workspace.id, path);
+		const result = await statement.run();
+
+		if ((result.meta.changes ?? 0) === 0) {
+			return c.json(await versionConflictPayload(workspace.id, path), 409);
+		}
+
+		await updateWorkspaceTotals({
+			fileCountDelta: -1,
+			now,
+			sizeDelta: -current.size_bytes,
+			workspaceId: workspace.id,
+		});
+		await deleteObjectBestEffort(current.object_key);
+
+		return c.json({
+			deleted: true,
+			path,
+			workspaceId: workspace.id,
+		});
+	} catch (error) {
+		return handleWorkspaceError(c, error);
+	}
+});
+
+workspaceRoutes.get("/w/:workspaceId/raw", async (c) => {
+	try {
+		const workspace = await requireWorkspace(c.req.param("workspaceId"));
+		await authorizeRead(workspace, c.req.raw);
+		const files = await listWorkspaceFiles(workspace.id);
+		return c.text(
+			formatRawListing({
+				files: files.map((file) => file.path),
+				id: workspace.id,
+				title: workspace.title,
+				updatedAt: workspace.updated_at,
+			}),
+			200,
+			{
+				"Content-Type": "text/plain; charset=utf-8",
+			}
+		);
+	} catch (error) {
+		return handleWorkspaceError(c, error);
+	}
+});
+
+workspaceRoutes.get("/w/:workspaceId/raw/*", async (c) => {
+	try {
+		const workspaceId = c.req.param("workspaceId");
+		const workspace = await requireWorkspace(workspaceId);
+		await authorizeRead(workspace, c.req.raw);
+		const path = normalizeFilePath(
+			rawFilePathFromRequest(workspaceId, c.req.raw)
+		);
+		const file = await requireFile(workspace.id, path);
+		const body = await readObjectBody(file);
+
+		return new Response(body, {
+			headers: {
+				"Content-Type": file.content_type,
+				ETag: `"${file.version}"`,
+				"X-Robosync-Path": file.path,
+				"X-Robosync-Version": String(file.version),
+			},
+		});
+	} catch (error) {
+		return handleWorkspaceError(c, error);
+	}
+});
+
+async function authorizeRead(workspace: WorkspaceRow, request: Request) {
+	if (workspace.read_access === "public") {
+		return;
+	}
+
+	const url = new URL(request.url);
+	const readToken = url.searchParams.get("k");
+	const editToken =
+		url.searchParams.get("edit") ??
+		extractBearerToken(request.headers.get("Authorization"));
+
+	if (!(readToken || editToken)) {
+		throw new WorkspaceError(401, "missing_token", "Read token is required.");
+	}
+
+	const readTokenMatches =
+		readToken &&
+		workspace.read_token_hash &&
+		(await tokenHash(readToken)) === workspace.read_token_hash;
+	const editTokenMatches =
+		editToken &&
+		workspace.write_token_hash &&
+		(await tokenHash(editToken)) === workspace.write_token_hash;
+
+	if (!(readTokenMatches || editTokenMatches)) {
+		throw new WorkspaceError(403, "invalid_token", "Read token is invalid.");
+	}
+}
+
+async function authorizeWrite(workspace: WorkspaceRow, request: Request) {
+	if (workspace.write_access === "none") {
+		throw new WorkspaceError(403, "write_disabled", "Workspace is read-only.");
+	}
+	if (workspace.write_access === "public") {
+		return;
+	}
+
+	const url = new URL(request.url);
+	const token =
+		extractBearerToken(request.headers.get("Authorization")) ??
+		url.searchParams.get("edit");
+
+	if (!token) {
+		throw new WorkspaceError(401, "missing_token", "Write token is required.");
+	}
+	if (
+		!workspace.write_token_hash ||
+		(await tokenHash(token)) !== workspace.write_token_hash
+	) {
+		throw new WorkspaceError(403, "invalid_token", "Write token is invalid.");
+	}
+}
+
+async function cleanupUploadedObjects(files: UploadedObject[]) {
+	await Promise.all(
+		files.map((file) => deleteObjectBestEffort(file.objectKey))
+	);
+}
+
+function handleWorkspaceError(c: Context, error: unknown) {
+	if (error instanceof WorkspaceError) {
+		return c.json(
+			{
+				error: error.code,
+				message: error.message,
+			},
+			error.status
+		);
+	}
+	if (error instanceof z.ZodError) {
+		return c.json(
+			{
+				error: "invalid_request",
+				issues: error.issues,
+				message: "Request validation failed.",
+			},
+			400
+		);
+	}
+	throw error;
+}
+
+function normalizeContentType(contentType?: string) {
+	return contentType ?? DEFAULT_CONTENT_TYPE;
+}
+
+function parseOptionalJson(request: Request) {
+	const contentType = request.headers.get("Content-Type");
+	if (!contentType?.includes("application/json")) {
+		return {};
+	}
+	return request.json();
+}
+
+function rawFilePathFromRequest(workspaceId: string, request: Request) {
+	const { pathname } = new URL(request.url);
+	const prefix = `/w/${workspaceId}/raw/`;
+	if (!pathname.startsWith(prefix)) {
+		throw new WorkspaceError(400, "invalid_path", "Raw file path is invalid.");
+	}
+
+	const encodedPath = pathname.slice(prefix.length);
+	if (INVALID_PERCENT_ESCAPE_PATTERN.test(encodedPath)) {
+		throw new WorkspaceError(400, "invalid_path", "Raw file path is invalid.");
+	}
+
+	return decodeURIComponent(encodedPath);
+}
+
+async function requireFile(workspaceId: string, path: string) {
+	const file = await getFile(workspaceId, path);
+	if (!file) {
+		throw new WorkspaceError(404, "file_not_found", "File not found.");
+	}
+	return file;
+}
+
+async function requireWorkspace(workspaceId: string) {
+	const workspace = await getWorkspace(workspaceId);
+	if (!workspace) {
+		throw new WorkspaceError(
+			404,
+			"workspace_not_found",
+			"Workspace not found."
+		);
+	}
+	return workspace;
+}
+
+function serializeWorkspace(workspace: WorkspaceRow) {
+	return {
+		createdAt: workspace.created_at,
+		id: workspace.id,
+		readAccess: workspace.read_access,
+		title: workspace.title,
+		updatedAt: workspace.updated_at,
+		writeAccess: workspace.write_access,
+	};
+}
+
+async function updateWorkspaceTotals({
+	fileCountDelta,
+	now,
+	sizeDelta,
+	workspaceId,
+}: {
+	fileCountDelta: number;
+	now: string;
+	sizeDelta: number;
+	workspaceId: string;
+}) {
+	await env.DB.prepare(
+		`update workspaces
+     set file_count = file_count + ?, total_size_bytes = total_size_bytes + ?, updated_at = ?
+     where id = ?`
+	)
+		.bind(fileCountDelta, sizeDelta, now, workspaceId)
+		.run();
+}
+
+async function versionConflictPayload(workspaceId: string, path: string) {
+	const latest = await getFile(workspaceId, path);
+	return {
+		error: "version_conflict",
+		latest: latest ? await serializeLatestConflictFile(latest) : null,
+		message: "File changed since baseVersion.",
+	};
+}
+
+async function serializeLatestConflictFile(file: WorkspaceFileRow) {
+	return {
+		content: await fetchObjectText(file),
+		path: file.path,
+		updatedAt: file.updated_at,
+		updatedBy: file.updated_by,
+		version: file.version,
+	};
+}
+
+async function uploadWorkspaceObjects(
+	files: Array<{ content: string; contentType: string; path: string }>,
+	workspaceId: string
+) {
+	const uploadResults = await Promise.allSettled(
+		files.map((file) =>
+			putFileObject({
+				content: file.content,
+				contentType: file.contentType,
+				path: file.path,
+				workspaceId,
+			})
+		)
+	);
+	const uploadedObjects = uploadResults.flatMap((result) =>
+		result.status === "fulfilled" ? [result.value] : []
+	);
+	const failedUpload = uploadResults.find(
+		(result): result is PromiseRejectedResult => result.status === "rejected"
+	);
+
+	if (failedUpload) {
+		await cleanupUploadedObjects(uploadedObjects);
+		throw failedUpload.reason;
+	}
+
+	return uploadedObjects;
+}

@@ -1,0 +1,37 @@
+{
+  "name": "mdsync",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "type": "module",
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "check-types": "turbo run check-types",
+    "dev:web": "pnpm --filter web run dev:bare",
+    "dev:server": "turbo run dev -F server",
+    "db:generate": "turbo run db:generate -F @mdsync/db",
+    "deploy": "turbo run deploy -F @mdsync/infra",
+    "deploy:server": "pnpm --filter @mdsync/infra run deploy:server",
+    "destroy": "turbo run destroy -F @mdsync/infra",
+    "check": "ultracite check",
+    "fix": "ultracite fix"
+  },
+  "dependencies": {
+    "@mdsync/env": "workspace:*",
+    "dotenv": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.5.2",
+    "@cloudflare/workers-types": "catalog:",
+    "@mdsync/config": "workspace:*",
+    "@types/node": "^22.13.14",
+    "turbo": "^2.10.2",
+    "typescript": "catalog:",
+    "ultracite": "7.9.3"
+  },
+  "packageManager": "pnpm@10.32.1"
+}

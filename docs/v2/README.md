@@ -1,0 +1,19 @@
+# v2: Product Features Beyond Protocol
+
+v2 is MDSync product scope beyond the HA2HA protocol. These features may use v1 protocol primitives, but they do not define protocol behavior.
+
+## Product Boundary
+
+HA2HA v1 defines shared workspace semantics, event/history protocol data, schemas, and conformance.
+
+MDSync v2 turns those primitives into product experiences: dashboards, file-history UI, diff/restore UI, comments, admin tools, identity, encryption UX, and storage evolution.
+
+## Files
+
+- [sprint.md](sprint.md)
+- [tasks/](tasks/)
+- [product-roadmap.md](product-roadmap.md)
+- [product-features.md](product-features.md)
+- [product-data-model.md](product-data-model.md)
+- [storage-evolution.md](storage-evolution.md)
+- [security-and-identity.md](security-and-identity.md)
