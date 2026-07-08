@@ -4,7 +4,7 @@ title: Build team workspace product pilot
 version: v2
 state: ready
 priority: medium
-depends_on: [V2-001, V2-002, V2-003, V2-005, V1-008]
+depends_on: [V2-001, V2-002, V2-003, V2-004, V2-005, V2-007, V1-008]
 area: product-pilot
 acceptance:
   - Product UI lets humans inspect shared workspace activity, history, comments, task state, evidence, and token or identity status needed for a limited team pilot.

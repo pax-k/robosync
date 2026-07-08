@@ -4,7 +4,7 @@ title: Ship core HA2HA agent skill alpha
 version: v1
 state: ready
 priority: medium
-depends_on: [V1-001, V1-002, V1-003, V1-004]
+depends_on: [V1-001, V1-002, V1-003, V1-004, V1-005, V1-007]
 area: agent-adoption
 acceptance:
   - Skill alpha covers publish workspace, join/read workspace, update file with baseVersion, update STATUS.md, claim a task, add evidence, and handle conflicts.

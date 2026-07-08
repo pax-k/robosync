@@ -7,9 +7,9 @@ priority: high
 depends_on: []
 area: server
 acceptance:
-  - Existing-file updates require `baseVersion`.
+  - Existing-file updates require `baseVersion` and an `actor`.
   - Stale updates return `409 version_conflict` with latest file data.
-  - Delete requires `baseVersion` and preserves canonical D1 state.
+  - Delete requires `baseVersion` and an `actor`, and preserves canonical D1 state.
   - Failed conditional writes clean up newly uploaded R2 objects best-effort.
 evidence:
   - "2026-07-08: scripts/smoke-backend.sh passed locally and exercised stale update conflict with 409 version_conflict."
@@ -26,7 +26,7 @@ Confirm that v0 file mutation semantics prevent silent overwrite between agents.
 - `apps/server/src/workspaces/routes.ts` handles `PUT` and `DELETE` for workspace files.
 - Conditional D1 updates and stale-write conflict responses are implemented.
 - `scripts/smoke-backend.sh` forces one stale update conflict.
-- `scripts/update-file.mjs` uses explicit `--base-version` for agent writes.
+- `scripts/update-file.mjs` uses explicit `--base-version` and `--actor` for agent writes.
 
 ## Work
 
@@ -45,6 +45,7 @@ Confirm that v0 file mutation semantics prevent silent overwrite between agents.
 - Local smoke confirmed stale update returns `409 version_conflict`.
 - Local script smoke updated `README.md` from version 1 to version 2 using `--base-version 1`.
 - Deployed smoke passed the same backend conflict flow.
+- Current alignment requires future script and API mutation evidence to include actor attribution.
 
 ## Verification
 

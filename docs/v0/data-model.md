@@ -122,7 +122,7 @@ If the update affects zero rows, the API should fetch the latest row, return `40
 
 For new files, the API can accept `baseVersion: null` or omit `baseVersion`.
 
-If the path already exists and no `baseVersion` is provided, return `409 Conflict` rather than overwriting.
+If the path already exists and no `baseVersion` is provided, return `400 missing_base_version` rather than overwriting. If a provided `baseVersion` is stale, return `409 Conflict` with the latest file data.
 
 For a new file, upload to R2 first, then insert the D1 row. If the insert fails because the path already exists, delete the newly uploaded object.
 

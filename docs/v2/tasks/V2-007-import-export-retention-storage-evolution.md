@@ -4,7 +4,7 @@ title: Add import export retention and storage evolution
 version: v2
 state: ready
 priority: medium
-depends_on: [V2-004, V2-005, V2-006]
+depends_on: [V2-003, V2-004, V2-005, V2-006]
 area: storage
 acceptance:
   - Import/export preserves paths, manifests, events, file history, comments, and evidence where available.

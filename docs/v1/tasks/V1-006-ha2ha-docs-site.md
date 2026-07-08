@@ -4,7 +4,7 @@ title: Build HA2HA protocol docs site
 version: v1
 state: ready
 priority: medium
-depends_on: [V1-001, V1-002, V1-003]
+depends_on: [V1-001, V1-002, V1-003, V1-004]
 area: docs-site
 acceptance:
   - `apps/ha2ha` explains HA2HA independently from MDSync.

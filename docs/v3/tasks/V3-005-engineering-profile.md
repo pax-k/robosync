@@ -4,7 +4,7 @@ title: Define engineering profile
 version: v3
 state: ready
 priority: medium
-depends_on: [V3-001, V3-002, V3-004]
+depends_on: [V3-001, V3-002, V3-003, V3-004]
 area: protocol-design
 acceptance:
   - Profile defines portable repository, branch, commit, issue, pull request, check, deployment, and code review references.

@@ -100,5 +100,5 @@ Expected checks:
 - Raw file returns Markdown with `X-HA2HA-File-Version`.
 - First update succeeds and increments the version.
 - Second update returns `409 version_conflict`.
-- Delete returns `{ "deleted": true }`.
+- Delete returns `{ "deleted": true }` with `deletedBy: "smoke-test"`.
 - Invalid path returns `400 invalid_path`.
