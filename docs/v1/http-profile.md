@@ -53,9 +53,24 @@ Updates must include:
 - `path`
 - `content` or implementation-defined bytes payload
 - `baseVersion` for existing files
-- actor/update metadata when the implementation supports it
+- `actor` for attribution
 
 If `baseVersion` does not match the latest version, the implementation must return `409 Conflict` with the latest version and enough content or metadata for intentional merge.
+
+Creating a new file also requires `actor`. `baseVersion` is required only when
+the target path already exists.
+
+## File Deletes
+
+Deletes must include:
+
+- `path` in the request target
+- `baseVersion` for the existing file
+- `actor` for attribution
+
+Deletes use the same optimistic concurrency behavior as updates. If
+`baseVersion` does not match the latest version, the implementation must return
+`409 Conflict`.
 
 ## Conflict Response
 
@@ -64,7 +79,9 @@ If `baseVersion` does not match the latest version, the implementation must retu
   "error": "version_conflict",
   "message": "File changed since baseVersion.",
   "latest": {
+    "workspaceId": "abc123",
     "path": "tasks/RS-001.md",
+    "contentType": "text/markdown; charset=utf-8",
     "content": "...",
     "version": 18,
     "updatedAt": "2026-07-08T15:39:00.000Z",
@@ -72,6 +89,10 @@ If `baseVersion` does not match the latest version, the implementation must retu
   }
 }
 ```
+
+The `latest.workspaceId`, `latest.path`, and `latest.version` fields form the
+v1 target coordinate. Selectors for headings, lines, comments, or reviews are
+outside the core HTTP profile.
 
 ## Event Profile
 

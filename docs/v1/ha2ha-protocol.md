@@ -26,7 +26,10 @@ HA2HA defines these public primitives:
 
 - workspace: the shared context
 - participant: a human, agent, or human-agent pair active in the workspace
+- actor: a stable participant or client handle attached to mutating file writes
 - task: a unit of work represented as a versioned file
+- target: a versioned workspace coordinate made from `workspaceId`, `path`, and
+  `version`
 - artifact: an output file
 - evidence: proof, logs, screenshots, command output, or links for a task
 - decision: an accepted choice or architecture record
@@ -57,6 +60,10 @@ logs/*.md
 
 Every file has a current version. Writes that update or delete an existing file must include the version the caller read.
 
+Every mutating file write in a core-conformant implementation must include an
+actor handle. The actor is a stable workspace handle for attribution, not proof
+of identity, authority, delegation, approval, or RBAC.
+
 If the current version does not match `baseVersion`, the implementation must return a conflict response with the latest version and enough data for the caller to merge intentionally.
 
 Agents should retry at most once after a conflict. A second conflict should stop the workflow and surface the conflict to the human.
@@ -78,6 +85,20 @@ abandoned
 ```
 
 State transitions happen through versioned file updates. Smaller task files are preferred over one large task list because they reduce conflicts and keep ownership clear.
+
+A minimal v1 task claim is a versioned update to `tasks/<id>.md` that sets
+`state`, `owner`, and `updated_by`. The task must be unowned or already owned
+by the actor. Claim leases, stale-claim recovery, handoffs, dependencies,
+blockers, acceptance gates, questions, and approvals are v3 coordination
+profile behavior.
+
+## Evidence Semantics
+
+Evidence files live under `evidence/` and should be linked from task files. v1
+evidence metadata is intentionally small: linked task or target, kind, result,
+actor, and timestamp. Rich check semantics, environment capture, hashes,
+review comments, responses, and approvals belong to v3 evidence/review or
+engineering profiles.
 
 ## HTTP Profile
 
@@ -107,6 +128,9 @@ HA2HA owns:
 - protocol vocabulary
 - canonical workspace filenames
 - task states and frontmatter shape
+- actor attribution for mutating file writes
+- versioned target coordinates
+- minimal task claim and evidence metadata
 - manifest shape
 - file version and conflict semantics
 - event/history protocol profiles
@@ -121,6 +145,11 @@ MDSync owns:
 - browser editor and preview
 - upload/update scripts
 - product auth, retention, cleanup, deployment, and product-specific storage
+
+If a product offers import, export, or snapshot behavior, it must preserve v1
+workspace data for any profile it claims. Archive format, backup policy,
+retention, admin export, billing, and provider storage topology are product or
+provider scope.
 
 ## Naming
 
@@ -139,6 +168,7 @@ The protocol becomes enforceable through:
 
 - JSON schema for `.ha2ha/workspace.json`
 - frontmatter schema for `tasks/<id>.md`
+- evidence metadata and target-coordinate schemas
 - event and file-version schemas
 - valid and invalid example workspaces
 - validator CLI or package API

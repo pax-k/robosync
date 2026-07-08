@@ -121,6 +121,7 @@ json_assert '
 		throw new Error(`expected updated version 2, got ${data.version}`);
 	}
 ' "$update_response"
+updated_version="$(json_field "$update_response" ".version")"
 
 echo "Forcing stale update conflict..."
 stale_body="$tmp_dir/stale.json"
@@ -141,10 +142,18 @@ json_assert '
 ' "$(cat "$stale_body")"
 
 echo "Deleting file..."
-delete_response="$(curl -fsS -X DELETE "$BASE_URL/api/workspaces/$workspace_id/files?path=TODO.md" -H "Authorization: Bearer $edit_token")"
+delete_response="$(
+	curl -fsS -X DELETE "$BASE_URL/api/workspaces/$workspace_id/files?path=TODO.md" \
+		-H "Authorization: Bearer $edit_token" \
+		-H "Content-Type: application/json" \
+		-d "{
+			\"baseVersion\": $updated_version,
+			\"actor\": \"smoke-test\"
+		}"
+)"
 json_assert '
 	const data = JSON.parse(process.argv[1]);
-	if (data.deleted !== true) {
+	if (data.deleted !== true || data.deletedBy !== "smoke-test") {
 		throw new Error("delete did not report success");
 	}
 ' "$delete_response"

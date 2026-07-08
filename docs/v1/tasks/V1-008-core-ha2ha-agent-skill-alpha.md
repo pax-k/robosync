@@ -8,7 +8,9 @@ depends_on: [V1-001, V1-002, V1-003, V1-004]
 area: agent-adoption
 acceptance:
   - Skill alpha covers publish workspace, join/read workspace, update file with baseVersion, update STATUS.md, claim a task, add evidence, and handle conflicts.
-  - Mutating workflows declare allowed workspace paths, token handling, conflict retry behavior, evidence output, and stop conditions.
+  - Mutating workflows declare allowed workspace paths, token or identity scope, actor handle, baseVersion behavior, conflict retry behavior, evidence output, and stop conditions.
+  - Task claim workflow sets `state`, `owner`, and `updated_by` through a versioned task-file update.
+  - Evidence workflow writes minimal metadata: linked task or target, kind, result, actor, and timestamp.
   - At least one manual trial shows two separate agent contexts coordinating through the same workspace using v1 raw/API semantics.
   - The skill alpha does not claim v3 coordination, trust, evidence/review, or engineering profile conformance.
 evidence: []
@@ -43,7 +45,7 @@ hosted team governance or engineering-team collaboration.
 - Add read/update behavior that requires `baseVersion` for mutating writes.
 - Add task-claim and evidence-writing workflows against the v1 workspace
   convention.
-- Document token handling and stop conditions.
+- Document actor handling, token handling, allowed paths, and stop conditions.
 - Run a manual trial with two separate agent contexts.
 
 ## Acceptance
@@ -53,6 +55,8 @@ hosted team governance or engineering-team collaboration.
   features.
 - A second write conflict stops and surfaces the conflict instead of silently
   retrying forever.
+- Skill output does not rely on MDSync product comments, identity UX, v3
+  leases, approvals, structured review, checks, or engineering references.
 - Evidence from the manual trial identifies what was proven, simulated, and
   still unproven.
 

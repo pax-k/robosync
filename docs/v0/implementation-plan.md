@@ -26,7 +26,7 @@
 - Add conditional D1 update logic after R2 upload.
 - Add best-effort R2 cleanup when a conditional D1 update fails.
 - Return `409 Conflict` with latest file data.
-- Add delete behavior with optional `baseVersion`.
+- Add delete behavior with required `baseVersion`.
 - Add focused tests for concurrent update behavior.
 
 ## Phase 4: Browser UI

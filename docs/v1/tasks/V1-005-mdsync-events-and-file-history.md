@@ -9,6 +9,7 @@ area: server
 acceptance:
   - MDSync persists protocol-level `workspace_events`.
   - MDSync persists durable `workspace_file_versions`.
+  - Event and file-version records preserve actor and versioned target metadata.
   - Event and history routes satisfy the HA2HA profile docs.
   - Product UI for changelog, diff, restore, and stats remains v2 scope.
 evidence: []
@@ -27,6 +28,8 @@ Let MDSync claim HA2HA event/history protocol profiles without building product 
 
 - Add schema and migration for events and file versions.
 - Record meaningful workspace changes and file versions.
+- Store enough metadata to reconstruct actor, `workspaceId`, `path`, and
+  `version` for each protocol event or file-version record.
 - Expose protocol read routes for event/history data.
 - Add conformance coverage.
 

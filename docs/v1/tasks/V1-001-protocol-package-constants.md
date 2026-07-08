@@ -7,7 +7,7 @@ priority: high
 depends_on: []
 area: protocol
 acceptance:
-  - Package exports canonical filenames, directories, task states, capability names, and header names.
+  - Package exports canonical filenames, directories, task states, capability names, actor field names, target coordinate field names, evidence metadata field names, and header names.
   - Package has no dependency on MDSync server, web, Cloudflare, D1, R2, Better Auth, Next.js, or Hono.
   - MDSync can consume the constants without introducing dependency cycles.
 evidence: []
@@ -25,7 +25,8 @@ Create the stable package boundary for HA2HA protocol primitives.
 ## Work
 
 - Add the protocol package.
-- Export constants for workspace paths, task states, and `X-HA2HA-*` headers.
+- Export constants for workspace paths, task states, actor attribution, target
+  coordinates, evidence metadata, and `X-HA2HA-*` headers.
 - Add basic package-level tests or type checks.
 
 ## Acceptance

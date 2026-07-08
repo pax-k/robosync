@@ -104,7 +104,11 @@ export function parseArgs(args, usage) {
 			continue;
 		}
 
-		if (["--base-version", "--path", "--title", "--token"].includes(arg)) {
+		if (
+			["--actor", "--base-version", "--path", "--title", "--token"].includes(
+				arg
+			)
+		) {
 			const value = args[index + 1];
 			if (!value || value.startsWith("--")) {
 				die(`Missing value for ${arg}.\n\n${usage}`);

@@ -77,7 +77,12 @@ curl -sS -X PUT "$BASE_URL/api/workspaces/$WORKSPACE_ID/files" \
   }"
 
 curl -sS -X DELETE "$BASE_URL/api/workspaces/$WORKSPACE_ID/files?path=TODO.md" \
-  -H "Authorization: Bearer $EDIT_TOKEN"
+  -H "Authorization: Bearer $EDIT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d "{
+    \"baseVersion\": 2,
+    \"actor\": \"smoke-test\"
+  }"
 
 curl -sS -X POST "$BASE_URL/api/workspaces" \
   -H "Content-Type: application/json" \

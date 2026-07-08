@@ -11,11 +11,12 @@ import {
 } from "./lib/mdsync.mjs";
 
 const USAGE = `Usage:
-  node scripts/update-file.mjs <workspace-id> <path> <file> --token <write-token> --base-version <version>`;
+  node scripts/update-file.mjs <workspace-id> <path> <file> --token <write-token> --base-version <version> --actor <actor>`;
 
 const { options, positional } = parseArgs(process.argv.slice(2), USAGE);
 const [workspaceId, workspaceFilePath, file] = positional;
 const token = options.token ?? process.env.MDSYNC_WRITE_TOKEN;
+const actor = options.actor ?? process.env.MDSYNC_ACTOR;
 const baseVersion = Number(options["base-version"]);
 
 if (!(workspaceId && workspaceFilePath && file && positional.length === 3)) {
@@ -25,6 +26,9 @@ if (!(workspaceId && workspaceFilePath && file && positional.length === 3)) {
 if (!token) {
 	die("--token or MDSYNC_WRITE_TOKEN is required.");
 }
+if (!actor) {
+	die("--actor or MDSYNC_ACTOR is required.");
+}
 if (!(Number.isInteger(baseVersion) && baseVersion > 0)) {
 	die("--base-version must be a positive integer.");
 }
@@ -33,6 +37,7 @@ const content = await readTextFile(file);
 const url = `${baseUrl()}/api/workspaces/${encodeURIComponent(workspaceId)}/files`;
 const response = await fetch(url, {
 	body: JSON.stringify({
+		actor,
 		baseVersion,
 		content,
 		contentType: contentTypeForPath(workspaceFilePath),

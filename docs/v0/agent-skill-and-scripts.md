@@ -38,10 +38,11 @@ This uploads supported Markdown/text files under the directory and preserves rel
 ### Update File
 
 ```txt
-scripts/update-file.mjs <workspace-id> <path> <file> --token <write-token> --base-version <version>
+scripts/update-file.mjs <workspace-id> <path> <file> --token <write-token> --base-version <version> --actor <actor>
 ```
 
-This updates one file and preserves the optimistic concurrency contract.
+This updates one file and preserves the optimistic concurrency and actor
+attribution contract.
 
 ## Output
 
@@ -72,7 +73,7 @@ When an agent updates a workspace:
 1. Fetch the target file.
 2. Record the current file version from headers or the JSON API.
 3. Make the smallest useful edit.
-4. Submit the update with `baseVersion`.
+4. Submit the update with `baseVersion` and a stable actor handle.
 5. If the API returns `409 Conflict`, read the latest content.
 6. Merge the intended change.
 7. Retry once.
@@ -110,6 +111,12 @@ Optional write token:
 
 ```txt
 MDSYNC_WRITE_TOKEN
+```
+
+Optional actor for update-script attribution:
+
+```txt
+MDSYNC_ACTOR
 ```
 
 Optional web origin override for update-script edit links:

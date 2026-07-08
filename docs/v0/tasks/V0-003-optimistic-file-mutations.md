@@ -9,7 +9,7 @@ area: server
 acceptance:
   - Existing-file updates require `baseVersion`.
   - Stale updates return `409 version_conflict` with latest file data.
-  - Delete honors optional `baseVersion` and preserves canonical D1 state.
+  - Delete requires `baseVersion` and preserves canonical D1 state.
   - Failed conditional writes clean up newly uploaded R2 objects best-effort.
 evidence:
   - "2026-07-08: scripts/smoke-backend.sh passed locally and exercised stale update conflict with 409 version_conflict."

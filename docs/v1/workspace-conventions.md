@@ -50,6 +50,20 @@ It should include:
 - conflict policy
 - schema versions
 
+## Versioned Targets
+
+The portable v1 target coordinate is:
+
+```yaml
+workspaceId: abc123
+path: tasks/RS-001.md
+version: 18
+```
+
+Optional selectors such as headings, line ranges, or review anchors are not v1
+core. They may appear in MDSync product comments and can become portable later
+through the v3 evidence/review profile.
+
 ## `participants/<handle>.md`
 
 Participant files describe a human, an agent, or a human-agent pair scoped to the workspace.
@@ -109,13 +123,61 @@ done
 abandoned
 ```
 
+A minimal v1 task claim is a versioned task-file update with `baseVersion`.
+The update sets `state`, `owner`, and `updated_by`. A task can be claimed only
+when it is unowned or already owned by the same actor. A second conflict during
+claim stops the workflow and surfaces the conflict to a human.
+
 ## `STATUS.md`
 
 `STATUS.md` is a compact human-readable dashboard. It may be manually maintained or regenerated from `tasks/*`, but it remains a normal versioned file.
 
 ## `evidence/`
 
-Evidence files hold proof, command output, screenshots, links, logs, and verification notes. Task files should link to evidence instead of embedding large output.
+Evidence files hold proof, command output, screenshots, links, logs, and
+verification notes. Task files should link to evidence instead of embedding
+large output.
+
+Minimum v1 evidence metadata:
+
+```yaml
+id: ev-RS-001-api-smoke
+task: RS-001
+target:
+  workspaceId: abc123
+  path: tasks/RS-001.md
+  version: 18
+kind: command
+result: pass
+actor: codex-pax
+created_at: 2026-07-08T12:20:00Z
+```
+
+`task` or `target` must link the evidence to what it proves. Rich check
+semantics, environment details, hashes, blocking review, questions, responses,
+and approvals belong to later optional profiles.
+
+## Agent Skill Safety
+
+Mutating v1 skills must declare:
+
+- allowed workspace paths
+- required token or identity scope
+- `baseVersion` read/write behavior
+- conflict retry limit
+- evidence output
+- stop conditions
+
+Packaging as a Codex skill, instruction pack, npm package, or bundled script is
+not protocol authority.
+
+## Import, Export, And Snapshot Preservation
+
+Import/export UX is product scope. When an implementation offers import,
+export, or snapshot behavior and claims HA2HA compatibility, it must preserve
+canonical paths, exact file contents, `.ha2ha/workspace.json`, `HA2HA.md`,
+participants, tasks, evidence, decisions, logs, and claimed event/history
+profile records.
 
 ## `decisions/`
 

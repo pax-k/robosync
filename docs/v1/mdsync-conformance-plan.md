@@ -30,7 +30,8 @@ The site should include:
 ## Implementation Steps
 
 1. Extract constants for canonical filenames, paths, task states, and headers.
-2. Add JSON schemas for manifest, task frontmatter, events, and file versions.
+2. Add JSON schemas for manifest, task frontmatter, evidence metadata, target
+   coordinates, events, and file versions.
 3. Add valid and invalid example workspaces.
 4. Add a validator package API.
 5. Add a validator CLI.
@@ -44,7 +45,12 @@ The site should include:
 - Persist event records for meaningful workspace changes.
 - Persist durable file-version records.
 - Expose event/history HTTP profile routes.
+- Require actor handles on file updates and deletes.
+- Require `baseVersion` on file deletes.
+- Return full versioned target coordinates in conflict metadata.
 - Validate canonical workspace files when users opt into HA2HA conformance.
+- Validate minimal task claim and evidence metadata.
+- Preserve v1 data when import/export/snapshot compatibility is claimed.
 - Document which conformance profiles MDSync claims.
 
 ## Non-Goals

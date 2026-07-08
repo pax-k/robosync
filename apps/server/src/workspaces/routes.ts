@@ -46,8 +46,10 @@ const createWorkspaceSchema = z.object({
 	writeAccess: z.enum(["none", "public", "token"]).default("token"),
 });
 
+const actorSchema = z.string().trim().min(1).max(120);
+
 const updateFileSchema = z.object({
-	actor: z.string().min(1).max(120).optional(),
+	actor: actorSchema,
 	baseVersion: z.number().int().positive().nullable().optional(),
 	content: z.string(),
 	contentType: z.string().min(1).optional(),
@@ -55,8 +57,8 @@ const updateFileSchema = z.object({
 });
 
 const deleteFileSchema = z.object({
-	actor: z.string().min(1).max(120).optional(),
-	baseVersion: z.number().int().positive().nullable().optional(),
+	actor: actorSchema,
+	baseVersion: z.number().int().positive(),
 });
 
 export const workspaceRoutes = new Hono<EvlogVariables>();
@@ -241,7 +243,7 @@ workspaceRoutes.put("/api/workspaces/:workspaceId/files", async (c) => {
 					uploaded.contentType,
 					uploaded.sizeBytes,
 					uploaded.sha256,
-					parsed.actor ?? null,
+					parsed.actor,
 					now,
 					workspace.id,
 					path,
@@ -264,7 +266,7 @@ workspaceRoutes.put("/api/workspaces/:workspaceId/files", async (c) => {
 			return c.json({
 				path,
 				updatedAt: now,
-				updatedBy: parsed.actor ?? null,
+				updatedBy: parsed.actor,
 				version: current.version + 1,
 				workspaceId: workspace.id,
 			});
@@ -284,7 +286,7 @@ workspaceRoutes.put("/api/workspaces/:workspaceId/files", async (c) => {
 					uploaded.contentType,
 					uploaded.sizeBytes,
 					uploaded.sha256,
-					parsed.actor ?? null,
+					parsed.actor,
 					now,
 					now
 				)
@@ -303,7 +305,7 @@ workspaceRoutes.put("/api/workspaces/:workspaceId/files", async (c) => {
 		return c.json({
 			path,
 			updatedAt: now,
-			updatedBy: parsed.actor ?? null,
+			updatedBy: parsed.actor,
 			version: 1,
 			workspaceId: workspace.id,
 		});
@@ -320,14 +322,11 @@ workspaceRoutes.delete("/api/workspaces/:workspaceId/files", async (c) => {
 		const parsed = deleteFileSchema.parse(await parseOptionalJson(c.req.raw));
 		const current = await requireFile(workspace.id, path);
 		const now = new Date().toISOString();
-		const statement = parsed.baseVersion
-			? env.DB.prepare(
-					"delete from workspace_files where workspace_id = ? and path = ? and version = ?"
-				).bind(workspace.id, path, parsed.baseVersion)
-			: env.DB.prepare(
-					"delete from workspace_files where workspace_id = ? and path = ?"
-				).bind(workspace.id, path);
-		const result = await statement.run();
+		const result = await env.DB.prepare(
+			"delete from workspace_files where workspace_id = ? and path = ? and version = ?"
+		)
+			.bind(workspace.id, path, parsed.baseVersion)
+			.run();
 
 		if ((result.meta.changes ?? 0) === 0) {
 			return c.json(await versionConflictPayload(workspace.id, path), 409);
@@ -343,6 +342,7 @@ workspaceRoutes.delete("/api/workspaces/:workspaceId/files", async (c) => {
 
 		return c.json({
 			deleted: true,
+			deletedBy: parsed.actor,
 			path,
 			workspaceId: workspace.id,
 		});
@@ -569,10 +569,12 @@ async function versionConflictPayload(workspaceId: string, path: string) {
 async function serializeLatestConflictFile(file: WorkspaceFileRow) {
 	return {
 		content: await fetchObjectText(file),
+		contentType: file.content_type,
 		path: file.path,
 		updatedAt: file.updated_at,
 		updatedBy: file.updated_by,
 		version: file.version,
+		workspaceId: file.workspace_id,
 	};
 }
 

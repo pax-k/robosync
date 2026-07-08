@@ -153,8 +153,8 @@ Current docs and code leak product ambiguity into protocol scope:
 
 - v1 schemas draft `updated_by`, event `actor`, and file-version `updatedBy`.
 - v3 trust says every write should have an actor.
-- Current runtime accepts `actor` on update/delete but keeps it optional.
-- Current update script does not send an actor.
+- Runtime alignment now requires `actor` on file update/delete routes.
+- The update script now requires `--actor` or `MDSYNC_ACTOR`.
 
 Decision: promote the actor handle into v1 core for mutating writes and file
 metadata. Keep identity proof, delegation, roles, and audit in v3 trust or
@@ -243,23 +243,26 @@ Decision: v1 should define the preservation rule for implementations that offer
 import/export. UI, retention, archive format, backups, admin export, and
 storage migration remain v2/product/provider scope.
 
-## Required Follow-Up
+## Alignment Status
 
-1. Tighten v1 HTTP/schema docs so `actor` is no longer optional for mutating
-   writes when claiming core conformance.
-2. Add the versioned target coordinate to v1 schemas and examples.
-3. Add the minimal claim and evidence metadata rules to v1 task/evidence
-   schema work.
-4. Add a preservation requirement to v1 conformance or schemas for tools that
-   claim import/export compatibility.
-5. Align current runtime and scripts with any tightened v1 rules:
-   - `PUT /api/workspaces/:workspaceId/files` should require `actor` after the
-     protocol rule changes.
-   - `DELETE /api/workspaces/:workspaceId/files` currently allows delete
-     without `baseVersion`; v1 says deletes of existing files require the
-     version the caller read.
-   - `scripts/update-file.mjs` should accept or infer an actor before it is
-     used as a v1 reference client.
+The alignment pass completed the repository-level follow-up for this review:
+
+1. v1 HTTP/schema docs now make `actor` required for mutating file writes under
+   core conformance.
+2. v1 schema planning now includes the versioned target coordinate.
+3. v1 schema planning and task files now include minimal claim and evidence
+   metadata rules.
+4. v1 conformance and schema planning now include preservation requirements for
+   implementations that claim import/export/snapshot compatibility.
+5. Current runtime and scripts now align with the tightened v1 rules:
+   - `PUT /api/workspaces/:workspaceId/files` requires `actor`.
+   - `DELETE /api/workspaces/:workspaceId/files` requires `actor` and
+     `baseVersion`.
+   - `scripts/update-file.mjs` requires `--actor` or `MDSYNC_ACTOR`.
+
+The remaining work is implementation of the future v1 protocol packages,
+schemas, examples, validators, and conformance suites tracked in
+[sprint.md](sprint.md) and [tasks/](tasks/).
 
 ## Final Boundary
 

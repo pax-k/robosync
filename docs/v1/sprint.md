@@ -37,8 +37,13 @@ Turn HA2HA from documented direction into an enforceable protocol with reusable 
 
 - HA2HA package exports canonical constants, schemas, and validation helpers.
 - Valid and invalid example workspaces exist and are checked.
-- HTTP conformance can run against local MDSync.
+- HTTP conformance can run against local MDSync and checks actor attribution,
+  versioned target coordinates, update/delete `baseVersion` behavior, and
+  conflict responses.
 - MDSync persists protocol events and durable file versions when claiming those profiles.
+- Minimal task claim and evidence metadata are documented, schematized, and
+  validated without pulling in v3 leases, approvals, trust, review, checks, or
+  engineering references.
 - `apps/ha2ha` documents protocol use without depending on MDSync internals.
 - Conformance evidence identifies the exact MDSync profile claims.
 - A core agent skill alpha proves publish, read, update, conflict, status, task,

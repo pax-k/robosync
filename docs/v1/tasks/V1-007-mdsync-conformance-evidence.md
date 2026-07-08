@@ -8,7 +8,7 @@ depends_on: [V1-004, V1-005, V1-006]
 area: conformance
 acceptance:
   - MDSync declares exactly which HA2HA profiles it supports.
-  - Conformance evidence includes target URL, profile, check results, and timestamp.
+  - Conformance evidence includes target URL, profile, check results, timestamp, actor-attribution checks, target-coordinate checks, and delete `baseVersion` checks.
   - Known gaps are documented without weakening protocol requirements.
 evidence: []
 ---
@@ -27,6 +27,8 @@ Make MDSync's status as the first HA2HA implementation measurable and reviewable
 - Run conformance checks against local and deployed MDSync when available.
 - Save evidence in the repo's chosen evidence location.
 - Link evidence from protocol docs and task files.
+- Record whether import/export/snapshot preservation is unclaimed, claimed and
+  passing, or claimed with gaps.
 
 ## Acceptance
 

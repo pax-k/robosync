@@ -128,7 +128,7 @@ For a new file, upload to R2 first, then insert the D1 row. If the insert fails 
 
 ## Deleting Files
 
-Deletes should be conditional when a `baseVersion` is provided.
+Deletes are conditional and require the `baseVersion` the caller read.
 
 ```sql
 delete from workspace_files

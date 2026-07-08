@@ -177,7 +177,9 @@ Conflict response:
   "error": "version_conflict",
   "message": "File changed since baseVersion.",
   "latest": {
+    "workspaceId": "abc123",
     "path": "TODO.md",
+    "contentType": "text/markdown; charset=utf-8",
     "content": "- [ ] Build API\n- [ ] Add docs\n",
     "version": 18,
     "updatedAt": "2026-07-08T15:39:00.000Z",
@@ -193,7 +195,7 @@ DELETE /api/workspaces/:workspaceId/files?path=TODO.md
 Authorization: Bearer <write_token>
 ```
 
-Optional JSON body:
+Required JSON body:
 
 ```json
 {
@@ -202,7 +204,18 @@ Optional JSON body:
 }
 ```
 
-Deletes should honor optimistic concurrency when a `baseVersion` is provided.
+Deletes honor optimistic concurrency and require the version the caller read.
+
+Successful response:
+
+```json
+{
+  "workspaceId": "abc123",
+  "path": "TODO.md",
+  "deleted": true,
+  "deletedBy": "codex-agent-1"
+}
+```
 
 ## Raw Workspace Listing
 
