@@ -13,6 +13,7 @@
     "test": "pnpm run test:scripts && turbo run test",
     "test:unit": "pnpm run test:scripts && turbo run test --filter='./packages/*' --filter='./apps/*'",
     "test:ha2ha-packages": "node scripts/ha2ha-package-smoke.mjs && node scripts/ha2ha-skill-package-smoke.mjs && node scripts/ha2ha-client-package-smoke.mjs",
+    "test:mdsync-packages": "node scripts/mdsync-client-package-smoke.mjs && node scripts/mdsync-skill-package-smoke.mjs",
     "test:integration": "turbo run test:integration --filter='@mdsync/db' --filter='@ha2ha/http'",
     "test:e2e": "playwright test",
     "test:scripts": "tsx --test scripts/**/*.test.mjs",

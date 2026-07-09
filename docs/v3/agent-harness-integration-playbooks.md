@@ -81,16 +81,16 @@ The adapter exposes stable functions such as:
 This mode fits Cloudflare Agents SDK, Vercel eve, Vercel AI SDK, Mastra,
 internal TypeScript services, scheduled workers, and workflow engines.
 
-Current implementation status: these tool names are target adapter contracts,
-not shipped MDSync product SDK methods. v1 now provides tarball-installable
-`@ha2ha/protocol`, `@ha2ha/http`, and `@ha2ha/client` packages for portable
-protocol adoption. A first-party MDSync client or adapter package must exist
-before MDSync claims that external harnesses can integrate through hosted
-product tools.
+Current implementation status: these exact tool names are target adapter
+contracts, not all shipped MDSync product SDK methods. v1 provides
+tarball-installable `@ha2ha/protocol`, `@ha2ha/http`, and `@ha2ha/client`
+packages for portable protocol adoption. v2 now provides `@mdsync/client` for
+hosted product routes and `createHa2haClient()` for portable file, task, and
+evidence workflows against the same hosted workspace.
 
 The same distinction applies to skills. The portable protocol skill now ships as
-`@ha2ha/skills`; MDSync product skills remain separate. Installable first-party
-skill packages should split into:
+`@ha2ha/skills`; MDSync product skills ship separately as `@mdsync/skills`.
+Installable first-party skill packages should split into:
 
 - HA2HA skills: protocol-only workflows for local folders or conformant
   implementations.
@@ -339,11 +339,12 @@ The ideal first-party package should support two modes:
 - MDSync mode: uses hosted MDSync routes, auth, dashboards, comments, history,
   and provider adapters
 
-As of 2026-07-08, the protocol mode is implemented as installable v1 packages:
+As of 2026-07-09, the protocol mode is implemented as installable v1 packages:
 `@ha2ha/protocol`, `@ha2ha/http`, `@ha2ha/client`, and `@ha2ha/skills`.
-MDSync mode remains product work tracked in
-`docs/v2/tasks/V2-009-mdsync-installable-skill-package.md` and
-`docs/v2/tasks/V2-010-mdsync-client-sdk.md`.
+MDSync mode is implemented as the hosted product packages `@mdsync/client` and
+`@mdsync/skills`, with evidence tracked in
+`docs/v2/tasks/V2-010-mdsync-client-sdk.md` and
+`docs/v2/tasks/V2-009-mdsync-installable-skill-package.md`.
 
 ## Non-Goals
 

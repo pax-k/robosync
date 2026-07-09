@@ -1,0 +1,803 @@
+import { createServer } from "node:http";
+
+const DEFAULT_CONTENT_TYPE = "text/markdown; charset=utf-8";
+const BEARER_PREFIX_PATTERN = /^Bearer\s+/u;
+const EXPORT_FORMAT = "mdsync.workspace-export.v1";
+
+export const createMdsyncMockServer = () => {
+	let server;
+	let workspaceCounter = 0;
+	const workspaces = new Map();
+
+	const listener = (request, response) => {
+		const route = routeRequest({
+			nextWorkspaceCounter: () => {
+				workspaceCounter += 1;
+				return workspaceCounter;
+			},
+			request,
+			response,
+			workspaces,
+		});
+		Promise.resolve(route).catch((error) => {
+			sendJson(
+				response,
+				{ error: "transport_error", message: error.message },
+				500
+			);
+		});
+	};
+
+	return {
+		close: () =>
+			new Promise((resolve, reject) => {
+				if (!server) {
+					resolve();
+					return;
+				}
+				server.close((error) => (error ? reject(error) : resolve()));
+			}),
+		start: () =>
+			new Promise((resolve) => {
+				server = createServer(listener);
+				server.listen(0, "127.0.0.1", () => {
+					const address = server.address();
+					if (!address || typeof address === "string") {
+						throw new Error("MDSync mock server did not expose a port.");
+					}
+					resolve({
+						baseUrl: `http://127.0.0.1:${address.port}`,
+					});
+				});
+			}),
+	};
+};
+
+const routeRequest = ({
+	nextWorkspaceCounter,
+	request,
+	response,
+	workspaces,
+}) => {
+	const url = new URL(request.url ?? "/", `http://${request.headers.host}`);
+	const method = request.method ?? "GET";
+	const parts = url.pathname.split("/").filter(Boolean);
+
+	if (method === "POST" && url.pathname === "/api/workspaces") {
+		return handleCreateWorkspace({
+			request,
+			response,
+			workspaceCounter: nextWorkspaceCounter(),
+			workspaces,
+		});
+	}
+
+	if (method === "POST" && url.pathname === "/api/workspaces/import") {
+		return handleImportWorkspace({
+			request,
+			response,
+			workspaceCounter: nextWorkspaceCounter(),
+			workspaces,
+		});
+	}
+
+	if (parts[0] === "api" && parts[1] === "workspaces") {
+		return handleApiWorkspaceRequest({
+			method,
+			parts,
+			request,
+			response,
+			url,
+			workspaces,
+		});
+	}
+
+	if (parts[0] === "w" && parts[2] === "raw") {
+		return handleRawWorkspaceRequest({
+			parts,
+			request,
+			response,
+			url,
+			workspaces,
+		});
+	}
+
+	return sendJson(response, { error: "not_found" }, 404);
+};
+
+const handleCreateWorkspace = async ({
+	request,
+	response,
+	workspaceCounter,
+	workspaces,
+}) => {
+	const body = await readJson(request);
+	const workspace = createWorkspace({
+		body,
+		origin: originFromRequest(request),
+		workspaceCounter,
+	});
+	workspaces.set(workspace.id, workspace);
+	return sendJson(response, serializeCreatedWorkspace(workspace), 201);
+};
+
+const handleImportWorkspace = async ({
+	request,
+	response,
+	workspaceCounter,
+	workspaces,
+}) => {
+	const bundle = await readJson(request);
+	const workspace = createWorkspaceFromBundle({
+		bundle,
+		origin: originFromRequest(request),
+		workspaceCounter,
+	});
+	workspaces.set(workspace.id, workspace);
+	return sendJson(
+		response,
+		{
+			...serializeCreatedWorkspace(workspace),
+			importedAt: workspace.now,
+			importedCounts: {
+				adminEvents: workspace.adminEvents.length,
+				comments: workspace.comments.length,
+				events: workspace.events.length,
+				files: workspace.files.size,
+				fileVersions: workspace.fileVersions.length,
+			},
+			sourceWorkspaceId: workspace.sourceWorkspaceId,
+		},
+		201
+	);
+};
+
+const handleApiWorkspaceRequest = ({
+	method,
+	parts,
+	request,
+	response,
+	url,
+	workspaces,
+}) => {
+	const workspace = requireWorkspace(workspaces, parts[2]);
+	if (!workspace) {
+		return sendJson(response, { error: "workspace_not_found" }, 404);
+	}
+	return handleWorkspaceRequest({
+		method,
+		parts,
+		request,
+		response,
+		url,
+		workspace,
+	});
+};
+
+const handleRawWorkspaceRequest = ({
+	parts,
+	request,
+	response,
+	url,
+	workspaces,
+}) => {
+	const workspace = requireWorkspace(workspaces, parts[1]);
+	if (!workspace) {
+		return sendJson(response, { error: "workspace_not_found" }, 404);
+	}
+	if (!hasReadAccess(workspace, request, url)) {
+		return sendJson(response, { error: "invalid_token" }, 403);
+	}
+	const rawPath = decodeURIComponent(parts.slice(3).join("/"));
+	if (rawPath.length === 0) {
+		return sendText(response, formatRawListing(workspace));
+	}
+	const file = workspace.files.get(rawPath);
+	return file
+		? sendText(response, file.content, file.contentType)
+		: sendJson(response, { error: "file_not_found" }, 404);
+};
+
+const handleWorkspaceRequest = ({
+	method,
+	parts,
+	request,
+	response,
+	url,
+	workspace,
+}) => {
+	if (parts.length === 3 && method === "GET") {
+		return handleWorkspaceMetadata({ request, response, url, workspace });
+	}
+
+	if (parts[3] === "tree" && method === "GET") {
+		return handleWorkspaceTree({ request, response, url, workspace });
+	}
+
+	if (parts[3] === "files" && parts[4] === "versions") {
+		return handleFileVersionsRequest({
+			parts,
+			request,
+			response,
+			url,
+			workspace,
+		});
+	}
+
+	if (parts[3] === "files") {
+		return handleFileRequest({ method, request, response, url, workspace });
+	}
+
+	if (parts[3] === "events" && method === "GET") {
+		return handleWorkspaceEvents({ request, response, url, workspace });
+	}
+
+	if (parts[3] === "comments") {
+		return handleCommentRequest({
+			method,
+			parts,
+			request,
+			response,
+			url,
+			workspace,
+		});
+	}
+
+	if (parts[3] === "capabilities") {
+		return handleCapabilityRequest({
+			method,
+			parts,
+			request,
+			response,
+			url,
+			workspace,
+		});
+	}
+
+	if (parts[3] === "admin" && parts[4] === "stats" && method === "GET") {
+		return handleAdminStats({ request, response, url, workspace });
+	}
+
+	if (parts[3] === "export" && method === "GET") {
+		return handleExport({ request, response, url, workspace });
+	}
+
+	if (parts[3] === "retention") {
+		return handleRetentionRequest({
+			method,
+			parts,
+			request,
+			response,
+			url,
+			workspace,
+		});
+	}
+
+	return sendJson(response, { error: "not_found" }, 404);
+};
+
+const handleWorkspaceMetadata = ({ request, response, url, workspace }) => {
+	if (!hasReadAccess(workspace, request, url)) {
+		return sendJson(response, { error: "invalid_token" }, 403);
+	}
+	return sendJson(response, serializeWorkspace(workspace));
+};
+
+const handleWorkspaceTree = ({ request, response, url, workspace }) => {
+	if (!hasReadAccess(workspace, request, url)) {
+		return sendJson(response, { error: "invalid_token" }, 403);
+	}
+	return sendJson(response, {
+		files: [...workspace.files.values()].map((file) => ({
+			path: file.path,
+			version: file.version,
+		})),
+		workspaceId: workspace.id,
+	});
+};
+
+const handleFileVersionsRequest = ({
+	parts,
+	request,
+	response,
+	url,
+	workspace,
+}) => {
+	if (!hasReadAccess(workspace, request, url)) {
+		return sendJson(response, { error: "invalid_token" }, 403);
+	}
+	const path = url.searchParams.get("path") ?? "";
+	if (parts[5]) {
+		const version = Number(parts[5]);
+		const fileVersion = workspace.fileVersions.find(
+			(candidate) => candidate.path === path && candidate.version === version
+		);
+		return fileVersion
+			? sendJson(response, fileVersion)
+			: sendJson(response, { error: "file_not_found" }, 404);
+	}
+	return sendJson(response, {
+		path,
+		versions: workspace.fileVersions
+			.filter((fileVersion) => fileVersion.path === path)
+			.map(({ content: _content, ...metadata }) => metadata),
+		workspaceId: workspace.id,
+	});
+};
+
+const handleWorkspaceEvents = ({ request, response, url, workspace }) => {
+	if (!hasReadAccess(workspace, request, url)) {
+		return sendJson(response, { error: "invalid_token" }, 403);
+	}
+	return sendJson(response, {
+		events: workspace.events,
+		workspaceId: workspace.id,
+	});
+};
+
+const handleAdminStats = ({ request, response, url, workspace }) => {
+	if (!hasEditAccess(workspace, request, url)) {
+		return sendJson(response, { error: "missing_token" }, 401);
+	}
+	return sendJson(response, buildAdminStats(workspace));
+};
+
+const handleExport = ({ request, response, url, workspace }) => {
+	if (!hasEditAccess(workspace, request, url)) {
+		return sendJson(response, { error: "missing_token" }, 401);
+	}
+	return sendJson(response, exportWorkspace(workspace));
+};
+
+const handleRetentionRequest = ({
+	method,
+	parts,
+	request,
+	response,
+	url,
+	workspace,
+}) => {
+	if (!hasEditAccess(workspace, request, url)) {
+		return sendJson(response, { error: "missing_token" }, 401);
+	}
+	if (parts[4] === "prune" && method === "POST") {
+		return handleRetentionPrune({ request, response, workspace });
+	}
+	if (method === "GET") {
+		return sendJson(response, retentionPayload(workspace));
+	}
+	return sendJson(response, { error: "not_found" }, 404);
+};
+
+const handleRetentionPrune = async ({ request, response, workspace }) =>
+	sendJson(response, {
+		before: (await readJson(request)).before,
+		pruned: {
+			adminEvents: 0,
+			events: 0,
+			fileVersionObjects: 0,
+			fileVersions: 0,
+			orphanedObjects: 0,
+			resolvedComments: 0,
+		},
+		skipped: { orphanedObjects: 0 },
+		workspaceId: workspace.id,
+	});
+
+const handleFileRequest = ({ method, request, response, url, workspace }) => {
+	const path = url.searchParams.get("path") ?? "";
+	if (method === "GET") {
+		return handleReadFile({ path, request, response, url, workspace });
+	}
+
+	if (!hasEditAccess(workspace, request, url)) {
+		return sendJson(response, { error: "missing_token" }, 401);
+	}
+
+	if (method === "PUT") {
+		return handleWriteFile({ request, response, workspace });
+	}
+
+	if (method === "DELETE") {
+		return handleDeleteFile({ path, request, response, workspace });
+	}
+
+	return sendJson(response, { error: "not_found" }, 404);
+};
+
+const handleReadFile = ({ path, request, response, url, workspace }) => {
+	if (!hasReadAccess(workspace, request, url)) {
+		return sendJson(response, { error: "invalid_token" }, 403);
+	}
+	const file = workspace.files.get(path);
+	return file
+		? sendJson(response, file)
+		: sendJson(response, { error: "file_not_found" }, 404);
+};
+
+const handleWriteFile = async ({ request, response, workspace }) => {
+	if (workspace.writeAccess === "none") {
+		return sendJson(response, { error: "write_disabled" }, 403);
+	}
+	const body = await readJson(request);
+	const nextPath = String(body.path ?? "");
+	const current = workspace.files.get(nextPath);
+	const baseVersion = body.baseVersion ?? null;
+	if (current && baseVersion !== current.version) {
+		return sendVersionConflict({ current, response });
+	}
+	const file = {
+		content: String(body.content ?? ""),
+		contentType: String(body.contentType ?? DEFAULT_CONTENT_TYPE),
+		path: nextPath,
+		updatedBy: String(body.actor ?? "mdsync-mock"),
+		version: current ? current.version + 1 : 1,
+		workspaceId: workspace.id,
+	};
+	workspace.files.set(nextPath, file);
+	workspace.fileVersions.push({ ...file, createdAt: workspace.now });
+	workspace.events.push({
+		actor: file.updatedBy,
+		path: nextPath,
+		payload: { baseVersion },
+		type: current ? "file.updated" : "file.created",
+		version: file.version,
+		workspaceId: workspace.id,
+	});
+	return sendJson(response, {
+		path: file.path,
+		updatedBy: file.updatedBy,
+		version: file.version,
+		workspaceId: workspace.id,
+	});
+};
+
+const handleDeleteFile = async ({ path, request, response, workspace }) => {
+	const body = await readJson(request);
+	const current = workspace.files.get(path);
+	if (!current) {
+		return sendJson(response, { error: "file_not_found" }, 404);
+	}
+	if (body.baseVersion !== current.version) {
+		return sendVersionConflict({ current, response });
+	}
+	workspace.files.delete(path);
+	workspace.events.push({
+		actor: String(body.actor ?? "mdsync-mock"),
+		path,
+		payload: { baseVersion: body.baseVersion },
+		type: "file.deleted",
+		version: current.version,
+		workspaceId: workspace.id,
+	});
+	return sendJson(response, {
+		deleted: true,
+		deletedBy: String(body.actor ?? "mdsync-mock"),
+		path,
+		workspaceId: workspace.id,
+	});
+};
+
+const sendVersionConflict = ({ current, response }) =>
+	sendJson(
+		response,
+		{
+			error: "version_conflict",
+			latest: current,
+			message: "File changed since baseVersion.",
+		},
+		409
+	);
+
+const handleCommentRequest = async ({
+	method,
+	parts,
+	request,
+	response,
+	url,
+	workspace,
+}) => {
+	if (!hasReadAccess(workspace, request, url)) {
+		return sendJson(response, { error: "invalid_token" }, 403);
+	}
+	if (method === "GET") {
+		const path = url.searchParams.get("path");
+		return sendJson(response, {
+			comments: workspace.comments.filter(
+				(comment) => !path || comment.path === path
+			),
+			workspaceId: workspace.id,
+		});
+	}
+	if (!hasEditAccess(workspace, request, url)) {
+		return sendJson(response, { error: "missing_token" }, 401);
+	}
+	if (method === "POST" && parts[5] === "resolve") {
+		const comment = workspace.comments.find((item) => item.id === parts[4]);
+		if (!comment) {
+			return sendJson(response, { error: "comment_not_found" }, 404);
+		}
+		const body = await readJson(request);
+		comment.resolvedAt = workspace.now;
+		comment.resolvedBy = String(body.actor ?? "mdsync-mock");
+		return sendJson(response, comment);
+	}
+	if (method === "POST") {
+		const body = await readJson(request);
+		const comment = {
+			anchor: body.selector ?? {},
+			authorId: String(body.actor ?? "mdsync-mock"),
+			body: String(body.body ?? ""),
+			createdAt: workspace.now,
+			id: `comment-${workspace.comments.length + 1}`,
+			path: String(body.path ?? ""),
+			resolvedAt: null,
+			resolvedBy: null,
+			updatedAt: workspace.now,
+			version: Number(body.version ?? 1),
+			workspaceId: workspace.id,
+		};
+		workspace.comments.push(comment);
+		return sendJson(response, comment, 201);
+	}
+	return sendJson(response, { error: "not_found" }, 404);
+};
+
+const handleCapabilityRequest = ({
+	method,
+	parts,
+	request,
+	response,
+	url,
+	workspace,
+}) => {
+	if (!hasEditAccess(workspace, request, url)) {
+		return sendJson(response, { error: "missing_token" }, 401);
+	}
+	if (parts.length === 4 && method === "GET") {
+		return sendJson(response, capabilityPayload(workspace));
+	}
+	if (parts[5] === "rotate" && method === "POST") {
+		if (parts[4] === "read") {
+			workspace.readToken = `${workspace.readToken}-rotated`;
+			return sendJson(response, {
+				...capabilityPayload(workspace),
+				capability: "read",
+				links: readLinks(workspace),
+			});
+		}
+		if (workspace.writeAccess === "none") {
+			return sendJson(response, { error: "write_disabled" }, 403);
+		}
+		workspace.editToken = `${workspace.editToken}-rotated`;
+		return sendJson(response, {
+			...capabilityPayload(workspace),
+			capability: "edit",
+			links: editLinks(workspace),
+		});
+	}
+	if (parts[5] === "revoke" && method === "POST") {
+		if (parts[4] === "read") {
+			workspace.readToken = null;
+		} else {
+			workspace.editToken = null;
+			workspace.writeAccess = "none";
+		}
+		return sendJson(response, {
+			...capabilityPayload(workspace),
+			capability: parts[4] === "read" ? "read" : "edit",
+			revoked: true,
+		});
+	}
+	return sendJson(response, { error: "not_found" }, 404);
+};
+
+const createWorkspace = ({ body, origin, workspaceCounter }) => {
+	const id = `workspace-${workspaceCounter}`;
+	const workspace = {
+		adminEvents: [],
+		comments: [],
+		editToken: "edit-token",
+		events: [],
+		files: new Map(),
+		fileVersions: [],
+		id,
+		now: "2026-07-08T00:00:00.000Z",
+		origin,
+		readAccess: body.readAccess ?? "token",
+		readToken: "read-token",
+		title: body.title ?? null,
+		writeAccess: body.writeAccess ?? "token",
+	};
+	for (const fileInput of body.files ?? []) {
+		const file = {
+			content: String(fileInput.content ?? ""),
+			contentType: String(fileInput.contentType ?? DEFAULT_CONTENT_TYPE),
+			path: String(fileInput.path ?? ""),
+			updatedBy: String(body.actor ?? "mdsync-mock"),
+			version: 1,
+			workspaceId: id,
+		};
+		workspace.files.set(file.path, file);
+		workspace.fileVersions.push({ ...file, createdAt: workspace.now });
+		workspace.events.push({
+			actor: file.updatedBy,
+			path: file.path,
+			payload: { sizeBytes: file.content.length },
+			type: "file.created",
+			version: 1,
+			workspaceId: id,
+		});
+	}
+	return workspace;
+};
+
+const createWorkspaceFromBundle = ({ bundle, origin, workspaceCounter }) => {
+	const workspace = createWorkspace({
+		body: {
+			actor: "import",
+			files: bundle.files ?? [],
+			title: bundle.workspace?.title ?? "Imported workspace",
+		},
+		origin,
+		workspaceCounter,
+	});
+	workspace.comments = bundle.comments ?? [];
+	workspace.events = bundle.events ?? workspace.events;
+	workspace.adminEvents = bundle.adminEvents ?? [];
+	workspace.fileVersions = bundle.fileVersions ?? workspace.fileVersions;
+	workspace.sourceWorkspaceId = bundle.workspace?.id;
+	return workspace;
+};
+
+const serializeCreatedWorkspace = (workspace) => ({
+	createdAt: workspace.now,
+	editUrl: editLinks(workspace).editUrl,
+	id: workspace.id,
+	rawUrl: readLinks(workspace).rawUrl,
+	title: workspace.title,
+	workspaceUrl: readLinks(workspace).workspaceUrl,
+});
+
+const serializeWorkspace = (workspace) => ({
+	createdAt: workspace.now,
+	id: workspace.id,
+	readAccess: workspace.readAccess,
+	title: workspace.title,
+	updatedAt: workspace.now,
+	writeAccess: workspace.writeAccess,
+});
+
+const exportWorkspace = (workspace) => ({
+	adminEvents: workspace.adminEvents,
+	comments: workspace.comments,
+	events: workspace.events,
+	exportedAt: workspace.now,
+	files: [...workspace.files.values()],
+	fileVersions: workspace.fileVersions,
+	format: EXPORT_FORMAT,
+	retention: {
+		coverage: ["file versions", "protocol events", "comments", "admin events"],
+		perWorkspaceD1: { status: "deferred" },
+		status: "manual",
+	},
+	schemaVersion: 1,
+	workspace: {
+		id: workspace.id,
+		title: workspace.title,
+	},
+});
+
+const buildAdminStats = (workspace) => ({
+	comments: {
+		total: workspace.comments.length,
+		unresolved: workspace.comments.filter((comment) => !comment.resolvedAt)
+			.length,
+	},
+	events: { total: workspace.events.length },
+	files: { currentCount: workspace.files.size },
+	workspace: {
+		id: workspace.id,
+		readAccess: workspace.readAccess,
+		writeAccess: workspace.writeAccess,
+	},
+	workspaceId: workspace.id,
+});
+
+const retentionPayload = (workspace) => ({
+	retention: {
+		coverage: ["file versions", "protocol events", "comments", "admin events"],
+		perWorkspaceD1: { status: "deferred" },
+		status: "manual",
+	},
+	workspaceId: workspace.id,
+});
+
+const capabilityPayload = (workspace) => ({
+	capabilities: {
+		edit: {
+			access: workspace.writeAccess,
+			canRevoke: workspace.writeAccess !== "none",
+			canRotate: workspace.writeAccess !== "none",
+			tokenActive: Boolean(workspace.editToken),
+		},
+		read: {
+			access: workspace.readAccess,
+			canRevoke: Boolean(workspace.readToken),
+			canRotate: true,
+			tokenActive: Boolean(workspace.readToken),
+		},
+	},
+	workspaceId: workspace.id,
+});
+
+const readLinks = (workspace) => ({
+	rawUrl: `${workspace.origin}/w/${workspace.id}/raw?k=${encodeURIComponent(
+		workspace.readToken ?? ""
+	)}`,
+	workspaceUrl: `${workspace.origin}/w/${workspace.id}?k=${encodeURIComponent(
+		workspace.readToken ?? ""
+	)}`,
+});
+
+const editLinks = (workspace) => ({
+	editUrl: `${workspace.origin}/w/${workspace.id}?edit=${encodeURIComponent(
+		workspace.editToken ?? ""
+	)}`,
+});
+
+const hasReadAccess = (workspace, request, url) =>
+	workspace.readAccess === "public" ||
+	url.searchParams.get("k") === workspace.readToken ||
+	hasEditAccess(workspace, request, url);
+
+const hasEditAccess = (workspace, request, url) => {
+	if (workspace.writeAccess === "public") {
+		return true;
+	}
+	const bearer = request.headers.authorization?.replace(
+		BEARER_PREFIX_PATTERN,
+		""
+	);
+	return Boolean(
+		workspace.editToken &&
+			(bearer === workspace.editToken ||
+				url.searchParams.get("edit") === workspace.editToken)
+	);
+};
+
+const requireWorkspace = (workspaces, workspaceId) =>
+	workspaceId ? workspaces.get(workspaceId) : null;
+
+const readJson = async (request) => {
+	const chunks = [];
+	for await (const chunk of request) {
+		chunks.push(chunk);
+	}
+	const text = Buffer.concat(chunks).toString("utf8");
+	return text.length > 0 ? JSON.parse(text) : {};
+};
+
+const sendJson = (response, body, status = 200) => {
+	response.writeHead(status, { "Content-Type": "application/json" });
+	response.end(JSON.stringify(body));
+};
+
+const sendText = (
+	response,
+	body,
+	contentType = "text/markdown; charset=utf-8"
+) => {
+	response.writeHead(200, { "Content-Type": contentType });
+	response.end(body);
+};
+
+const formatRawListing = (workspace) =>
+	[
+		`# ha2ha workspace: ${workspace.id}`,
+		"",
+		...Array.from(workspace.files.keys()).sort(),
+		"",
+	].join("\n");
+
+const originFromRequest = (request) => `http://${request.headers.host}`;

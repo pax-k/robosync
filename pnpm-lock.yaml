@@ -467,6 +467,40 @@ importers:
         specifier: 'catalog:'
         version: 6.0.3
 
+  packages/mdsync-client:
+    dependencies:
+      '@ha2ha/client':
+        specifier: 0.1.0
+        version: link:../ha2ha-client
+      '@ha2ha/protocol':
+        specifier: 0.1.0
+        version: link:../ha2ha-protocol
+    devDependencies:
+      '@mdsync/config':
+        specifier: workspace:*
+        version: link:../config
+      tsdown:
+        specifier: ^0.22.4
+        version: 0.22.4(tsx@4.23.0)(typescript@6.0.3)
+      tsx:
+        specifier: ^4.23.0
+        version: 4.23.0
+      typescript:
+        specifier: 'catalog:'
+        version: 6.0.3
+
+  packages/mdsync-skills:
+    devDependencies:
+      '@ha2ha/client':
+        specifier: workspace:*
+        version: link:../ha2ha-client
+      '@ha2ha/skills':
+        specifier: workspace:*
+        version: link:../ha2ha-skills
+      '@mdsync/client':
+        specifier: workspace:*
+        version: link:../mdsync-client
+
   packages/ui:
     dependencies:
       '@base-ui/react':

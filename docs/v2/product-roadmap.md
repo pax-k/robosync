@@ -15,6 +15,8 @@ v2 is the product layer after v0 ships and v1 protocol conformance is underway.
 9. Import/export workflows.
 10. Encryption UX after the key-ownership model is decided.
 11. Per-workspace D1 when isolation or scale evidence justifies it.
+12. MDSync client SDK for hosted product integration.
+13. First-party MDSync product skill package built on the client SDK.
 
 ## Principle
 

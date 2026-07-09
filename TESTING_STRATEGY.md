@@ -345,6 +345,30 @@ test expectations.
 - Evidence that the pilot uses v1 HA2HA skill workflows instead of
   product-private agent behavior.
 
+`V2-010 MDSync Client SDK`:
+
+- `pnpm --filter @mdsync/client test`.
+- `node scripts/mdsync-client-package-smoke.mjs`.
+- `npm pack --dry-run --json ./packages/mdsync-client`.
+- `pnpm run check`.
+- `pnpm run check-types`.
+- `pnpm run test`.
+- Tests proving hosted workspace create/import/export, versioned file writes,
+  version conflicts, comments, history, events, capabilities, admin stats,
+  retention, and `createHa2haClient()` behavior.
+
+`V2-009 MDSync Installable Skill Package`:
+
+- `pnpm --filter @mdsync/skills test`.
+- `node scripts/mdsync-skill-package-smoke.mjs`.
+- `npm pack --dry-run --json ./packages/mdsync-skills`.
+- `pnpm run check`.
+- `pnpm run check-types`.
+- `pnpm run test`.
+- Installed-skill smoke proving MDSync product boundary guidance, `@mdsync/client`
+  usage, token rules, `baseVersion`, conflict stop rules, secret redaction, and
+  absence of repo-local paths.
+
 ### v3 Task Test Requirements
 
 `V3-001 Open Decisions To Decision Records`:

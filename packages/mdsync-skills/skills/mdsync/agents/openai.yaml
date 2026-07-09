@@ -1,0 +1,4 @@
+interface:
+  display_name: "MDSync"
+  short_description: "Coordinate through hosted MDSync workspaces"
+  default_prompt: "Use $mdsync to join this hosted MDSync workspace, inspect product state, update with baseVersion, and write redacted evidence."

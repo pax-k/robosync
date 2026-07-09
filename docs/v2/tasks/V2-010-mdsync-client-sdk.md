@@ -2,9 +2,9 @@
 id: V2-010
 title: Document and ship MDSync client SDK
 version: v2
-state: ready
+state: done
 priority: high
-depends_on: [V1-012, V2-005, V2-008, V2-009]
+depends_on: [V1-012, V2-005, V2-008]
 area: developer-adoption
 acceptance:
   - `@mdsync/client` package contract is documented as the hosted MDSync product client.
@@ -14,9 +14,12 @@ acceptance:
   - MDSync installable skills can use the client instead of repo-local scripts.
   - Dogfood proof against local or deployed MDSync is required before claiming the SDK is ready for external adopters.
 evidence:
-  - "2026-07-08: No `@mdsync/client` package exists in `packages/`."
-  - "2026-07-08: MDSync product skills currently reference future MDSync client packages, but no client package has shipped."
   - "2026-07-08: V1-012 shipped `@ha2ha/client` from `packages/ha2ha-client`; `@mdsync/client` should depend one-way on it for portable protocol operations."
+  - "2026-07-09: Shipped `@mdsync/client` from `packages/mdsync-client` with `tsdown`, `tsc -b`, README, typed result/error shapes, hosted product methods, and `createHa2haClient()`."
+  - "2026-07-09: `pnpm --filter @mdsync/client test` passed with hosted route coverage, real route-shaped `version_conflict` parsing, token rejection checks, and HA2HA task/evidence bridge coverage."
+  - "2026-07-09: `node scripts/mdsync-client-package-smoke.mjs` passed against packed tarballs installed into a temp project and a deterministic local MDSync mock server."
+  - "2026-07-09: `npm pack --dry-run --json ./packages/mdsync-client` passed and produced a tarball containing README, package metadata, and built `dist` files."
+  - "2026-07-09: Broad gates passed: `pnpm run check`, `pnpm run check-types`, `pnpm run test`, and `pnpm run build`."
 ---
 
 ## Intent
@@ -30,16 +33,16 @@ boundary between portable HA2HA protocol behavior and MDSync product behavior.
 
 - [../client-sdk.md](../client-sdk.md) documents the intended SDK boundary.
 - [V2-009](V2-009-mdsync-installable-skill-package.md) tracks installable
-  MDSync skills that should use this client.
+  MDSync skills and depends on this client.
 - [../../v1/tasks/V1-012-ha2ha-client-sdk.md](../../v1/tasks/V1-012-ha2ha-client-sdk.md)
   shipped the portable HA2HA client SDK.
-- There is no dedicated MDSync client SDK package as of 2026-07-08.
-  The future `@mdsync/client` should depend one-way on `@ha2ha/client`; the
-  HA2HA client must not import MDSync product code.
+- The dedicated MDSync client SDK ships from `packages/mdsync-client`.
+  `@mdsync/client` depends one-way on `@ha2ha/client`; the HA2HA client must
+  not import MDSync product code.
 
 ## Work
 
-- Create or document the package location for `@mdsync/client`.
+- Create and document the package location for `@mdsync/client`.
 - Wrap `@ha2ha/client` for portable workspace operations where useful.
 - Add hosted MDSync helpers for workspace creation, token or identity handling,
   dashboard/raw/edit links, comments, activity, history, stats, admin state,
@@ -62,8 +65,10 @@ boundary between portable HA2HA protocol behavior and MDSync product behavior.
 ## Verification
 
 ```bash
+pnpm --filter @mdsync/client test
+node scripts/mdsync-client-package-smoke.mjs
+npm pack --dry-run --json ./packages/mdsync-client
 pnpm run check
 pnpm run check-types
 pnpm run test
-npm pack --dry-run --json ./packages/mdsync-client
 ```

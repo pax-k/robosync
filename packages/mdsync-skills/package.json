@@ -1,0 +1,30 @@
+{
+  "name": "@mdsync/skills",
+  "version": "0.1.0",
+  "description": "Installable MDSync hosted product agent skill package.",
+  "license": "MIT",
+  "homepage": "https://mdsync-ha2ha-pax.pax.workers.dev",
+  "type": "module",
+  "exports": {
+    "./package.json": "./package.json",
+    "./skills/mdsync": "./skills/mdsync/SKILL.md"
+  },
+  "files": [
+    "README.md",
+    "skills"
+  ],
+  "scripts": {
+    "pack:dry-run": "npm pack --dry-run --json",
+    "test": "node ../../scripts/mdsync-skill-package-smoke.mjs"
+  },
+  "devDependencies": {
+    "@ha2ha/client": "workspace:*",
+    "@ha2ha/skills": "workspace:*",
+    "@mdsync/client": "workspace:*"
+  },
+  "peerDependencies": {
+    "@ha2ha/client": "0.1.0",
+    "@ha2ha/skills": "0.1.0",
+    "@mdsync/client": "0.1.0"
+  }
+}

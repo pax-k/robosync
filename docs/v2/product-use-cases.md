@@ -239,14 +239,15 @@ First-party skills should cover:
 Each mutating skill should state which paths it may edit, which tokens it
 requires, how it handles conflicts, and what evidence it leaves behind.
 
-Current status as of 2026-07-08: portable HA2HA protocol skills are packaged as
-`@ha2ha/skills`. MDSync still needs a dedicated product skill package separate
-from the portable HA2HA protocol skill package:
+Current status as of 2026-07-09: portable HA2HA protocol skills are packaged as
+`@ha2ha/skills`, and hosted MDSync product skills are packaged separately as
+`@mdsync/skills`:
 
 - HA2HA skills: protocol-only workflows for local folders or conformant
   implementations, shipped from `packages/ha2ha-skills`.
 - MDSync skills: hosted product workflows for MDSync routes, tokens, dashboards,
-  comments, history, provider sync, and team-pilot onboarding, not yet shipped.
+  comments, history, provider sync, and team-pilot onboarding, shipped from
+  `packages/mdsync-skills`.
 
 Track the product skill package in
 [tasks/V2-009-mdsync-installable-skill-package.md](tasks/V2-009-mdsync-installable-skill-package.md).
@@ -258,7 +259,8 @@ Client SDKs should split the same way as skills:
 - `@ha2ha/client`: portable protocol SDK for local folders and conformant HA2HA
   implementations, shipped from `packages/ha2ha-client`.
 - `@mdsync/client`: hosted product SDK for MDSync routes, tokens, dashboards,
-  comments, history, provider sync, and team-pilot onboarding, not yet shipped.
+  comments, history, provider sync, and team-pilot onboarding, shipped from
+  `packages/mdsync-client`.
 
 The MDSync client may wrap the HA2HA client, but the HA2HA client must not
 depend on MDSync product behavior. Track the product client SDK in

@@ -2,7 +2,7 @@
 
 ## Goal
 
-Build product experiences on top of v0 and v1: changelog, file history, diff/restore, comments, stats, admin, token/identity UX, encryption decisions, import/export, retention, storage evolution, and installable MDSync agent skills.
+Build product experiences on top of v0 and v1: changelog, file history, diff/restore, comments, stats, admin, token/identity UX, encryption decisions, import/export, retention, storage evolution, the MDSync client SDK, and installable MDSync agent skills.
 
 ## Current State
 
@@ -17,11 +17,11 @@ Build product experiences on top of v0 and v1: changelog, file history, diff/res
   needs.
 - V2-008 used the repo-local v1 HA2HA alpha skill and keeps that historical
   evidence.
+- `@ha2ha/client` is now available as the portable v1 protocol client, and
+  `@mdsync/client` is available as the hosted MDSync product client SDK.
 - `@ha2ha/skills` is now available as the installable, protocol-only v1 skill
-  package. No dedicated MDSync installable skill package exists yet.
-- `@ha2ha/client` is now available as the portable v1 protocol client. No
-  `@mdsync/client` package exists yet; hosted product SDK behavior is planned
-  but not shipped.
+  package, and `@mdsync/skills` is available as the hosted MDSync product skill
+  package built after `@mdsync/client`.
 
 ## Execution Order
 
@@ -33,8 +33,8 @@ Build product experiences on top of v0 and v1: changelog, file history, diff/res
 6. Decide encryption UX.
 7. Add import/export, retention, and storage evolution.
 8. Package a limited team-workspace product pilot over v1 skills and v2 UX.
-9. Package first-party MDSync product skills for installation.
-10. Document and ship the MDSync client SDK.
+9. Document and ship the MDSync client SDK.
+10. Package first-party MDSync product skills for installation.
 
 ## Tasks
 
@@ -46,8 +46,8 @@ Build product experiences on top of v0 and v1: changelog, file history, diff/res
 - [V2-006 Encryption UX Decision](tasks/V2-006-encryption-ux-decision.md)
 - [V2-007 Import Export Retention Storage Evolution](tasks/V2-007-import-export-retention-storage-evolution.md)
 - [V2-008 Team Workspace Product Pilot](tasks/V2-008-team-workspace-product-pilot.md)
-- [V2-009 MDSync Installable Skill Package](tasks/V2-009-mdsync-installable-skill-package.md)
 - [V2-010 MDSync Client SDK](tasks/V2-010-mdsync-client-sdk.md)
+- [V2-009 MDSync Installable Skill Package](tasks/V2-009-mdsync-installable-skill-package.md)
 
 ## Done Definition
 

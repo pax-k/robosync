@@ -2,15 +2,16 @@
 
 ## Status
 
-Planned, not shipped.
+Shipped as first-pass package.
 
-No `@mdsync/client` package exists yet. Current MDSync integration surfaces are
-the hosted app/backend, product docs, repo-local scripts, HA2HA protocol
-packages, HTTP conformance tooling, `@ha2ha/skills`, and `@ha2ha/client`.
+`@mdsync/client` ships from `packages/mdsync-client` before the installable
+MDSync product skill package. Current MDSync integration surfaces are the hosted
+app/backend, product docs, HA2HA protocol packages, HTTP conformance tooling,
+`@ha2ha/skills`, `@ha2ha/client`, `@mdsync/client`, and `@mdsync/skills`.
 
 ## Purpose
 
-`@mdsync/client` should make hosted MDSync easy to integrate as a product and
+`@mdsync/client` makes hosted MDSync easier to integrate as a product and
 service.
 
 It should let apps, skills, CLIs, internal tools, and provider adapters use
@@ -19,16 +20,16 @@ comments/history reads, stats/admin reads, or product-specific read models.
 
 ## Boundary
 
-The MDSync client should wrap `@ha2ha/client` for portable HA2HA workspace
+The MDSync client wraps `@ha2ha/client` for portable HA2HA workspace
 operations where useful.
 
-It may also expose MDSync product behavior, but those methods must stay labeled
+It also exposes MDSync product behavior, but those methods must stay labeled
 as MDSync scope. Product convenience must not redefine HA2HA protocol
 semantics.
 
 ## Extra Capabilities Over HA2HA
 
-`@mdsync/client` can provide hosted product helpers for:
+`@mdsync/client` provides hosted product helpers for:
 
 - creating and publishing hosted workspaces
 - managing read and edit tokens or identity sessions
@@ -48,7 +49,7 @@ Use `@ha2ha/client` when the goal is portable protocol adoption.
 
 Use `@mdsync/client` when the goal is hosted MDSync product adoption.
 
-Dependency direction should stay one-way:
+Dependency direction stays one-way:
 
 ```txt
 @mdsync/client -> @ha2ha/client -> @ha2ha/protocol
@@ -56,9 +57,9 @@ Dependency direction should stay one-way:
 
 The HA2HA client must not import or depend on the MDSync client.
 
-## Not Shipped Until Proven
+## Shipped Evidence
 
-Do not market `@mdsync/client` as shipped until:
+`@mdsync/client` is shipped only after these checks stay green:
 
 - the package exists with release metadata and install docs
 - token or identity handling is documented and tested
@@ -66,5 +67,5 @@ Do not market `@mdsync/client` as shipped until:
 - installable MDSync skills can use the client without repo-local scripts
 - local or deployed MDSync dogfood evidence exists
 
-Track implementation readiness in
+Track ongoing evidence in
 [tasks/V2-010-mdsync-client-sdk.md](tasks/V2-010-mdsync-client-sdk.md).
