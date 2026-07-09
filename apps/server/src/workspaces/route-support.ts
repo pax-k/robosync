@@ -8,4 +8,3 @@ export * from "./route-support/request";
 export * from "./route-support/retention";
 export * from "./route-support/serialization";
 export * from "./route-support/uploads";
-export * from "./route-support/write-statements";

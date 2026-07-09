@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import { test } from "node:test";
 
@@ -58,3 +58,41 @@ test("installable MDSync client declares its contract dependency", async () => {
 	);
 	assert.equal(manifest.dependencies["@mdsync/contracts"], "0.1.0");
 });
+
+test("workspace persistence uses the Drizzle repository boundary", async () => {
+	const workspaceSourceDir = path.join(ROOT_DIR, "apps/server/src/workspaces");
+	const files = (await listSourceFiles(workspaceSourceDir)).filter(
+		(file) => !file.endsWith(".test.ts")
+	);
+	const contents = await Promise.all(
+		files.map(async (file) => ({
+			file,
+			text: await readFile(file, "utf8"),
+		}))
+	);
+
+	const forbiddenPatterns = [".DB.prepare", ".DB.batch"];
+	for (const { file, text } of contents) {
+		for (const pattern of forbiddenPatterns) {
+			assert.equal(
+				text.includes(pattern),
+				false,
+				`${path.relative(ROOT_DIR, file)} must use workspace storage helpers instead of ${pattern}`
+			);
+		}
+	}
+});
+
+async function listSourceFiles(directory) {
+	const entries = await readdir(directory, { withFileTypes: true });
+	const files = await Promise.all(
+		entries.map((entry) => {
+			const entryPath = path.join(directory, entry.name);
+			if (entry.isDirectory()) {
+				return listSourceFiles(entryPath);
+			}
+			return entry.name.endsWith(".ts") ? [entryPath] : [];
+		})
+	);
+	return files.flat();
+}

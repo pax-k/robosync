@@ -1451,6 +1451,13 @@ class TestD1Statement {
 		return { meta: { changes: result.rowsAffected } };
 	}
 
+	async raw() {
+		const result = await this.execute();
+		return result.rows.map((row) =>
+			result.columns.map((column) => row[column] ?? null)
+		);
+	}
+
 	private execute(): Promise<ResultSet> {
 		return this.client.execute({ args: this.args, sql: this.sql });
 	}

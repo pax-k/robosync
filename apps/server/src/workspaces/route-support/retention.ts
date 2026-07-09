@@ -1,5 +1,11 @@
 import type { WorkspaceRetentionPruneRequest } from "@mdsync/contracts/workspaces";
-import { workspaceBindings } from "../bindings";
+import {
+	comments,
+	workspaceAdminEvents,
+	workspaceEvents,
+} from "@mdsync/db/schema/workspaces";
+import { and, eq, isNotNull, lt, sql } from "drizzle-orm";
+import { workspaceDb } from "../bindings";
 import { WorkspaceError } from "../domain";
 import { deleteObjectBestEffort, type WorkspaceRow } from "../storage";
 
@@ -110,12 +116,15 @@ export async function deleteExpiredResolvedComments(
 	workspaceId: string,
 	before: string
 ) {
-	const result = await workspaceBindings()
-		.DB.prepare(
-			`delete from comments
-       where workspace_id = ? and resolved_at is not null and updated_at < ?`
+	const result = await workspaceDb()
+		.delete(comments)
+		.where(
+			and(
+				eq(comments.workspaceId, workspaceId),
+				isNotNull(comments.resolvedAt),
+				lt(comments.updatedAt, before)
+			)
 		)
-		.bind(workspaceId, before)
 		.run();
 	return result.meta.changes ?? 0;
 }
@@ -129,12 +138,26 @@ export async function deleteExpiredRows({
 	table: "workspace_admin_events" | "workspace_events";
 	workspaceId: string;
 }) {
-	const result = await workspaceBindings()
-		.DB.prepare(
-			`delete from ${table} where workspace_id = ? and created_at < ?`
-		)
-		.bind(workspaceId, before)
-		.run();
+	const result =
+		table === "workspace_admin_events"
+			? await workspaceDb()
+					.delete(workspaceAdminEvents)
+					.where(
+						and(
+							eq(workspaceAdminEvents.workspaceId, workspaceId),
+							lt(workspaceAdminEvents.createdAt, before)
+						)
+					)
+					.run()
+			: await workspaceDb()
+					.delete(workspaceEvents)
+					.where(
+						and(
+							eq(workspaceEvents.workspaceId, workspaceId),
+							lt(workspaceEvents.createdAt, before)
+						)
+					)
+					.run();
 	return result.meta.changes ?? 0;
 }
 
@@ -142,12 +165,11 @@ export async function deleteExpiredFileVersions(
 	workspaceId: string,
 	before: string
 ) {
-	const { results } = await workspaceBindings()
-		.DB.prepare(
-			`select v.object_key
+	const results = await workspaceDb().all<{ object_key: string }>(
+		sql`select v.object_key
        from workspace_file_versions v
-       where v.workspace_id = ?
-         and v.created_at < ?
+       where v.workspace_id = ${workspaceId}
+         and v.created_at < ${before}
          and not exists (
            select 1
            from workspace_files f
@@ -162,15 +184,12 @@ export async function deleteExpiredFileVersions(
              and c.path = v.path
              and c.version = v.version
          )`
-		)
-		.bind(workspaceId, before)
-		.all<{ object_key: string }>();
+	);
 	const objectKeys = [...new Set(results.map((row) => row.object_key))];
-	const result = await workspaceBindings()
-		.DB.prepare(
-			`delete from workspace_file_versions
-       where workspace_id = ?
-         and created_at < ?
+	const result = await workspaceDb().run(
+		sql`delete from workspace_file_versions
+       where workspace_id = ${workspaceId}
+         and created_at < ${before}
          and not exists (
            select 1
            from workspace_files f
@@ -185,9 +204,7 @@ export async function deleteExpiredFileVersions(
              and c.path = workspace_file_versions.path
              and c.version = workspace_file_versions.version
          )`
-		)
-		.bind(workspaceId, before)
-		.run();
+	);
 
 	await Promise.all(
 		objectKeys.map((objectKey) => deleteObjectBestEffort(objectKey))

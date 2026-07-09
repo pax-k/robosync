@@ -1,52 +1,9 @@
 import { env } from "@mdsync/env/server";
-import { drizzle } from "drizzle-orm/d1";
+import { createDbFromD1 } from "./client";
 
-import {
-	account,
-	accountRelations,
-	session,
-	sessionRelations,
-	user,
-	userRelations,
-	verification,
-} from "./schema/auth";
-import {
-	comments,
-	commentsRelations,
-	workspaceAdminEvents,
-	workspaceAdminEventsRelations,
-	workspaceEvents,
-	workspaceEventsRelations,
-	workspaceFiles,
-	workspaceFilesRelations,
-	workspaceFileVersions,
-	workspaceFileVersionsRelations,
-	workspaces,
-	workspacesRelations,
-} from "./schema/workspaces";
-
-export const dbSchema = {
-	account,
-	accountRelations,
-	comments,
-	commentsRelations,
-	session,
-	sessionRelations,
-	user,
-	userRelations,
-	verification,
-	workspaceAdminEvents,
-	workspaceAdminEventsRelations,
-	workspaceEvents,
-	workspaceEventsRelations,
-	workspaceFiles,
-	workspaceFilesRelations,
-	workspaceFileVersions,
-	workspaceFileVersionsRelations,
-	workspaces,
-	workspacesRelations,
-};
+// biome-ignore lint/performance/noBarrelFile: Root export preserves the package public API.
+export { createDbFromD1, dbSchema, type MdsyncDb } from "./client";
 
 export function createDb() {
-	return drizzle(env.DB, { schema: dbSchema });
+	return createDbFromD1(env.DB);
 }

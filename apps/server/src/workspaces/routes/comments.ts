@@ -5,7 +5,6 @@ import {
 import type { EvlogVariables } from "evlog/hono";
 import type { Hono } from "hono";
 import { z } from "zod";
-import { workspaceBindings } from "../bindings";
 import { normalizeFilePath, WorkspaceError } from "../domain";
 import {
 	authorizeRead,
@@ -15,7 +14,12 @@ import {
 	requireWorkspace,
 	serializeWorkspaceComment,
 } from "../route-support";
-import { getWorkspaceFileVersion, listWorkspaceComments } from "../storage";
+import {
+	createWorkspaceComment,
+	getWorkspaceFileVersion,
+	listWorkspaceComments,
+	resolveWorkspaceComment,
+} from "../storage";
 
 const commentIdSchema = z.string().trim().min(1).max(160);
 
@@ -64,25 +68,17 @@ export function registerCommentRoutes(router: Hono<EvlogVariables>) {
 
 			const now = new Date().toISOString();
 			const id = crypto.randomUUID();
-			await workspaceBindings()
-				.DB.prepare(
-					`insert into comments (
-	          id, workspace_id, path, version, anchor_json, body, author_id,
-	          created_at, updated_at
-	        ) values (?, ?, ?, ?, ?, ?, ?, ?, ?)`
-				)
-				.bind(
-					id,
-					workspace.id,
-					path,
-					parsed.version,
-					JSON.stringify(parsed.selector ?? {}),
-					parsed.body,
-					parsed.actor,
-					now,
-					now
-				)
-				.run();
+			await createWorkspaceComment({
+				anchor: parsed.selector ?? {},
+				authorId: parsed.actor,
+				body: parsed.body,
+				createdAt: now,
+				id,
+				path,
+				updatedAt: now,
+				version: parsed.version,
+				workspaceId: workspace.id,
+			});
 
 			const comment = await requireComment(workspace.id, id);
 			return c.json(serializeWorkspaceComment(comment), 201);
@@ -105,14 +101,12 @@ export function registerCommentRoutes(router: Hono<EvlogVariables>) {
 
 				if (!existing.resolved_at) {
 					const now = new Date().toISOString();
-					await workspaceBindings()
-						.DB.prepare(
-							`update comments
-	             set resolved_at = ?, resolved_by = ?, updated_at = ?
-	             where workspace_id = ? and id = ?`
-						)
-						.bind(now, parsed.actor, now, workspace.id, commentId)
-						.run();
+					await resolveWorkspaceComment({
+						actor: parsed.actor,
+						commentId,
+						now,
+						workspaceId: workspace.id,
+					});
 				}
 
 				const comment = await requireComment(workspace.id, commentId);

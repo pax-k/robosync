@@ -11,6 +11,12 @@ import {
 	requireWorkspace,
 	serializeWorkspaceCapabilities,
 } from "../route-support";
+import {
+	revokeEditCapability,
+	revokeReadCapability,
+	rotateEditCapability,
+	rotateReadCapability,
+} from "../storage";
 
 export function registerCapabilityRoutes(router: Hono<EvlogVariables>) {
 	router.get("/api/workspaces/:workspaceId/capabilities", async (c) => {
@@ -40,14 +46,11 @@ export function registerCapabilityRoutes(router: Hono<EvlogVariables>) {
 				const hashedToken = await tokenHash(token);
 
 				if (capability === "read") {
-					await workspaceBindings()
-						.DB.prepare(
-							`update workspaces
-	             set read_access = 'token', read_token_hash = ?, updated_at = ?
-	             where id = ?`
-						)
-						.bind(hashedToken, now, workspace.id)
-						.run();
+					await rotateReadCapability({
+						hashedToken,
+						now,
+						workspaceId: workspace.id,
+					});
 					const latestWorkspace = await requireWorkspace(workspace.id);
 					return c.json({
 						capabilities: serializeWorkspaceCapabilities(latestWorkspace),
@@ -70,14 +73,11 @@ export function registerCapabilityRoutes(router: Hono<EvlogVariables>) {
 					);
 				}
 
-				await workspaceBindings()
-					.DB.prepare(
-						`update workspaces
-	           set write_access = 'token', write_token_hash = ?, updated_at = ?
-	           where id = ?`
-					)
-					.bind(hashedToken, now, workspace.id)
-					.run();
+				await rotateEditCapability({
+					hashedToken,
+					now,
+					workspaceId: workspace.id,
+				});
 				const latestWorkspace = await requireWorkspace(workspace.id);
 				return c.json({
 					capabilities: serializeWorkspaceCapabilities(latestWorkspace),
@@ -107,23 +107,9 @@ export function registerCapabilityRoutes(router: Hono<EvlogVariables>) {
 				const now = new Date().toISOString();
 
 				if (capability === "read") {
-					await workspaceBindings()
-						.DB.prepare(
-							`update workspaces
-	             set read_access = 'token', read_token_hash = null, updated_at = ?
-	             where id = ?`
-						)
-						.bind(now, workspace.id)
-						.run();
+					await revokeReadCapability({ now, workspaceId: workspace.id });
 				} else {
-					await workspaceBindings()
-						.DB.prepare(
-							`update workspaces
-	             set write_access = 'none', write_token_hash = null, updated_at = ?
-	             where id = ?`
-						)
-						.bind(now, workspace.id)
-						.run();
+					await revokeEditCapability({ now, workspaceId: workspace.id });
 				}
 
 				const latestWorkspace = await requireWorkspace(workspace.id);

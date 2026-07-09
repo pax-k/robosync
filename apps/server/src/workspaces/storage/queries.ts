@@ -1,15 +1,91 @@
-import { workspaceBindings } from "../bindings";
-import type {
-	WorkspaceAdminEventRow,
-	WorkspaceCommentRow,
-	WorkspaceEventRow,
-	WorkspaceFileRow,
-	WorkspaceFileVersionRow,
-	WorkspaceRow,
-	WorkspaceTreeFile,
-} from "./types";
+import {
+	comments,
+	workspaceAdminEvents,
+	workspaceEvents,
+	workspaceFiles,
+	workspaceFileVersions,
+	workspaces,
+} from "@mdsync/db/schema/workspaces";
+import { and, asc, eq } from "drizzle-orm";
+import { workspaceDb } from "../bindings";
+import type { WorkspaceTreeFile } from "./types";
 
-export function getWorkspaceFileVersion({
+const workspaceRowSelection = {
+	created_at: workspaces.createdAt,
+	file_count: workspaces.fileCount,
+	id: workspaces.id,
+	last_accessed_at: workspaces.lastAccessedAt,
+	r2_prefix: workspaces.r2Prefix,
+	read_access: workspaces.readAccess,
+	read_token_hash: workspaces.readTokenHash,
+	title: workspaces.title,
+	total_size_bytes: workspaces.totalSizeBytes,
+	updated_at: workspaces.updatedAt,
+	write_access: workspaces.writeAccess,
+	write_token_hash: workspaces.writeTokenHash,
+};
+
+const workspaceFileRowSelection = {
+	content_type: workspaceFiles.contentType,
+	created_at: workspaceFiles.createdAt,
+	object_key: workspaceFiles.objectKey,
+	path: workspaceFiles.path,
+	sha256: workspaceFiles.sha256,
+	size_bytes: workspaceFiles.sizeBytes,
+	updated_at: workspaceFiles.updatedAt,
+	updated_by: workspaceFiles.updatedBy,
+	version: workspaceFiles.version,
+	workspace_id: workspaceFiles.workspaceId,
+};
+
+const workspaceEventRowSelection = {
+	actor: workspaceEvents.actor,
+	created_at: workspaceEvents.createdAt,
+	id: workspaceEvents.id,
+	path: workspaceEvents.path,
+	payload: workspaceEvents.payload,
+	type: workspaceEvents.type,
+	version: workspaceEvents.version,
+	workspace_id: workspaceEvents.workspaceId,
+};
+
+const workspaceFileVersionRowSelection = {
+	content_type: workspaceFileVersions.contentType,
+	created_at: workspaceFileVersions.createdAt,
+	object_key: workspaceFileVersions.objectKey,
+	path: workspaceFileVersions.path,
+	sha256: workspaceFileVersions.sha256,
+	size_bytes: workspaceFileVersions.sizeBytes,
+	updated_by: workspaceFileVersions.updatedBy,
+	version: workspaceFileVersions.version,
+	workspace_id: workspaceFileVersions.workspaceId,
+};
+
+const workspaceCommentRowSelection = {
+	anchor_json: comments.anchorJson,
+	author_id: comments.authorId,
+	body: comments.body,
+	created_at: comments.createdAt,
+	id: comments.id,
+	path: comments.path,
+	resolved_at: comments.resolvedAt,
+	resolved_by: comments.resolvedBy,
+	updated_at: comments.updatedAt,
+	version: comments.version,
+	workspace_id: comments.workspaceId,
+};
+
+const workspaceAdminEventRowSelection = {
+	actor: workspaceAdminEvents.actor,
+	created_at: workspaceAdminEvents.createdAt,
+	id: workspaceAdminEvents.id,
+	path: workspaceAdminEvents.path,
+	payload: workspaceAdminEvents.payload,
+	type: workspaceAdminEvents.type,
+	workspace_id: workspaceAdminEvents.workspaceId,
+};
+
+export async function getWorkspaceFileVersion({
 	path,
 	version,
 	workspaceId,
@@ -18,54 +94,55 @@ export function getWorkspaceFileVersion({
 	version: number;
 	workspaceId: string;
 }) {
-	return workspaceBindings()
-		.DB.prepare(
-			`select workspace_id, path, version, object_key, content_type, size_bytes, sha256, updated_by, created_at
-     from workspace_file_versions
-     where workspace_id = ? and path = ? and version = ?`
+	const row = await workspaceDb()
+		.select(workspaceFileVersionRowSelection)
+		.from(workspaceFileVersions)
+		.where(
+			and(
+				eq(workspaceFileVersions.workspaceId, workspaceId),
+				eq(workspaceFileVersions.path, path),
+				eq(workspaceFileVersions.version, version)
+			)
 		)
-		.bind(workspaceId, path, version)
-		.first<WorkspaceFileVersionRow>();
+		.get();
+	return row ?? null;
 }
 
-export function getFile(workspaceId: string, path: string) {
-	return workspaceBindings()
-		.DB.prepare(
-			`select workspace_id, path, object_key, content_type, size_bytes, sha256, version, updated_by, created_at, updated_at
-     from workspace_files
-     where workspace_id = ? and path = ?`
+export async function getFile(workspaceId: string, path: string) {
+	const row = await workspaceDb()
+		.select(workspaceFileRowSelection)
+		.from(workspaceFiles)
+		.where(
+			and(
+				eq(workspaceFiles.workspaceId, workspaceId),
+				eq(workspaceFiles.path, path)
+			)
 		)
-		.bind(workspaceId, path)
-		.first<WorkspaceFileRow>();
+		.get();
+	return row ?? null;
 }
 
-export function getWorkspace(id: string) {
-	return workspaceBindings()
-		.DB.prepare(
-			`select id, title, read_access, write_access, read_token_hash, write_token_hash, r2_prefix, file_count, total_size_bytes, created_at, updated_at, last_accessed_at
-     from workspaces
-     where id = ?`
-		)
-		.bind(id)
-		.first<WorkspaceRow>();
+export async function getWorkspace(id: string) {
+	const row = await workspaceDb()
+		.select(workspaceRowSelection)
+		.from(workspaces)
+		.where(eq(workspaces.id, id))
+		.get();
+	return row ?? null;
 }
 
 export async function listWorkspaceFiles(workspaceId: string) {
-	const { results } = await workspaceBindings()
-		.DB.prepare(
-			`select path, content_type, version, updated_by, updated_at
-     from workspace_files
-     where workspace_id = ?
-     order by path asc`
-		)
-		.bind(workspaceId)
-		.all<{
-			content_type: string;
-			path: string;
-			updated_at: string;
-			updated_by: string | null;
-			version: number;
-		}>();
+	const results = await workspaceDb()
+		.select({
+			content_type: workspaceFiles.contentType,
+			path: workspaceFiles.path,
+			updated_at: workspaceFiles.updatedAt,
+			updated_by: workspaceFiles.updatedBy,
+			version: workspaceFiles.version,
+		})
+		.from(workspaceFiles)
+		.where(eq(workspaceFiles.workspaceId, workspaceId))
+		.orderBy(asc(workspaceFiles.path));
 
 	return results.map(
 		(row): WorkspaceTreeFile => ({
@@ -79,17 +156,12 @@ export async function listWorkspaceFiles(workspaceId: string) {
 }
 
 export async function listWorkspaceEvents(workspaceId: string) {
-	const { results } = await workspaceBindings()
-		.DB.prepare(
-			`select id, workspace_id, type, path, version, actor, created_at, payload
-     from workspace_events
-     where workspace_id = ?
-     order by created_at asc, id asc`
-		)
-		.bind(workspaceId)
-		.all<WorkspaceEventRow>();
-
-	return results;
+	const rows = await workspaceDb()
+		.select(workspaceEventRowSelection)
+		.from(workspaceEvents)
+		.where(eq(workspaceEvents.workspaceId, workspaceId))
+		.orderBy(asc(workspaceEvents.createdAt), asc(workspaceEvents.id));
+	return rows;
 }
 
 export async function recordWorkspaceAdminEvent({
@@ -105,21 +177,17 @@ export async function recordWorkspaceAdminEvent({
 	type: string;
 	workspaceId: string;
 }) {
-	await workspaceBindings()
-		.DB.prepare(
-			`insert into workspace_admin_events (
-       id, workspace_id, type, path, actor, payload, created_at
-     ) values (?, ?, ?, ?, ?, ?, ?)`
-		)
-		.bind(
-			crypto.randomUUID(),
-			workspaceId,
-			type,
-			path,
+	await workspaceDb()
+		.insert(workspaceAdminEvents)
+		.values({
 			actor,
-			JSON.stringify(payload),
-			new Date().toISOString()
-		)
+			createdAt: new Date().toISOString(),
+			id: crypto.randomUUID(),
+			path,
+			payload: JSON.stringify(payload),
+			type,
+			workspaceId,
+		})
 		.run();
 }
 
@@ -127,45 +195,38 @@ export async function listWorkspaceFileVersions(
 	workspaceId: string,
 	path: string
 ) {
-	const { results } = await workspaceBindings()
-		.DB.prepare(
-			`select workspace_id, path, version, object_key, content_type, size_bytes, sha256, updated_by, created_at
-     from workspace_file_versions
-     where workspace_id = ? and path = ?
-     order by version asc`
+	const rows = await workspaceDb()
+		.select(workspaceFileVersionRowSelection)
+		.from(workspaceFileVersions)
+		.where(
+			and(
+				eq(workspaceFileVersions.workspaceId, workspaceId),
+				eq(workspaceFileVersions.path, path)
+			)
 		)
-		.bind(workspaceId, path)
-		.all<WorkspaceFileVersionRow>();
-
-	return results;
+		.orderBy(asc(workspaceFileVersions.version));
+	return rows;
 }
 
 export async function listWorkspaceFilesDetailed(workspaceId: string) {
-	const { results } = await workspaceBindings()
-		.DB.prepare(
-			`select workspace_id, path, object_key, content_type, size_bytes, sha256, version, updated_by, created_at, updated_at
-     from workspace_files
-     where workspace_id = ?
-     order by path asc`
-		)
-		.bind(workspaceId)
-		.all<WorkspaceFileRow>();
-
-	return results;
+	const rows = await workspaceDb()
+		.select(workspaceFileRowSelection)
+		.from(workspaceFiles)
+		.where(eq(workspaceFiles.workspaceId, workspaceId))
+		.orderBy(asc(workspaceFiles.path));
+	return rows;
 }
 
 export async function listAllWorkspaceFileVersions(workspaceId: string) {
-	const { results } = await workspaceBindings()
-		.DB.prepare(
-			`select workspace_id, path, version, object_key, content_type, size_bytes, sha256, updated_by, created_at
-     from workspace_file_versions
-     where workspace_id = ?
-     order by path asc, version asc`
-		)
-		.bind(workspaceId)
-		.all<WorkspaceFileVersionRow>();
-
-	return results;
+	const rows = await workspaceDb()
+		.select(workspaceFileVersionRowSelection)
+		.from(workspaceFileVersions)
+		.where(eq(workspaceFileVersions.workspaceId, workspaceId))
+		.orderBy(
+			asc(workspaceFileVersions.path),
+			asc(workspaceFileVersions.version)
+		);
+	return rows;
 }
 
 export async function listWorkspaceComments({
@@ -175,46 +236,40 @@ export async function listWorkspaceComments({
 	path?: string;
 	workspaceId: string;
 }) {
-	const baseQuery = `select id, workspace_id, path, version, anchor_json, body, author_id, created_at, updated_at, resolved_at, resolved_by
-     from comments
-     where workspace_id = ?`;
-	const pathClause = path ? " and path = ?" : "";
-	const orderClause = " order by created_at asc, id asc";
-	const statement = workspaceBindings()
-		.DB.prepare(`${baseQuery}${pathClause}${orderClause}`)
-		.bind(...(path ? [workspaceId, path] : [workspaceId]));
-	const { results } = await statement.all<WorkspaceCommentRow>();
-
-	return results;
+	const rows = await workspaceDb()
+		.select(workspaceCommentRowSelection)
+		.from(comments)
+		.where(
+			path
+				? and(eq(comments.workspaceId, workspaceId), eq(comments.path, path))
+				: eq(comments.workspaceId, workspaceId)
+		)
+		.orderBy(asc(comments.createdAt), asc(comments.id));
+	return rows;
 }
 
 export async function listWorkspaceAdminEvents(workspaceId: string) {
-	const { results } = await workspaceBindings()
-		.DB.prepare(
-			`select id, workspace_id, type, path, actor, payload, created_at
-     from workspace_admin_events
-     where workspace_id = ?
-     order by created_at asc, id asc`
-		)
-		.bind(workspaceId)
-		.all<WorkspaceAdminEventRow>();
-
-	return results;
+	const rows = await workspaceDb()
+		.select(workspaceAdminEventRowSelection)
+		.from(workspaceAdminEvents)
+		.where(eq(workspaceAdminEvents.workspaceId, workspaceId))
+		.orderBy(asc(workspaceAdminEvents.createdAt), asc(workspaceAdminEvents.id));
+	return rows;
 }
 
-export function getWorkspaceComment({
+export async function getWorkspaceComment({
 	commentId,
 	workspaceId,
 }: {
 	commentId: string;
 	workspaceId: string;
 }) {
-	return workspaceBindings()
-		.DB.prepare(
-			`select id, workspace_id, path, version, anchor_json, body, author_id, created_at, updated_at, resolved_at, resolved_by
-     from comments
-     where workspace_id = ? and id = ?`
+	const row = await workspaceDb()
+		.select(workspaceCommentRowSelection)
+		.from(comments)
+		.where(
+			and(eq(comments.workspaceId, workspaceId), eq(comments.id, commentId))
 		)
-		.bind(workspaceId, commentId)
-		.first<WorkspaceCommentRow>();
+		.get();
+	return row ?? null;
 }

@@ -16,6 +16,7 @@ import {
 	WorkspaceError,
 } from "../domain";
 import {
+	createImportedWorkspaceRecords,
 	fetchObjectText,
 	fetchObjectTextByKey,
 	listAllWorkspaceFileVersions,
@@ -34,12 +35,6 @@ import {
 import { buildRetentionPolicyPayload } from "./retention";
 import { parseEventPayload } from "./serialization";
 import { cleanupUploadedObjects } from "./uploads";
-import {
-	createFileVersionStatement,
-	createWorkspaceAdminEventStatement,
-	createWorkspaceCommentStatement,
-	createWorkspaceEventStatement,
-} from "./write-statements";
 
 type ImportedCurrentFile = WorkspaceExportBundle["files"][number];
 type ImportedFileVersion = WorkspaceExportBundle["fileVersions"][number];
@@ -112,50 +107,42 @@ export async function importWorkspaceBundle(
 			(total, file) => total + file.sizeBytes,
 			0
 		);
-		await workspaceBindings().DB.batch([
-			workspaceBindings()
-				.DB.prepare(
-					`insert into workspaces (
-            id, title, read_access, write_access, read_token_hash, write_token_hash, r2_prefix,
-            file_count, total_size_bytes, created_at, updated_at, last_accessed_at
-          ) values (?, ?, 'token', 'token', ?, ?, ?, ?, ?, ?, ?, null)`
-				)
-				.bind(
-					id,
-					bundle.workspace.title,
-					readTokenHash,
-					writeTokenHash,
-					r2Prefix,
-					currentUploads.length,
-					totalSizeBytes,
-					now,
-					now
-				),
-			...files.map((file, index) => {
-				const uploaded = requiredUploadedObject(currentUploads, index);
-				return workspaceBindings()
-					.DB.prepare(
-						`insert into workspace_files (
-              workspace_id, path, object_key, content_type, size_bytes, sha256, version,
-              updated_by, created_at, updated_at
-            ) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-					)
-					.bind(
-						id,
-						file.path,
-						uploaded.objectKey,
-						file.contentType,
-						uploaded.sizeBytes,
-						uploaded.sha256,
-						file.version,
-						file.updatedBy,
-						file.createdAt,
-						file.updatedAt
-					);
-			}),
-			...fileVersions.map((fileVersion, index) => {
+		await createImportedWorkspaceRecords({
+			adminEvents: bundle.adminEvents.map((event) => ({
+				actor: event.actor,
+				createdAt: event.createdAt,
+				path: normalizeNullableFilePath(event.path),
+				payload: event.payload,
+				type: event.type,
+				workspaceId: id,
+			})),
+			comments: bundle.comments.map((comment) => ({
+				...comment,
+				path: normalizeFilePath(comment.path),
+				workspaceId: id,
+			})),
+			createdAt: now,
+			currentFiles: files.map((file, index) => ({
+				contentType: file.contentType,
+				createdAt: file.createdAt,
+				path: file.path,
+				updatedAt: file.updatedAt,
+				updatedBy: file.updatedBy,
+				upload: requiredUploadedObject(currentUploads, index),
+				version: file.version,
+			})),
+			events: bundle.events.map((event) => ({
+				actor: event.actor,
+				createdAt: event.createdAt,
+				path: normalizeNullableFilePath(event.path),
+				payload: event.payload,
+				type: event.type,
+				version: event.version,
+				workspaceId: id,
+			})),
+			fileVersions: fileVersions.map((fileVersion, index) => {
 				const uploaded = requiredUploadedObject(versionUploads, index);
-				return createFileVersionStatement({
+				return {
 					contentType: fileVersion.contentType,
 					createdAt: fileVersion.createdAt,
 					objectKey: uploaded.objectKey,
@@ -165,37 +152,16 @@ export async function importWorkspaceBundle(
 					updatedBy: fileVersion.updatedBy,
 					version: fileVersion.version,
 					workspaceId: id,
-				});
+				};
 			}),
-			...bundle.events.map((event) =>
-				createWorkspaceEventStatement({
-					actor: event.actor,
-					createdAt: event.createdAt,
-					path: normalizeNullableFilePath(event.path),
-					payload: event.payload,
-					type: event.type,
-					version: event.version,
-					workspaceId: id,
-				})
-			),
-			...bundle.comments.map((comment) =>
-				createWorkspaceCommentStatement({
-					...comment,
-					path: normalizeFilePath(comment.path),
-					workspaceId: id,
-				})
-			),
-			...bundle.adminEvents.map((event) =>
-				createWorkspaceAdminEventStatement({
-					actor: event.actor,
-					createdAt: event.createdAt,
-					path: normalizeNullableFilePath(event.path),
-					payload: event.payload,
-					type: event.type,
-					workspaceId: id,
-				})
-			),
-		]);
+			r2Prefix,
+			readTokenHash,
+			title: bundle.workspace.title,
+			totalSizeBytes,
+			updatedAt: now,
+			workspaceId: id,
+			writeTokenHash,
+		});
 	} catch (error) {
 		await cleanupUploadedObjects(currentUploads.concat(versionUploads));
 		throw error;

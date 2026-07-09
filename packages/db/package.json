@@ -12,7 +12,7 @@
   "scripts": {
     "check-types": "tsc -b",
     "db:generate": "drizzle-kit generate",
-    "test": "pnpm run check-types && tsx --test src/**/*.test.ts",
+    "test": "pnpm run check-types && tsx --test src/*.test.ts src/**/*.test.ts",
     "test:integration": "pnpm run test"
   },
   "dependencies": {

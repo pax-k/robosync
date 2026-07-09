@@ -25,6 +25,19 @@ This proves the product behavior first. Per-workspace D1 remains a future
 migration only if the simpler topology fails an isolation, export, or scale
 requirement.
 
+## Persistence Access Boundary
+
+Application code should access D1 through the Drizzle-backed workspace storage
+repository. The Drizzle schema in `@mdsync/db` remains the table authority for
+workspace metadata, files, file versions, protocol events, comments, and admin
+events.
+
+Server route handlers should not call D1 `prepare` or `batch` directly. Raw SQL
+is allowed only as a typed, localized Drizzle `sql` escape hatch inside storage
+helpers when SQLite/D1-specific logic is clearer than the query builder, such as
+retention anti-joins that protect current and comment-anchored file versions.
+The script boundary tests enforce this rule for non-test workspace source.
+
 ## Per-Workspace D1
 
 Per-workspace D1 is a later architecture option for stronger isolation, cleaner per-workspace export, or scale needs.

@@ -1,4 +1,3 @@
-import { HA2HA_EVENT_TYPES } from "@ha2ha/protocol";
 import {
 	createWorkspaceRequestSchema,
 	deleteWorkspaceFileRequestSchema,
@@ -25,9 +24,6 @@ import {
 	authorizeWrite,
 	buildRetentionPolicyPayload,
 	cleanupUploadedObjects,
-	createFileVersionStatement,
-	createFileVersionStatementFromRow,
-	createWorkspaceEventStatement,
 	exportWorkspaceBundle,
 	handleWorkspaceError,
 	importWorkspaceBundle,
@@ -42,7 +38,6 @@ import {
 	serializeHistoricalFile,
 	serializeWorkspace,
 	serializeWorkspaceEvent,
-	updateWorkspaceTotals,
 	uploadWorkspaceObjects,
 	versionConflictPayload,
 } from "./route-support";
@@ -50,6 +45,11 @@ import { registerCapabilityRoutes } from "./routes/capabilities";
 import { registerCommentRoutes } from "./routes/comments";
 import { registerRawRoutes } from "./routes/raw";
 import {
+	appendDeletedWorkspaceFileRecords,
+	appendUpdatedWorkspaceFileRecords,
+	createCurrentWorkspaceFile,
+	createWorkspaceRecords,
+	deleteCurrentWorkspaceFile,
 	deleteObjectBestEffort,
 	fetchObjectText,
 	getFile,
@@ -59,6 +59,8 @@ import {
 	listWorkspaceFiles,
 	listWorkspaceFileVersions,
 	putFileObject,
+	updateCurrentWorkspaceFile,
+	updateWorkspaceTotals,
 } from "./storage";
 
 export const workspaceRoutes = new Hono<EvlogVariables>();
@@ -92,72 +94,20 @@ workspaceRoutes.post("/api/workspaces", async (c) => {
 				(total, file) => total + file.sizeBytes,
 				0
 			);
-			await workspaceBindings().DB.batch([
-				workspaceBindings()
-					.DB.prepare(
-						`insert into workspaces (
-            id, title, read_access, write_access, read_token_hash, write_token_hash, r2_prefix,
-            file_count, total_size_bytes, created_at, updated_at, last_accessed_at
-          ) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, null)`
-					)
-					.bind(
-						id,
-						parsed.title ?? null,
-						parsed.readAccess,
-						parsed.writeAccess,
-						readTokenHash,
-						writeTokenHash,
-						r2Prefix,
-						uploadedObjects.length,
-						totalSizeBytes,
-						now,
-						now
-					),
-				...uploadedObjects.map((file) =>
-					workspaceBindings()
-						.DB.prepare(
-							`insert into workspace_files (
-              workspace_id, path, object_key, content_type, size_bytes, sha256, version,
-              updated_by, created_at, updated_at
-            ) values (?, ?, ?, ?, ?, ?, 1, ?, ?, ?)`
-						)
-						.bind(
-							id,
-							file.path,
-							file.objectKey,
-							file.contentType,
-							file.sizeBytes,
-							file.sha256,
-							actor,
-							now,
-							now
-						)
-				),
-				...uploadedObjects.map((file) =>
-					createFileVersionStatement({
-						contentType: file.contentType,
-						createdAt: now,
-						objectKey: file.objectKey,
-						path: file.path,
-						sha256: file.sha256,
-						sizeBytes: file.sizeBytes,
-						updatedBy: actor,
-						version: 1,
-						workspaceId: id,
-					})
-				),
-				...uploadedObjects.map((file) =>
-					createWorkspaceEventStatement({
-						actor,
-						createdAt: now,
-						path: file.path,
-						payload: { sizeBytes: file.sizeBytes },
-						type: HA2HA_EVENT_TYPES.fileCreated,
-						version: 1,
-						workspaceId: id,
-					})
-				),
-			]);
+			await createWorkspaceRecords({
+				actor,
+				createdAt: now,
+				files: uploadedObjects,
+				r2Prefix,
+				readAccess: parsed.readAccess,
+				readTokenHash,
+				title: parsed.title ?? null,
+				totalSizeBytes,
+				updatedAt: now,
+				workspaceId: id,
+				writeAccess: parsed.writeAccess,
+				writeTokenHash,
+			});
 		} catch (error) {
 			await cleanupUploadedObjects(uploadedObjects);
 			throw error;
@@ -402,27 +352,24 @@ workspaceRoutes.put("/api/workspaces/:workspaceId/files", async (c) => {
 		});
 
 		if (current) {
-			const result = await workspaceBindings()
-				.DB.prepare(
-					`update workspace_files
-         set object_key = ?, content_type = ?, size_bytes = ?, sha256 = ?,
-             version = version + 1, updated_by = ?, updated_at = ?
-         where workspace_id = ? and path = ? and version = ?`
-				)
-				.bind(
-					uploaded.objectKey,
-					uploaded.contentType,
-					uploaded.sizeBytes,
-					uploaded.sha256,
-					parsed.actor,
-					now,
-					workspace.id,
-					path,
-					parsed.baseVersion
-				)
-				.run();
+			const { baseVersion } = parsed;
+			if (typeof baseVersion !== "number") {
+				throw new WorkspaceError(
+					400,
+					"missing_base_version",
+					"baseVersion is required."
+				);
+			}
+			const changedRows = await updateCurrentWorkspaceFile({
+				actor: parsed.actor,
+				baseVersion,
+				now,
+				path,
+				uploaded,
+				workspaceId: workspace.id,
+			});
 
-			if ((result.meta.changes ?? 0) === 0) {
+			if (changedRows === 0) {
 				await deleteObjectBestEffort(uploaded.objectKey);
 				await recordVersionConflict({
 					actor: parsed.actor,
@@ -440,29 +387,14 @@ workspaceRoutes.put("/api/workspaces/:workspaceId/files", async (c) => {
 				sizeDelta: uploaded.sizeBytes - current.size_bytes,
 				workspaceId: workspace.id,
 			});
-			await workspaceBindings().DB.batch([
-				createFileVersionStatementFromRow(current),
-				createFileVersionStatement({
-					contentType: uploaded.contentType,
-					createdAt: now,
-					objectKey: uploaded.objectKey,
-					path,
-					sha256: uploaded.sha256,
-					sizeBytes: uploaded.sizeBytes,
-					updatedBy: parsed.actor,
-					version: current.version + 1,
-					workspaceId: workspace.id,
-				}),
-				createWorkspaceEventStatement({
-					actor: parsed.actor,
-					createdAt: now,
-					path,
-					payload: { baseVersion: parsed.baseVersion },
-					type: HA2HA_EVENT_TYPES.fileUpdated,
-					version: current.version + 1,
-					workspaceId: workspace.id,
-				}),
-			]);
+			await appendUpdatedWorkspaceFileRecords({
+				actor: parsed.actor,
+				current,
+				now,
+				path,
+				uploaded,
+				workspaceId: workspace.id,
+			});
 			return c.json({
 				path,
 				updatedAt: now,
@@ -473,46 +405,13 @@ workspaceRoutes.put("/api/workspaces/:workspaceId/files", async (c) => {
 		}
 
 		try {
-			await workspaceBindings().DB.batch([
-				workspaceBindings()
-					.DB.prepare(
-						`insert into workspace_files (
-          workspace_id, path, object_key, content_type, size_bytes, sha256, version,
-          updated_by, created_at, updated_at
-        ) values (?, ?, ?, ?, ?, ?, 1, ?, ?, ?)`
-					)
-					.bind(
-						workspace.id,
-						path,
-						uploaded.objectKey,
-						uploaded.contentType,
-						uploaded.sizeBytes,
-						uploaded.sha256,
-						parsed.actor,
-						now,
-						now
-					),
-				createFileVersionStatement({
-					contentType: uploaded.contentType,
-					createdAt: now,
-					objectKey: uploaded.objectKey,
-					path,
-					sha256: uploaded.sha256,
-					sizeBytes: uploaded.sizeBytes,
-					updatedBy: parsed.actor,
-					version: 1,
-					workspaceId: workspace.id,
-				}),
-				createWorkspaceEventStatement({
-					actor: parsed.actor,
-					createdAt: now,
-					path,
-					payload: { baseVersion: null },
-					type: HA2HA_EVENT_TYPES.fileCreated,
-					version: 1,
-					workspaceId: workspace.id,
-				}),
-			]);
+			await createCurrentWorkspaceFile({
+				actor: parsed.actor,
+				now,
+				path,
+				uploaded,
+				workspaceId: workspace.id,
+			});
 		} catch {
 			await deleteObjectBestEffort(uploaded.objectKey);
 			await recordVersionConflict({
@@ -553,14 +452,13 @@ workspaceRoutes.delete("/api/workspaces/:workspaceId/files", async (c) => {
 		);
 		const current = await requireFile(workspace.id, path);
 		const now = new Date().toISOString();
-		const result = await workspaceBindings()
-			.DB.prepare(
-				"delete from workspace_files where workspace_id = ? and path = ? and version = ?"
-			)
-			.bind(workspace.id, path, parsed.baseVersion)
-			.run();
+		const changedRows = await deleteCurrentWorkspaceFile({
+			baseVersion: parsed.baseVersion,
+			path,
+			workspaceId: workspace.id,
+		});
 
-		if ((result.meta.changes ?? 0) === 0) {
+		if (changedRows === 0) {
 			await recordVersionConflict({
 				actor: parsed.actor,
 				baseVersion: parsed.baseVersion,
@@ -577,18 +475,12 @@ workspaceRoutes.delete("/api/workspaces/:workspaceId/files", async (c) => {
 			sizeDelta: -current.size_bytes,
 			workspaceId: workspace.id,
 		});
-		await workspaceBindings().DB.batch([
-			createFileVersionStatementFromRow(current),
-			createWorkspaceEventStatement({
-				actor: parsed.actor,
-				createdAt: now,
-				path,
-				payload: { baseVersion: parsed.baseVersion },
-				type: HA2HA_EVENT_TYPES.fileDeleted,
-				version: current.version,
-				workspaceId: workspace.id,
-			}),
-		]);
+		await appendDeletedWorkspaceFileRecords({
+			actor: parsed.actor,
+			current,
+			now,
+			workspaceId: workspace.id,
+		});
 
 		return c.json({
 			deleted: true,
