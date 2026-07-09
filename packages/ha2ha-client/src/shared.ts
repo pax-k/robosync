@@ -115,7 +115,10 @@ export const getNullableString = (
 		: null;
 };
 
-export const getOptionalString = (value: unknown, key: string): string | null => {
+export const getOptionalString = (
+	value: unknown,
+	key: string
+): string | null => {
 	const candidate = getRecord(value)[key];
 	return typeof candidate === "string" ? candidate : null;
 };

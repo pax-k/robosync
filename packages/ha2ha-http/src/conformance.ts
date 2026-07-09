@@ -1,9 +1,26 @@
 import { HA2HA_CONFLICT, HA2HA_HEADERS, HA2HA_PATHS } from "@ha2ha/protocol";
 import { ha2haConflictResponseSchema } from "@ha2ha/protocol/schemas";
+import {
+	assertEquals,
+	assertHeaderEquals,
+	assertHeaderIncludes,
+	assertIncludes,
+	assertPositiveNumber,
+	assertStatus,
+	authHeaders,
+	encodePath,
+	findRecord,
+	getArray,
+	getNumber,
+	getString,
+	getVersion,
+	normalizeBaseUrl,
+	readJson,
+	requireString,
+} from "./conformance-helpers";
 
 const CONFORMANCE_ACTOR = "ha2ha-conformance";
 const JSON_INDENT_SPACES = 2;
-const TRAILING_SLASH_PATTERN = /\/$/u;
 
 export type Ha2haConformanceProfile =
 	| "core-workspace"
@@ -709,124 +726,3 @@ const buildResult = ({
 	target,
 	timestamp: new Date().toISOString(),
 });
-
-const authHeaders = (editToken: string) => ({
-	Authorization: `Bearer ${editToken}`,
-	"Content-Type": "application/json",
-});
-
-const normalizeBaseUrl = (baseUrl: string) =>
-	baseUrl.replace(TRAILING_SLASH_PATTERN, "");
-
-const encodePath = (filePath: string) =>
-	filePath.split("/").map(encodeURIComponent).join("/");
-
-const readJson = async (response: Response): Promise<unknown> => {
-	try {
-		return await response.json();
-	} catch {
-		return null;
-	}
-};
-
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-	typeof value === "object" && value !== null && !Array.isArray(value);
-
-const getString = (value: unknown, key: string): string | null => {
-	if (!isRecord(value)) {
-		return null;
-	}
-	const field = value[key];
-	return typeof field === "string" ? field : null;
-};
-
-const getNumber = (value: unknown, key: string): number => {
-	if (!isRecord(value)) {
-		throw new Error(`Expected object with numeric ${key}.`);
-	}
-	const field = value[key];
-	if (typeof field !== "number") {
-		throw new Error(`Expected numeric ${key}.`);
-	}
-	return field;
-};
-
-const getArray = (value: unknown, key: string): unknown[] => {
-	if (!isRecord(value)) {
-		throw new Error(`Expected object with array ${key}.`);
-	}
-	const field = value[key];
-	if (!Array.isArray(field)) {
-		throw new Error(`Expected array ${key}.`);
-	}
-	return field;
-};
-
-const findRecord = (
-	values: unknown[],
-	key: string,
-	expectedValue: number | string
-): Record<string, unknown> => {
-	const record = values.find(
-		(value) => isRecord(value) && value[key] === expectedValue
-	);
-	if (!isRecord(record)) {
-		throw new Error(`Expected record with ${key} ${String(expectedValue)}.`);
-	}
-	return record;
-};
-
-const getVersion = (value: unknown): number => getNumber(value, "version");
-
-const assertStatus = (response: Response, expectedStatus: number) => {
-	if (response.status !== expectedStatus) {
-		throw new Error(`Expected HTTP ${expectedStatus}, got ${response.status}.`);
-	}
-};
-
-const assertHeaderEquals = (
-	response: Response,
-	header: string,
-	expectedValue: string
-) => {
-	const value = response.headers.get(header);
-	if (value !== expectedValue) {
-		throw new Error(`Expected ${header} ${expectedValue}, got ${value}.`);
-	}
-};
-
-const assertHeaderIncludes = (
-	response: Response,
-	header: string,
-	expectedValue: string
-) => {
-	const value = response.headers.get(header);
-	if (!value?.includes(expectedValue)) {
-		throw new Error(`Expected ${header} to include ${expectedValue}.`);
-	}
-};
-
-const assertIncludes = (value: string, expected: string) => {
-	if (!value.includes(expected)) {
-		throw new Error(`Expected value to include ${expected}.`);
-	}
-};
-
-const assertEquals = (actual: unknown, expected: unknown) => {
-	if (actual !== expected) {
-		throw new Error(`Expected ${String(expected)}, got ${String(actual)}.`);
-	}
-};
-
-const requireString = (value: unknown, label: string): string => {
-	if (typeof value !== "string" || value.length === 0) {
-		throw new Error(`Expected ${label}.`);
-	}
-	return value;
-};
-
-const assertPositiveNumber = (value: number, label: string) => {
-	if (!(Number.isInteger(value) && value > 0)) {
-		throw new Error(`Expected positive integer ${label}.`);
-	}
-};

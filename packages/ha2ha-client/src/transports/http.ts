@@ -1,7 +1,7 @@
 import { ha2haConflictResponseSchema } from "@ha2ha/protocol";
 import {
-	DEFAULT_CONTENT_TYPE,
 	contentTypeForPath,
+	DEFAULT_CONTENT_TYPE,
 	err,
 	getNumber,
 	getOptionalNumber,

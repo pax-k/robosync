@@ -1,3 +1,4 @@
+// biome-ignore-all lint/performance/noBarrelFile: Compatibility entrypoint for workspace route support modules.
 export * from "./route-support/authorization";
 export * from "./route-support/conflicts";
 export * from "./route-support/errors";

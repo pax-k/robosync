@@ -1,5 +1,11 @@
 import { workspaceVersionConflictResponseSchema } from "@mdsync/contracts/workspaces";
-import { err, getRecord, getString, messageFromCaught, toErrorCode } from "./errors";
+import {
+	err,
+	getRecord,
+	getString,
+	messageFromCaught,
+	toErrorCode,
+} from "./errors";
 import { parseJsonPayload } from "./parsers";
 import type { AuthRequirement, MdsyncAuth, MdsyncResult } from "./types";
 

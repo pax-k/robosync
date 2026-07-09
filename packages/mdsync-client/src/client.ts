@@ -4,7 +4,11 @@ import {
 	workspaceFileVersionsResponseSchema,
 } from "@mdsync/contracts/workspaces";
 import { createHostedHa2haClient } from "./ha2ha";
-import { buildProductLink, contentTypeForPath, resolveWorkspaceId } from "./links";
+import {
+	buildProductLink,
+	contentTypeForPath,
+	resolveWorkspaceId,
+} from "./links";
 import {
 	parseAdminStats,
 	parseCapabilityPayload,
@@ -23,9 +27,8 @@ import {
 	parseWorkspaceListing,
 	parseWriteResult,
 } from "./parsers";
-import { requestJson, type RequestInput } from "./request";
+import { type RequestInput, requestJson } from "./request";
 import type {
-	AuthRequirement,
 	CreateMdsyncClientOptions,
 	MdsyncClient,
 	MdsyncResult,
@@ -253,5 +256,3 @@ export const createMdsyncClient = ({
 			}),
 	};
 };
-
-export type { AuthRequirement };

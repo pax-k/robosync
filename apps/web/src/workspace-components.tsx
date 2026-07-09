@@ -1,3 +1,4 @@
+// biome-ignore-all lint/performance/noBarrelFile: Compatibility entrypoint for workspace feature components.
 export { ActivityPanel } from "./workspace-components/activity";
 export { AdminPanel } from "./workspace-components/admin";
 export { CommentsPanel } from "./workspace-components/comments";

@@ -10,7 +10,11 @@ import {
 	requireWorkspace,
 	serializeWorkspaceEvent,
 } from "../route-support";
-import { listWorkspaceEvents, listWorkspaceFiles, readObjectBody } from "../storage";
+import {
+	listWorkspaceEvents,
+	listWorkspaceFiles,
+	readObjectBody,
+} from "../storage";
 
 export function registerRawRoutes(router: Hono<EvlogVariables>) {
 	router.get("/w/:workspaceId/raw", async (c) => {
@@ -34,7 +38,7 @@ export function registerRawRoutes(router: Hono<EvlogVariables>) {
 			return handleWorkspaceError(c, error);
 		}
 	});
-	
+
 	router.get("/w/:workspaceId/raw/events", async (c) => {
 		try {
 			const workspace = await requireWorkspace(c.req.param("workspaceId"));
@@ -48,7 +52,7 @@ export function registerRawRoutes(router: Hono<EvlogVariables>) {
 			return handleWorkspaceError(c, error);
 		}
 	});
-	
+
 	router.get("/w/:workspaceId/raw/*", async (c) => {
 		try {
 			const workspaceId = c.req.param("workspaceId");
@@ -59,7 +63,7 @@ export function registerRawRoutes(router: Hono<EvlogVariables>) {
 			);
 			const file = await requireFile(workspace.id, path);
 			const body = await readObjectBody(file);
-	
+
 			return new Response(body, {
 				headers: {
 					"Content-Type": file.content_type,

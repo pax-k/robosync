@@ -1,5 +1,10 @@
 import { HA2HA_CONFLICT } from "@ha2ha/protocol";
-import { fetchObjectText, getFile, recordWorkspaceAdminEvent, type WorkspaceFileRow } from "../storage";
+import {
+	fetchObjectText,
+	getFile,
+	recordWorkspaceAdminEvent,
+	type WorkspaceFileRow,
+} from "../storage";
 
 const VERSION_CONFLICT_ADMIN_EVENT_TYPE = "file.version_conflict";
 

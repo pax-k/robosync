@@ -4,7 +4,10 @@ import { Label } from "@mdsync/ui/components/label";
 import { Textarea } from "@mdsync/ui/components/textarea";
 import { CheckCircle2, MessageSquare } from "lucide-react";
 import { type ChangeEvent, type ReactNode, useCallback } from "react";
-import type { WorkspaceComment, WorkspaceFilePayload } from "../workspace-types";
+import type {
+	WorkspaceComment,
+	WorkspaceFilePayload,
+} from "../workspace-types";
 import { formatDateTime } from "../workspace-utils";
 
 export function CommentsPanel({

@@ -1,4 +1,10 @@
-import { fetchObjectTextByKey, type WorkspaceCommentRow, type WorkspaceEventRow, type WorkspaceFileVersionRow, type WorkspaceRow } from "../storage";
+import {
+	fetchObjectTextByKey,
+	type WorkspaceCommentRow,
+	type WorkspaceEventRow,
+	type WorkspaceFileVersionRow,
+	type WorkspaceRow,
+} from "../storage";
 
 const TRAILING_SLASH_PATTERN = /\/$/;
 

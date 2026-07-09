@@ -33,9 +33,7 @@ import {
 } from "../storage";
 import { buildRetentionPolicyPayload } from "./retention";
 import { parseEventPayload } from "./serialization";
-import {
-	cleanupUploadedObjects,
-} from "./uploads";
+import { cleanupUploadedObjects } from "./uploads";
 import {
 	createFileVersionStatement,
 	createWorkspaceAdminEventStatement,

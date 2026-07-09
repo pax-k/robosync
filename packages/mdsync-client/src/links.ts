@@ -41,7 +41,9 @@ export const buildProductLink = ({
 	return ok(url.toString());
 };
 
-export const resolveWorkspaceId = (workspaceId?: string): MdsyncResult<string> =>
+export const resolveWorkspaceId = (
+	workspaceId?: string
+): MdsyncResult<string> =>
 	workspaceId && workspaceId.length > 0
 		? ok(workspaceId)
 		: err("validation_error", "A workspaceId is required for this operation.");

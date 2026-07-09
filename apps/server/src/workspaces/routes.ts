@@ -61,7 +61,6 @@ import {
 	putFileObject,
 } from "./storage";
 
-
 export const workspaceRoutes = new Hono<EvlogVariables>();
 
 workspaceRoutes.post("/api/workspaces", async (c) => {

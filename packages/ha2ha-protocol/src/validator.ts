@@ -1,9 +1,38 @@
-import { readdir, readFile, stat } from "node:fs/promises";
 import path from "node:path";
-import { parse as parseYaml } from "yaml";
 import type { z } from "zod";
 
 import { HA2HA_CAPABILITIES, HA2HA_PATHS } from "./constants";
+import {
+	classifyActorIssue,
+	classifyEvidenceIssue,
+	pushZodIssues,
+} from "./validator-issues";
+import {
+	listFiles,
+	pathExists,
+	readFrontmatter,
+	readJsonFile,
+	toWorkspaceRelativePath,
+} from "./validator-readers";
+import {
+	createIssue,
+	HA2HA_VALIDATION_RULES,
+	type Ha2haValidationIssue,
+	type Ha2haValidationResult,
+	type Ha2haValidationRuleId,
+	type SchemaIssueClassifier,
+} from "./validator-types";
+
+// biome-ignore lint/performance/noBarrelFile: Public validator entrypoint preserves existing exports.
+export { formatValidationResult } from "./validator-format";
+export {
+	HA2HA_VALIDATION_RULES,
+	type Ha2haValidationIssue,
+	type Ha2haValidationResult,
+	type Ha2haValidationRuleId,
+	type Ha2haValidationSeverity,
+} from "./validator-types";
+
 import {
 	ha2haConflictResponseSchema,
 	ha2haEvidenceMetadataSchema,
@@ -16,70 +45,6 @@ import {
 	ha2haWorkspaceFileVersionSchema,
 	ha2haWorkspaceManifestSchema,
 } from "./schemas";
-
-const FRONTMATTER_PATTERN = /^---\r?\n([\s\S]*?)\r?\n---/u;
-const JSON_INDENT_SPACES = 2;
-
-export const HA2HA_VALIDATION_RULES = {
-	invalidClaimMetadata: "HA2HA_INVALID_CLAIM_METADATA",
-	invalidConflictResponse: "HA2HA_INVALID_CONFLICT_RESPONSE",
-	invalidEventRecord: "HA2HA_INVALID_EVENT_RECORD",
-	invalidEvidenceMetadata: "HA2HA_INVALID_EVIDENCE_METADATA",
-	invalidFileMutation: "HA2HA_INVALID_FILE_MUTATION",
-	invalidFileVersionRecord: "HA2HA_INVALID_FILE_VERSION_RECORD",
-	invalidJson: "HA2HA_INVALID_JSON",
-	invalidManifest: "HA2HA_INVALID_MANIFEST",
-	invalidParticipantFrontmatter: "HA2HA_INVALID_PARTICIPANT_FRONTMATTER",
-	invalidTargetCoordinate: "HA2HA_INVALID_TARGET_COORDINATE",
-	invalidTaskFrontmatter: "HA2HA_INVALID_TASK_FRONTMATTER",
-	invalidYamlFrontmatter: "HA2HA_INVALID_YAML_FRONTMATTER",
-	missingActor: "HA2HA_MISSING_ACTOR",
-	missingFrontmatter: "HA2HA_MISSING_FRONTMATTER",
-	missingManifest: "HA2HA_MISSING_MANIFEST",
-	preservationMissingPath: "HA2HA_PRESERVATION_MISSING_PATH",
-} as const;
-
-export type Ha2haValidationRuleId =
-	(typeof HA2HA_VALIDATION_RULES)[keyof typeof HA2HA_VALIDATION_RULES];
-
-export type Ha2haValidationSeverity = "error" | "warning";
-
-export interface Ha2haValidationIssue {
-	message: string;
-	path: string;
-	repairHint?: string;
-	ruleId: Ha2haValidationRuleId;
-	severity: Ha2haValidationSeverity;
-}
-
-export interface Ha2haValidationResult {
-	issues: Ha2haValidationIssue[];
-	ok: boolean;
-	rootDir: string;
-}
-
-type SchemaIssueClassifier = (issue: z.core.$ZodIssue) => {
-	repairHint?: string;
-	ruleId: Ha2haValidationRuleId;
-};
-type FailedSchemaResult = Extract<
-	z.ZodSafeParseResult<unknown>,
-	{ success: false }
->;
-
-const createIssue = ({
-	message,
-	path: issuePath,
-	repairHint,
-	ruleId,
-	severity = "error",
-}: Ha2haValidationIssue): Ha2haValidationIssue => ({
-	message,
-	path: issuePath,
-	repairHint,
-	ruleId,
-	severity,
-});
 
 export const validateHa2haWorkspace = async (
 	rootDir: string
@@ -425,165 +390,3 @@ const validatePreservationPaths = async (
 		);
 	}
 };
-
-const readJsonFile = async (
-	filePath: string,
-	relativePath: string,
-	issues: Ha2haValidationIssue[]
-): Promise<{ ok: true; value: unknown } | { ok: false }> => {
-	try {
-		const raw = await readFile(filePath, "utf8");
-		return { ok: true, value: JSON.parse(raw) };
-	} catch (error) {
-		issues.push(
-			createIssue({
-				message: error instanceof Error ? error.message : "Invalid JSON.",
-				path: relativePath,
-				repairHint: "Fix the JSON syntax.",
-				ruleId: HA2HA_VALIDATION_RULES.invalidJson,
-				severity: "error",
-			})
-		);
-		return { ok: false };
-	}
-};
-
-const readFrontmatter = async (
-	filePath: string,
-	relativePath: string,
-	issues: Ha2haValidationIssue[]
-): Promise<{ ok: true; value: unknown } | { ok: false }> => {
-	const raw = await readFile(filePath, "utf8");
-	const match = FRONTMATTER_PATTERN.exec(raw);
-	if (!match?.[1]) {
-		issues.push(
-			createIssue({
-				message: "Missing YAML frontmatter.",
-				path: relativePath,
-				repairHint: "Add YAML frontmatter between --- markers.",
-				ruleId: HA2HA_VALIDATION_RULES.missingFrontmatter,
-				severity: "error",
-			})
-		);
-		return { ok: false };
-	}
-	try {
-		return { ok: true, value: parseYaml(match[1]) };
-	} catch (error) {
-		issues.push(
-			createIssue({
-				message:
-					error instanceof Error ? error.message : "Invalid YAML frontmatter.",
-				path: relativePath,
-				repairHint: "Fix the YAML frontmatter syntax.",
-				ruleId: HA2HA_VALIDATION_RULES.invalidYamlFrontmatter,
-				severity: "error",
-			})
-		);
-		return { ok: false };
-	}
-};
-
-const pushZodIssues = ({
-	classifyIssue,
-	issues,
-	repairHint,
-	result,
-	ruleId,
-	sourcePath,
-}: {
-	classifyIssue?: SchemaIssueClassifier;
-	issues: Ha2haValidationIssue[];
-	repairHint: string;
-	result: FailedSchemaResult;
-	ruleId: Ha2haValidationRuleId;
-	sourcePath: string;
-}) => {
-	for (const issue of result.error.issues) {
-		const classifiedIssue = classifyIssue?.(issue) ?? { repairHint, ruleId };
-		issues.push(
-			createIssue({
-				message: issue.message,
-				path: formatIssuePath(sourcePath, issue.path),
-				repairHint: classifiedIssue.repairHint ?? repairHint,
-				ruleId: classifiedIssue.ruleId,
-				severity: "error",
-			})
-		);
-	}
-};
-
-const classifyActorIssue: SchemaIssueClassifier = (issue) => {
-	if (issue.path[0] === "actor") {
-		return {
-			repairHint: "Add a stable actor handle to the mutating request.",
-			ruleId: HA2HA_VALIDATION_RULES.missingActor,
-		};
-	}
-	return {
-		repairHint: "Fix the mutating request shape.",
-		ruleId: HA2HA_VALIDATION_RULES.invalidFileMutation,
-	};
-};
-
-const classifyEvidenceIssue: SchemaIssueClassifier = (issue) => {
-	if (issue.path[0] === "target") {
-		return {
-			repairHint:
-				"Targets must include workspaceId, normalized path, and positive version.",
-			ruleId: HA2HA_VALIDATION_RULES.invalidTargetCoordinate,
-		};
-	}
-	return {
-		repairHint:
-			"Evidence needs id, kind, result, actor, created_at, and task or target.",
-		ruleId: HA2HA_VALIDATION_RULES.invalidEvidenceMetadata,
-	};
-};
-
-const formatIssuePath = (
-	sourcePath: string,
-	issuePath: readonly (PropertyKey | PropertyKey[])[]
-) => {
-	if (issuePath.length === 0) {
-		return sourcePath;
-	}
-	const encodedPath = issuePath.flat().map(String).join("/");
-	return `${sourcePath}#/${encodedPath}`;
-};
-
-const listFiles = async (rootDir: string): Promise<string[]> => {
-	if (!(await pathExists(rootDir))) {
-		return [];
-	}
-	const entries = await readdir(rootDir, { withFileTypes: true });
-	const filesByEntry = await Promise.all(
-		entries.map((entry) => {
-			const entryPath = path.join(rootDir, entry.name);
-			if (entry.isDirectory()) {
-				return listFiles(entryPath);
-			}
-			if (entry.isFile()) {
-				return [entryPath];
-			}
-			return [];
-		})
-	);
-	const files = filesByEntry.flat();
-	return files.sort((left, right) => left.localeCompare(right));
-};
-
-const pathExists = async (filePath: string): Promise<boolean> => {
-	try {
-		await stat(filePath);
-		return true;
-	} catch {
-		return false;
-	}
-};
-
-const toWorkspaceRelativePath = (absoluteRoot: string, filePath: string) =>
-	path.relative(absoluteRoot, filePath).split(path.sep).join("/");
-
-export const formatValidationResult = (result: Ha2haValidationResult): string =>
-	JSON.stringify(result, null, JSON_INDENT_SPACES);

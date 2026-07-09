@@ -25,7 +25,7 @@ export function registerCapabilityRoutes(router: Hono<EvlogVariables>) {
 			return handleWorkspaceError(c, error);
 		}
 	});
-	
+
 	router.post(
 		"/api/workspaces/:workspaceId/capabilities/:capability/rotate",
 		async (c) => {
@@ -38,7 +38,7 @@ export function registerCapabilityRoutes(router: Hono<EvlogVariables>) {
 				const token = randomCapabilityToken();
 				const now = new Date().toISOString();
 				const hashedToken = await tokenHash(token);
-	
+
 				if (capability === "read") {
 					await workspaceBindings()
 						.DB.prepare(
@@ -61,7 +61,7 @@ export function registerCapabilityRoutes(router: Hono<EvlogVariables>) {
 						workspaceId: workspace.id,
 					});
 				}
-	
+
 				if (workspace.write_access === "none") {
 					throw new WorkspaceError(
 						403,
@@ -69,7 +69,7 @@ export function registerCapabilityRoutes(router: Hono<EvlogVariables>) {
 						"Workspace edit capability is revoked."
 					);
 				}
-	
+
 				await workspaceBindings()
 					.DB.prepare(
 						`update workspaces
@@ -94,7 +94,7 @@ export function registerCapabilityRoutes(router: Hono<EvlogVariables>) {
 			}
 		}
 	);
-	
+
 	router.post(
 		"/api/workspaces/:workspaceId/capabilities/:capability/revoke",
 		async (c) => {
@@ -105,7 +105,7 @@ export function registerCapabilityRoutes(router: Hono<EvlogVariables>) {
 					c.req.param("capability")
 				);
 				const now = new Date().toISOString();
-	
+
 				if (capability === "read") {
 					await workspaceBindings()
 						.DB.prepare(
@@ -125,7 +125,7 @@ export function registerCapabilityRoutes(router: Hono<EvlogVariables>) {
 						.bind(now, workspace.id)
 						.run();
 				}
-	
+
 				const latestWorkspace = await requireWorkspace(workspace.id);
 				return c.json({
 					capabilities: serializeWorkspaceCapabilities(latestWorkspace),

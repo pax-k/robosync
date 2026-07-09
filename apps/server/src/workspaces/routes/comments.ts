@@ -30,7 +30,7 @@ export function registerCommentRoutes(router: Hono<EvlogVariables>) {
 				path,
 				workspaceId: workspace.id,
 			});
-	
+
 			return c.json({
 				comments: comments.map(serializeWorkspaceComment),
 				workspaceId: workspace.id,
@@ -39,7 +39,7 @@ export function registerCommentRoutes(router: Hono<EvlogVariables>) {
 			return handleWorkspaceError(c, error);
 		}
 	});
-	
+
 	router.post("/api/workspaces/:workspaceId/comments", async (c) => {
 		try {
 			const workspace = await requireWorkspace(c.req.param("workspaceId"));
@@ -53,7 +53,7 @@ export function registerCommentRoutes(router: Hono<EvlogVariables>) {
 				version: parsed.version,
 				workspaceId: workspace.id,
 			});
-	
+
 			if (!fileVersion) {
 				throw new WorkspaceError(
 					404,
@@ -61,7 +61,7 @@ export function registerCommentRoutes(router: Hono<EvlogVariables>) {
 					"Comment anchor file version not found."
 				);
 			}
-	
+
 			const now = new Date().toISOString();
 			const id = crypto.randomUUID();
 			await workspaceBindings()
@@ -83,14 +83,14 @@ export function registerCommentRoutes(router: Hono<EvlogVariables>) {
 					now
 				)
 				.run();
-	
+
 			const comment = await requireComment(workspace.id, id);
 			return c.json(serializeWorkspaceComment(comment), 201);
 		} catch (error) {
 			return handleWorkspaceError(c, error);
 		}
 	});
-	
+
 	router.post(
 		"/api/workspaces/:workspaceId/comments/:commentId/resolve",
 		async (c) => {
@@ -102,7 +102,7 @@ export function registerCommentRoutes(router: Hono<EvlogVariables>) {
 					await c.req.json()
 				);
 				const existing = await requireComment(workspace.id, commentId);
-	
+
 				if (!existing.resolved_at) {
 					const now = new Date().toISOString();
 					await workspaceBindings()
@@ -114,7 +114,7 @@ export function registerCommentRoutes(router: Hono<EvlogVariables>) {
 						.bind(now, parsed.actor, now, workspace.id, commentId)
 						.run();
 				}
-	
+
 				const comment = await requireComment(workspace.id, commentId);
 				return c.json(serializeWorkspaceComment(comment));
 			} catch (error) {
