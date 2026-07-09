@@ -15,6 +15,11 @@ const ROOT_DIR = path.resolve(
 );
 const PACKAGES_DIR = path.join(ROOT_DIR, "packages");
 const TIMEOUT_MS = 120_000;
+const TOKEN_LIKE_SECRET_PATTERNS = [
+	/sk-[A-Za-z0-9_-]{20,}/u,
+	/ghp_[A-Za-z0-9_]{20,}/u,
+	/xox[baprs]-[A-Za-z0-9-]{20,}/u,
+];
 
 const main = async () => {
 	const tempDir = await mkdtemp(path.join(os.tmpdir(), "mdsync-skill-smoke-"));
@@ -25,6 +30,7 @@ const main = async () => {
 		await mkdir(packDir, { recursive: true });
 		await mkdir(projectDir, { recursive: true });
 
+		const contractsTarball = await packPackage("mdsync-contracts", packDir);
 		const protocolTarball = await packPackage("ha2ha-protocol", packDir);
 		const ha2haClientTarball = await packPackage("ha2ha-client", packDir);
 		const ha2haSkillsTarball = await packPackage("ha2ha-skills", packDir);
@@ -42,6 +48,7 @@ const main = async () => {
 				"--ignore-scripts",
 				"--no-audit",
 				"--no-fund",
+				contractsTarball,
 				protocolTarball,
 				ha2haClientTarball,
 				ha2haSkillsTarball,
@@ -64,6 +71,7 @@ const main = async () => {
 			"utf8"
 		);
 		assertNoRepoLocalPaths(installedSkill);
+		assertNoTokenLikeSecrets(installedSkill);
 		assertIncludes(
 			installedSkill,
 			"@mdsync/client",
@@ -159,6 +167,14 @@ const assertNoRepoLocalPaths = (text) => {
 	for (const pattern of forbidden) {
 		if (text.includes(pattern)) {
 			throw new Error(`Installed skill contains repo-local path: ${pattern}`);
+		}
+	}
+};
+
+const assertNoTokenLikeSecrets = (text) => {
+	for (const pattern of TOKEN_LIKE_SECRET_PATTERNS) {
+		if (pattern.test(text)) {
+			throw new Error(`Installed skill contains token-like secret: ${pattern}`);
 		}
 	}
 };

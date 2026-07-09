@@ -35,6 +35,7 @@ interface MockFetchOptions {
 	failCreate?: boolean;
 	invalidConflictResponse?: boolean;
 	omitRawFileHeaders?: boolean;
+	onCreateBody?: (body: Record<string, unknown>) => void;
 }
 
 const createMockFetch = (options: MockFetchOptions = {}): typeof fetch => {
@@ -53,8 +54,11 @@ const createMockFetch = (options: MockFetchOptions = {}): typeof fetch => {
 				return respond(jsonResponse({ error: "create_failed" }, 500));
 			}
 			const body = parseBody(init);
+			options.onCreateBody?.(body);
 			workspaceId = "mock-workspace";
 			const inputFiles = Array.isArray(body.files) ? body.files : [];
+			const actor =
+				typeof body.actor === "string" ? body.actor : "workspace-create";
 			for (const file of inputFiles) {
 				if (isRecord(file)) {
 					const filePath = String(file.path);
@@ -62,7 +66,7 @@ const createMockFetch = (options: MockFetchOptions = {}): typeof fetch => {
 					files.set(String(file.path), {
 						content,
 						contentType: "text/markdown; charset=utf-8",
-						updatedBy: "workspace-create",
+						updatedBy: actor,
 						version: 1,
 					});
 					pushVersion(fileVersions, {
@@ -73,12 +77,12 @@ const createMockFetch = (options: MockFetchOptions = {}): typeof fetch => {
 						sha256:
 							"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
 						sizeBytes: content.length,
-						updatedBy: "workspace-create",
+						updatedBy: actor,
 						version: 1,
 						workspaceId,
 					});
 					events.push({
-						actor: "workspace-create",
+						actor,
 						createdAt: "2026-07-08T00:00:00Z",
 						id: `evt-${events.length + 1}`,
 						path: filePath,
@@ -353,6 +357,22 @@ test("HTTP conformance passes against a conforming mock implementation", async (
 		result.checks.some((check) => check.id === "file.update.conflict"),
 		true
 	);
+});
+
+test("HTTP conformance sends actor on workspace create", async () => {
+	let createActor: unknown;
+	const result = await runHa2haHttpConformance({
+		actor: "agent-create",
+		baseUrl: "http://mock.local",
+		fetch: createMockFetch({
+			onCreateBody: (body) => {
+				createActor = body.actor;
+			},
+		}),
+	});
+
+	assert.equal(result.ok, true, JSON.stringify(result.checks, null, 2));
+	assert.equal(createActor, "agent-create");
 });
 
 test("HTTP conformance records a failed create and stops dependent checks", async () => {

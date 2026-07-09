@@ -14,6 +14,7 @@ import {
 	ha2haTargetCoordinateSchema,
 	ha2haTaskFrontmatterSchema,
 	isHa2haWorkspacePath,
+	normalizeHa2haWorkspacePath,
 } from "./schemas";
 import { HA2HA_VALIDATION_RULES, validateHa2haWorkspace } from "./validator";
 
@@ -99,7 +100,10 @@ test("workspace path validation accepts only normalized relative paths", () => {
 		"/README.md",
 		"tasks//RS-001.md",
 		"tasks/../README.md",
+		"tasks/./README.md",
 		"tasks\\RS-001.md",
+		"tasks/",
+		"./README.md",
 	] as const;
 
 	for (const workspacePath of validPaths) {
@@ -107,6 +111,25 @@ test("workspace path validation accepts only normalized relative paths", () => {
 	}
 	for (const workspacePath of invalidPaths) {
 		assert.equal(isHa2haWorkspacePath(workspacePath), false, workspacePath);
+	}
+});
+
+test("workspace path normalization accepts legacy boundary forms only before validation", () => {
+	assert.equal(
+		normalizeHa2haWorkspacePath("./docs/README.md"),
+		"docs/README.md"
+	);
+	assert.equal(normalizeHa2haWorkspacePath("docs\\guide.md"), "docs/guide.md");
+
+	for (const invalidPath of [
+		"",
+		"/README.md",
+		"docs/",
+		"docs//README.md",
+		"docs/../README.md",
+		"docs/./README.md",
+	]) {
+		assert.throws(() => normalizeHa2haWorkspacePath(invalidPath));
 	}
 });
 

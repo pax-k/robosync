@@ -212,6 +212,7 @@ export const formatConformanceResult = (
 ): string => JSON.stringify(result, null, JSON_INDENT_SPACES);
 
 const createWorkspace = async ({
+	actor,
 	fetchImpl,
 	target,
 }: {
@@ -221,6 +222,7 @@ const createWorkspace = async ({
 }): Promise<WorkspaceContext> => {
 	const response = await fetchImpl(`${target}/api/workspaces`, {
 		body: JSON.stringify({
+			actor,
 			files: [
 				{
 					content: "# HA2HA HTTP Conformance\n",

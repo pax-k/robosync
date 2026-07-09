@@ -1,8 +1,11 @@
 import {
 	HA2HA_CAPABILITIES,
+	HA2HA_CONFORMANCE_PROFILES,
+	HA2HA_EXAMPLE_FIXTURES,
 	HA2HA_HEADERS,
 	HA2HA_HTTP_ROUTES,
 	HA2HA_PATHS,
+	HA2HA_SCHEMA_SURFACES,
 	HA2HA_TASK_STATES,
 } from "@ha2ha/protocol/constants";
 
@@ -12,26 +15,6 @@ const navItems = [
 	{ href: "#schemas", label: "Schemas" },
 	{ href: "#examples", label: "Examples" },
 	{ href: "#conformance", label: "Conformance" },
-] as const;
-
-const schemaSurfaces = [
-	".ha2ha/workspace.json",
-	"tasks/<id>.md frontmatter",
-	"participants/<handle>.md frontmatter",
-	"evidence frontmatter",
-	"target coordinates",
-	"workspace events",
-	"file versions",
-	"conflict responses",
-] as const;
-
-const examples = [
-	"valid/minimal-workspace",
-	"valid/multi-participant-task-workspace",
-	"valid/event-history-workspace",
-	"invalid/missing-manifest",
-	"invalid/invalid-target-coordinate",
-	"invalid/missing-actor-file-write",
 ] as const;
 
 export function App() {
@@ -140,7 +123,7 @@ export function App() {
 						<h2>Validation surfaces ship with the protocol package.</h2>
 					</div>
 					<div className="pill-grid">
-						{schemaSurfaces.map((surface) => (
+						{HA2HA_SCHEMA_SURFACES.map((surface) => (
 							<span key={surface}>{surface}</span>
 						))}
 					</div>
@@ -157,7 +140,7 @@ export function App() {
 						</p>
 					</div>
 					<div className="example-stack">
-						{examples.map((example) => (
+						{HA2HA_EXAMPLE_FIXTURES.map((example) => (
 							<code key={example}>{example}</code>
 						))}
 					</div>
@@ -172,11 +155,9 @@ export function App() {
 						<div>
 							<strong>Claimed v1 profiles</strong>
 							<ul>
-								<li>core workspace</li>
-								<li>workspace convention</li>
-								<li>HTTP profile</li>
-								<li>event profile</li>
-								<li>file-history profile</li>
+								{HA2HA_CONFORMANCE_PROFILES.map((profile) => (
+									<li key={profile}>{profile}</li>
+								))}
 							</ul>
 						</div>
 						<div>

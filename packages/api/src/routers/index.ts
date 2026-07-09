@@ -2,8 +2,7 @@ import { protectedProcedure, publicProcedure, router } from "../index";
 
 export const appRouter = router({
 	healthCheck: publicProcedure.query(() => "OK"),
-	privateData: protectedProcedure.query(({ ctx }) => ({
-		message: "This is private",
+	me: protectedProcedure.query(({ ctx }) => ({
 		user: ctx.session.user,
 	})),
 });

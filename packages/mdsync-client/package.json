@@ -29,7 +29,9 @@
   },
   "dependencies": {
     "@ha2ha/client": "0.1.0",
-    "@ha2ha/protocol": "0.1.0"
+    "@ha2ha/protocol": "0.1.0",
+    "@mdsync/contracts": "0.1.0",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@mdsync/config": "workspace:*",

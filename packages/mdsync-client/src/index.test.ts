@@ -5,6 +5,7 @@ import { createMdsyncMockServer } from "../../../scripts/lib/mdsync-mock-server.
 import { createMdsyncClient } from "./index";
 
 const EDIT_TOKEN_QUERY_PATTERN = /edit=edit-token/u;
+const RAW_URL_FIELD_PATTERN = /rawUrl/u;
 const TASK_CONTENT = [
 	"---",
 	"id: SMOKE-001",
@@ -47,6 +48,9 @@ test("hosted client covers product routes and HA2HA bridge", async (t) => {
 	const readToken = new URL(created.data.rawUrl).searchParams.get("k");
 	assert.ok(editToken);
 	assert.ok(readToken);
+	if (!(editToken && readToken)) {
+		return;
+	}
 
 	const readClient = createMdsyncClient({
 		apiOrigin: baseUrl,
@@ -191,6 +195,27 @@ test("hosted client covers product routes and HA2HA bridge", async (t) => {
 		true
 	);
 	assert.equal((await client.revokeCapability("edit")).ok, true);
+});
+
+test("hosted client returns validation_error for malformed success payloads", async () => {
+	const client = createMdsyncClient({
+		apiOrigin: "https://api.test",
+		fetch: async () =>
+			new Response(JSON.stringify({ id: "workspace-1" }), {
+				headers: { "Content-Type": "application/json" },
+				status: 200,
+			}),
+	});
+
+	const created = await client.createWorkspace({
+		files: [{ content: "# Status\n", path: "STATUS.md" }],
+	});
+
+	assert.equal(created.ok, false);
+	if (!created.ok) {
+		assert.equal(created.error.code, "validation_error");
+		assert.match(created.error.message, RAW_URL_FIELD_PATTERN);
+	}
 });
 
 test("read token clients reject edit operations before issuing requests", async () => {

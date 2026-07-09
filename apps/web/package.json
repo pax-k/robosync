@@ -11,6 +11,7 @@
     "test": "pnpm run check-types && tsx --test src/**/*.test.ts"
   },
   "dependencies": {
+    "@mdsync/contracts": "workspace:*",
     "@mdsync/ui": "workspace:*",
     "@mdxeditor/editor": "^4.0.4",
     "lucide-react": "catalog:",

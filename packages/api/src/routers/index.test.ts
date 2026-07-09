@@ -11,17 +11,17 @@ test("healthCheck returns OK", async () => {
 	assert.equal(await caller.healthCheck(), "OK");
 });
 
-test("privateData rejects callers without a session", async () => {
+test("me rejects callers without a session", async () => {
 	const caller = appRouter.createCaller(createContext(null));
 
 	await assert.rejects(
-		() => caller.privateData(),
+		() => caller.me(),
 		(error: unknown) =>
 			error instanceof TRPCError && error.code === "UNAUTHORIZED"
 	);
 });
 
-test("privateData returns the session user for authenticated callers", async () => {
+test("me returns the session user for authenticated callers", async () => {
 	const session = {
 		session: {
 			id: "session-1",
@@ -36,8 +36,7 @@ test("privateData returns the session user for authenticated callers", async () 
 	} as NonNullable<Context["session"]>;
 	const caller = appRouter.createCaller(createContext(session));
 
-	assert.deepEqual(await caller.privateData(), {
-		message: "This is private",
+	assert.deepEqual(await caller.me(), {
 		user: session.user,
 	});
 });

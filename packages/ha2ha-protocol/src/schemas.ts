@@ -12,16 +12,33 @@ import {
 } from "./constants";
 
 const DUPLICATE_SLASH_PATTERN = /\/{2,}/u;
+const DOT_SEGMENT_PATTERN = /(?:^|\/)\.(?:\/|$)/u;
+const LEADING_DOT_SLASHES_PATTERN = /^\.\/+/u;
 const PARENT_SEGMENT_PATTERN = /(?:^|\/)\.\.(?:\/|$)/u;
 const ROOT_OR_BACKSLASH_PATH_PATTERN = /^\/|\\/u;
 const SHA256_HEX_PATTERN = /^[a-f0-9]{64}$/u;
+const TRAILING_SLASH_PATTERN = /\/$/u;
 
 export const isHa2haWorkspacePath = (path: string): boolean =>
 	path.length > 0 &&
 	path.trim() === path &&
 	!ROOT_OR_BACKSLASH_PATH_PATTERN.test(path) &&
 	!DUPLICATE_SLASH_PATTERN.test(path) &&
-	!PARENT_SEGMENT_PATTERN.test(path);
+	!DOT_SEGMENT_PATTERN.test(path) &&
+	!PARENT_SEGMENT_PATTERN.test(path) &&
+	!TRAILING_SLASH_PATTERN.test(path);
+
+export const normalizeHa2haWorkspacePath = (path: string): string => {
+	const normalized = path
+		.replaceAll("\\", "/")
+		.replace(LEADING_DOT_SLASHES_PATTERN, "");
+
+	if (!isHa2haWorkspacePath(normalized)) {
+		throw new Error("Expected a normalized relative workspace path.");
+	}
+
+	return normalized;
+};
 
 export const ha2haWorkspacePathSchema = z
 	.string()

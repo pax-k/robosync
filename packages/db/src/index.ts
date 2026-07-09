@@ -11,6 +11,10 @@ import {
 	verification,
 } from "./schema/auth";
 import {
+	comments,
+	commentsRelations,
+	workspaceAdminEvents,
+	workspaceAdminEventsRelations,
 	workspaceEvents,
 	workspaceEventsRelations,
 	workspaceFiles,
@@ -21,14 +25,18 @@ import {
 	workspacesRelations,
 } from "./schema/workspaces";
 
-const schema = {
+export const dbSchema = {
 	account,
 	accountRelations,
+	comments,
+	commentsRelations,
 	session,
 	sessionRelations,
 	user,
 	userRelations,
 	verification,
+	workspaceAdminEvents,
+	workspaceAdminEventsRelations,
 	workspaceEvents,
 	workspaceEventsRelations,
 	workspaceFiles,
@@ -40,5 +48,5 @@ const schema = {
 };
 
 export function createDb() {
-	return drizzle(env.DB, { schema });
+	return drizzle(env.DB, { schema: dbSchema });
 }

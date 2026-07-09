@@ -1,9 +1,7 @@
 {
-  "extends": "@mdsync/config/tsconfig.base.json",
+  "extends": "@mdsync/config/tsconfig.react.json",
   "compilerOptions": {
     "jsx": "react-jsx",
-    "lib": ["ESNext", "DOM", "DOM.Iterable"],
-    "types": [],
     "paths": {
       "@mdsync/ui/*": ["./src/*"]
     },

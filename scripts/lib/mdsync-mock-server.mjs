@@ -289,7 +289,10 @@ const handleWorkspaceTree = ({ request, response, url, workspace }) => {
 	}
 	return sendJson(response, {
 		files: [...workspace.files.values()].map((file) => ({
+			contentType: file.contentType,
 			path: file.path,
+			updatedAt: file.updatedAt,
+			updatedBy: file.updatedBy,
 			version: file.version,
 		})),
 		workspaceId: workspace.id,
@@ -411,7 +414,7 @@ const handleReadFile = ({ path, request, response, url, workspace }) => {
 	}
 	const file = workspace.files.get(path);
 	return file
-		? sendJson(response, file)
+		? sendJson(response, serializeCurrentFile(file))
 		: sendJson(response, { error: "file_not_found" }, 404);
 };
 
@@ -429,15 +432,21 @@ const handleWriteFile = async ({ request, response, workspace }) => {
 	const file = {
 		content: String(body.content ?? ""),
 		contentType: String(body.contentType ?? DEFAULT_CONTENT_TYPE),
+		createdAt: current?.createdAt ?? workspace.now,
 		path: nextPath,
+		sha256: null,
+		sizeBytes: String(body.content ?? "").length,
+		updatedAt: workspace.now,
 		updatedBy: String(body.actor ?? "mdsync-mock"),
 		version: current ? current.version + 1 : 1,
 		workspaceId: workspace.id,
 	};
 	workspace.files.set(nextPath, file);
-	workspace.fileVersions.push({ ...file, createdAt: workspace.now });
+	workspace.fileVersions.push(serializeFileVersion(file));
 	workspace.events.push({
 		actor: file.updatedBy,
+		createdAt: workspace.now,
+		id: `event-${workspace.events.length + 1}`,
 		path: nextPath,
 		payload: { baseVersion },
 		type: current ? "file.updated" : "file.created",
@@ -446,6 +455,7 @@ const handleWriteFile = async ({ request, response, workspace }) => {
 	});
 	return sendJson(response, {
 		path: file.path,
+		updatedAt: file.updatedAt,
 		updatedBy: file.updatedBy,
 		version: file.version,
 		workspaceId: workspace.id,
@@ -464,6 +474,8 @@ const handleDeleteFile = async ({ path, request, response, workspace }) => {
 	workspace.files.delete(path);
 	workspace.events.push({
 		actor: String(body.actor ?? "mdsync-mock"),
+		createdAt: workspace.now,
+		id: `event-${workspace.events.length + 1}`,
 		path,
 		payload: { baseVersion: body.baseVersion },
 		type: "file.deleted",
@@ -483,7 +495,7 @@ const sendVersionConflict = ({ current, response }) =>
 		response,
 		{
 			error: "version_conflict",
-			latest: current,
+			latest: serializeCurrentFile(current),
 			message: "File changed since baseVersion.",
 		},
 		409
@@ -613,15 +625,21 @@ const createWorkspace = ({ body, origin, workspaceCounter }) => {
 		const file = {
 			content: String(fileInput.content ?? ""),
 			contentType: String(fileInput.contentType ?? DEFAULT_CONTENT_TYPE),
+			createdAt: workspace.now,
 			path: String(fileInput.path ?? ""),
+			sha256: null,
+			sizeBytes: String(fileInput.content ?? "").length,
+			updatedAt: workspace.now,
 			updatedBy: String(body.actor ?? "mdsync-mock"),
 			version: 1,
 			workspaceId: id,
 		};
 		workspace.files.set(file.path, file);
-		workspace.fileVersions.push({ ...file, createdAt: workspace.now });
+		workspace.fileVersions.push(serializeFileVersion(file));
 		workspace.events.push({
 			actor: file.updatedBy,
+			createdAt: workspace.now,
+			id: `event-${workspace.events.length + 1}`,
 			path: file.path,
 			payload: { sizeBytes: file.content.length },
 			type: "file.created",
@@ -670,11 +688,11 @@ const serializeWorkspace = (workspace) => ({
 
 const exportWorkspace = (workspace) => ({
 	adminEvents: workspace.adminEvents,
-	comments: workspace.comments,
-	events: workspace.events,
+	comments: workspace.comments.map(serializeExportComment),
+	events: workspace.events.map(serializeExportEvent),
 	exportedAt: workspace.now,
-	files: [...workspace.files.values()],
-	fileVersions: workspace.fileVersions,
+	files: [...workspace.files.values()].map(serializeExportFile),
+	fileVersions: workspace.fileVersions.map(serializeExportFileVersion),
 	format: EXPORT_FORMAT,
 	retention: {
 		coverage: ["file versions", "protocol events", "comments", "admin events"],
@@ -683,9 +701,79 @@ const exportWorkspace = (workspace) => ({
 	},
 	schemaVersion: 1,
 	workspace: {
+		createdAt: workspace.now,
 		id: workspace.id,
+		readAccess: workspace.readAccess,
 		title: workspace.title,
+		totalSizeBytes: [...workspace.files.values()].reduce(
+			(total, file) => total + file.sizeBytes,
+			0
+		),
+		updatedAt: workspace.now,
+		writeAccess: workspace.writeAccess,
 	},
+});
+
+const serializeCurrentFile = (file) => ({
+	content: file.content,
+	contentType: file.contentType,
+	path: file.path,
+	updatedAt: file.updatedAt,
+	updatedBy: file.updatedBy,
+	version: file.version,
+	workspaceId: file.workspaceId,
+});
+
+const serializeExportFile = (file) => ({
+	content: file.content,
+	contentType: file.contentType,
+	createdAt: file.createdAt,
+	path: file.path,
+	updatedAt: file.updatedAt,
+	updatedBy: file.updatedBy,
+	version: file.version,
+});
+
+const serializeExportFileVersion = (file) => ({
+	content: file.content,
+	contentType: file.contentType,
+	createdAt: file.createdAt,
+	path: file.path,
+	updatedBy: file.updatedBy,
+	version: file.version,
+});
+
+const serializeExportComment = (comment) => ({
+	anchor: comment.anchor,
+	authorId: comment.authorId,
+	body: comment.body,
+	createdAt: comment.createdAt,
+	path: comment.path,
+	resolvedAt: comment.resolvedAt,
+	resolvedBy: comment.resolvedBy,
+	updatedAt: comment.updatedAt,
+	version: comment.version,
+});
+
+const serializeExportEvent = (event) => ({
+	actor: event.actor,
+	createdAt: event.createdAt,
+	path: event.path,
+	payload: event.payload,
+	type: event.type,
+	version: event.version,
+});
+
+const serializeFileVersion = (file) => ({
+	content: file.content,
+	contentType: file.contentType,
+	createdAt: file.updatedAt,
+	path: file.path,
+	sha256: file.sha256,
+	sizeBytes: file.sizeBytes,
+	updatedBy: file.updatedBy,
+	version: file.version,
+	workspaceId: file.workspaceId,
 });
 
 const buildAdminStats = (workspace) => ({

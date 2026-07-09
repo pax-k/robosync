@@ -1,7 +1,10 @@
+import { normalizeHa2haWorkspacePath } from "@ha2ha/protocol";
+
 const FILE_PATH_MAX_LENGTH = 512;
 const TOKEN_BYTE_LENGTH = 24;
 const WORKSPACE_ID_BYTE_LENGTH = 9;
 const OBJECT_ID_BYTE_LENGTH = 18;
+const TRAILING_SLASH_PATTERN = /\/$/;
 
 export type ReadAccess = "public" | "token";
 export type WriteAccess = "none" | "public" | "token";
@@ -15,8 +18,6 @@ export interface UploadedObject {
 }
 
 const textEncoder = new TextEncoder();
-const LEADING_DOT_SLASHES_PATTERN = /^\.\/+/;
-const TRAILING_SLASH_PATTERN = /\/$/;
 
 export class WorkspaceError extends Error {
 	readonly code: string;
@@ -26,9 +27,9 @@ export class WorkspaceError extends Error {
 		status: 400 | 401 | 403 | 404 | 409 | 500,
 		code: string,
 		message: string,
-		cause?: unknown
+		options?: ErrorOptions
 	) {
-		super(message, { cause });
+		super(message, options);
 		this.code = code;
 		this.name = "WorkspaceError";
 		this.status = status;
@@ -140,44 +141,25 @@ export function normalizeFilePath(input: string) {
 		);
 	}
 
-	const normalized = input
-		.replaceAll("\\", "/")
-		.replace(LEADING_DOT_SLASHES_PATTERN, "");
-
-	if (!normalized || normalized.length > FILE_PATH_MAX_LENGTH) {
+	if (!input || input.length > FILE_PATH_MAX_LENGTH) {
 		throw new WorkspaceError(
 			400,
 			"invalid_path",
 			"File path is empty or too long."
 		);
 	}
-	if (normalized.startsWith("/") || normalized.endsWith("/")) {
-		throw new WorkspaceError(
-			400,
-			"invalid_path",
-			"File path must be relative and file-like."
-		);
-	}
-	if (normalized.includes("//")) {
-		throw new WorkspaceError(
-			400,
-			"invalid_path",
-			"File path cannot contain empty segments."
-		);
-	}
 
-	const segments = normalized.split("/");
-	if (
-		segments.some((segment) => !segment || segment === "." || segment === "..")
-	) {
+	try {
+		return normalizeHa2haWorkspacePath(input);
+	} catch (error) {
+		// biome-ignore lint/style/useErrorCause: WorkspaceError forwards ErrorOptions to Error.
 		throw new WorkspaceError(
 			400,
 			"invalid_path",
-			"File path cannot contain dot segments."
+			"File path must be a normalized relative file path.",
+			{ cause: error }
 		);
 	}
-
-	return normalized;
 }
 
 export function randomCapabilityToken() {

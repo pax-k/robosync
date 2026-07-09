@@ -1,9 +1,6 @@
-import { type server } from "@mdsync/infra/alchemy.run";
+import type { MdsyncWorkerBindings } from "./src/bindings";
 
-// This file infers types for the cloudflare:workers environment from your Alchemy Worker.
-// @see https://alchemy.run/concepts/bindings/#type-safe-bindings
-
-export type CloudflareEnv = typeof server.Env;
+export type CloudflareEnv = MdsyncWorkerBindings;
 
 declare global {
 	type Env = CloudflareEnv;

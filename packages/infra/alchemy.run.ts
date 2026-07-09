@@ -1,3 +1,4 @@
+import { writeFile } from "node:fs/promises";
 import alchemy from "alchemy";
 import { D1Database, R2Bucket, Vite, Worker } from "alchemy/cloudflare";
 import { config } from "dotenv";
@@ -98,6 +99,20 @@ if (ha2ha) {
 	console.log("HA2HA  -> skipped (ROBOSYNC_SERVER_ONLY=1)");
 }
 console.log(`Server -> ${server.url}`);
+
+const deployEvidence = {
+	ha2haUrl: ha2ha?.url ?? null,
+	serverOnly: !deployWeb,
+	serverUrl: server.url,
+	webUrl: web?.url ?? null,
+};
+console.log(`ROBOSYNC_DEPLOY_EVIDENCE ${JSON.stringify(deployEvidence)}`);
+if (process.env.ROBOSYNC_DEPLOY_EVIDENCE_PATH) {
+	await writeFile(
+		process.env.ROBOSYNC_DEPLOY_EVIDENCE_PATH,
+		`${JSON.stringify(deployEvidence, null, 2)}\n`
+	);
+}
 
 await app.finalize();
 

@@ -25,6 +25,7 @@ const main = async () => {
 		await mkdir(packDir, { recursive: true });
 		await mkdir(projectDir, { recursive: true });
 
+		const contractsTarball = await packPackage("mdsync-contracts", packDir);
 		const protocolTarball = await packPackage("ha2ha-protocol", packDir);
 		const ha2haClientTarball = await packPackage("ha2ha-client", packDir);
 		const mdsyncClientTarball = await packPackage("mdsync-client", packDir);
@@ -40,6 +41,7 @@ const main = async () => {
 				"--ignore-scripts",
 				"--no-audit",
 				"--no-fund",
+				contractsTarball,
 				protocolTarball,
 				ha2haClientTarball,
 				mdsyncClientTarball,

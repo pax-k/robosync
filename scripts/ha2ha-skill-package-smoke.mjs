@@ -13,6 +13,11 @@ const ROOT_DIR = path.resolve(
 );
 const PACKAGES_DIR = path.join(ROOT_DIR, "packages");
 const TIMEOUT_MS = 120_000;
+const TOKEN_LIKE_SECRET_PATTERNS = [
+	/sk-[A-Za-z0-9_-]{20,}/u,
+	/ghp_[A-Za-z0-9_]{20,}/u,
+	/xox[baprs]-[A-Za-z0-9-]{20,}/u,
+];
 
 const main = async () => {
 	const tempDir = await mkdtemp(path.join(os.tmpdir(), "ha2ha-skill-smoke-"));
@@ -57,6 +62,7 @@ const main = async () => {
 			"utf8"
 		);
 		assertNoRepoLocalPaths(skillText);
+		assertNoTokenLikeSecrets(skillText);
 		assertIncludes(skillText, "baseVersion", "skill baseVersion guidance");
 		assertIncludes(skillText, "version_conflict", "skill conflict guidance");
 		assertIncludes(
@@ -177,6 +183,14 @@ const assertNoRepoLocalPaths = (text) => {
 	for (const pattern of forbidden) {
 		if (text.includes(pattern)) {
 			throw new Error(`Installed skill contains repo-local path: ${pattern}`);
+		}
+	}
+};
+
+const assertNoTokenLikeSecrets = (text) => {
+	for (const pattern of TOKEN_LIKE_SECRET_PATTERNS) {
+		if (pattern.test(text)) {
+			throw new Error(`Installed skill contains token-like secret: ${pattern}`);
 		}
 	}
 };

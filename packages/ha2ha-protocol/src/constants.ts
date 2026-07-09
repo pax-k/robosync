@@ -144,12 +144,42 @@ export const HA2HA_CONFLICT_POLICIES = {
 	baseVersionRequired: "baseVersion-required",
 } as const;
 
+export const HA2HA_SCHEMA_SURFACES = [
+	".ha2ha/workspace.json",
+	"tasks/<id>.md frontmatter",
+	"participants/<handle>.md frontmatter",
+	"evidence frontmatter",
+	"target coordinates",
+	"workspace events",
+	"file versions",
+	"conflict responses",
+] as const;
+
+export const HA2HA_EXAMPLE_FIXTURES = [
+	"valid/minimal-workspace",
+	"valid/multi-participant-task-workspace",
+	"valid/event-history-workspace",
+	"invalid/missing-manifest",
+	"invalid/invalid-target-coordinate",
+	"invalid/missing-actor-file-write",
+] as const;
+
+export const HA2HA_CONFORMANCE_PROFILES = [
+	"core workspace",
+	"workspace convention",
+	"HTTP profile",
+	"event profile",
+	"file-history profile",
+] as const;
+
 export type Ha2haTaskState = (typeof HA2HA_TASK_STATES)[number];
 export type Ha2haCapability =
 	(typeof HA2HA_CAPABILITIES)[keyof typeof HA2HA_CAPABILITIES];
 export type Ha2haEvidenceResult = (typeof HA2HA_EVIDENCE_RESULTS)[number];
 export type Ha2haEventType =
 	(typeof HA2HA_EVENT_TYPES)[keyof typeof HA2HA_EVENT_TYPES];
+export type Ha2haConformanceProfile =
+	(typeof HA2HA_CONFORMANCE_PROFILES)[number];
 
 export interface Ha2haTargetCoordinate {
 	path: string;

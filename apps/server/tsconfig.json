@@ -1,5 +1,5 @@
 {
-  "extends": "@mdsync/config/tsconfig.base.json",
+  "extends": "@mdsync/config/tsconfig.worker.json",
   "compilerOptions": {
     "composite": true,
     "outDir": "dist",
@@ -8,6 +8,7 @@
     },
     "jsx": "react-jsx",
     "jsxImportSource": "hono/jsx",
-    "strictNullChecks": true
+    "strictNullChecks": true,
+    "types": ["node", "@cloudflare/workers-types"]
   }
 }

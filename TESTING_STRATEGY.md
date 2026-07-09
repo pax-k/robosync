@@ -208,8 +208,8 @@ Priority: low until API surface grows.
 Backfill smoke contract tests for:
 
 - `healthCheck` returns `OK`.
-- `privateData` rejects a missing session.
-- `privateData` returns the session user when called with a fake session
+- `me` rejects a missing session.
+- `me` returns the session user when called with a fake session
   context.
 
 Use `appRouter.createCaller` rather than booting the full server.

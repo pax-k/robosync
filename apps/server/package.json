@@ -12,6 +12,7 @@
     "@hono/trpc-server": "^0.4.2",
     "@mdsync/api": "workspace:*",
     "@mdsync/auth": "workspace:*",
+    "@mdsync/contracts": "workspace:*",
     "@mdsync/db": "workspace:*",
     "@mdsync/env": "workspace:*",
     "@ha2ha/protocol": "workspace:*",

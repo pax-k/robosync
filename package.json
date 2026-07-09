@@ -16,7 +16,7 @@
     "test:mdsync-packages": "node scripts/mdsync-client-package-smoke.mjs && node scripts/mdsync-skill-package-smoke.mjs",
     "test:integration": "turbo run test:integration --filter='@mdsync/db' --filter='@ha2ha/http'",
     "test:e2e": "playwright test",
-    "test:scripts": "tsx --test scripts/**/*.test.mjs",
+    "test:scripts": "tsx --test scripts/*.test.mjs scripts/**/*.test.mjs",
     "dev:web": "pnpm --filter web run dev:bare",
     "dev:server": "turbo run dev -F server",
     "db:generate": "turbo run db:generate -F @mdsync/db",

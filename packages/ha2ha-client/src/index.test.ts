@@ -97,6 +97,93 @@ test("local folder client returns typed task ownership errors", async () => {
 	}
 });
 
+test("addEvidence reports partial_write when task linking fails after evidence write", async () => {
+	const writes: string[] = [];
+	const client = createHa2haClient({
+		actor: "agent-context-a",
+		clock: FIXED_CLOCK,
+		transport: {
+			deleteFile: async () => ({
+				error: { code: "unsupported_operation", message: "not used" },
+				ok: false,
+			}),
+			listWorkspace: async () => ({
+				data: { files: [], workspaceId: "workspace-partial" },
+				ok: true,
+			}),
+			readFile: async () => ({
+				data: {
+					content: [
+						"---",
+						"id: SKILL-001",
+						"title: Skill task",
+						"state: ready",
+						"evidence: []",
+						"---",
+						"",
+						"# Skill task",
+					].join("\n"),
+					contentType: "text/markdown; charset=utf-8",
+					path: "tasks/SKILL-001.md",
+					version: 3,
+					workspaceId: "workspace-partial",
+				},
+				ok: true,
+			}),
+			writeFile: async (input) => {
+				await Promise.resolve();
+				writes.push(input.path);
+				if (input.path.startsWith("evidence/")) {
+					return {
+						data: {
+							path: input.path,
+							updatedBy: input.actor,
+							version: 1,
+							workspaceId: "workspace-partial",
+						},
+						ok: true,
+					};
+				}
+				return {
+					error: {
+						code: "version_conflict",
+						latest: {
+							path: input.path,
+							version: 4,
+							workspaceId: "workspace-partial",
+						},
+						message: "Task changed.",
+						status: 409,
+					},
+					ok: false,
+				};
+			},
+		},
+	});
+
+	const result = await client.addEvidence({
+		body: "Evidence exists but task link conflicts.",
+		kind: "typecheck",
+		result: "pass",
+		taskId: "SKILL-001",
+	});
+
+	assert.deepEqual(writes, [
+		"evidence/SKILL-001/typecheck.md",
+		"tasks/SKILL-001.md",
+	]);
+	assert.equal(result.ok, false);
+	if (!result.ok) {
+		assert.equal(result.error.code, "partial_write");
+		assert.equal(result.error.partial?.failedOperation, "link_task_evidence");
+		assert.equal(
+			result.error.partial?.evidence?.path,
+			"evidence/SKILL-001/typecheck.md"
+		);
+		assert.equal(result.error.latest?.version, 4);
+	}
+});
+
 test("HTTP transport exposes version conflict target coordinates", async () => {
 	const client = createHa2haClient({
 		actor: "agent-context-a",

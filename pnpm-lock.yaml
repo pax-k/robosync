@@ -45,9 +45,6 @@ catalogs:
     lucide-react:
       specifier: ^1.23.0
       version: 1.23.0
-    next-themes:
-      specifier: ^0.4.6
-      version: 0.4.6
     react:
       specifier: ^19.2.7
       version: 19.2.7
@@ -160,6 +157,9 @@ importers:
       '@mdsync/auth':
         specifier: workspace:*
         version: link:../../packages/auth
+      '@mdsync/contracts':
+        specifier: workspace:*
+        version: link:../../packages/mdsync-contracts
       '@mdsync/db':
         specifier: workspace:*
         version: link:../../packages/db
@@ -212,6 +212,9 @@ importers:
 
   apps/web:
     dependencies:
+      '@mdsync/contracts':
+        specifier: workspace:*
+        version: link:../../packages/mdsync-contracts
       '@mdsync/ui':
         specifier: workspace:*
         version: link:../../packages/ui
@@ -369,9 +372,6 @@ importers:
       '@mdsync/config':
         specifier: workspace:*
         version: link:../config
-      '@mdsync/infra':
-        specifier: workspace:*
-        version: link:../infra
       '@types/node':
         specifier: ^22.13.14
         version: 22.20.1
@@ -475,6 +475,31 @@ importers:
       '@ha2ha/protocol':
         specifier: 0.1.0
         version: link:../ha2ha-protocol
+      '@mdsync/contracts':
+        specifier: 0.1.0
+        version: link:../mdsync-contracts
+      zod:
+        specifier: ^4.4.3
+        version: 4.4.3
+    devDependencies:
+      '@mdsync/config':
+        specifier: workspace:*
+        version: link:../config
+      tsdown:
+        specifier: ^0.22.4
+        version: 0.22.4(tsx@4.23.0)(typescript@6.0.3)
+      tsx:
+        specifier: ^4.23.0
+        version: 4.23.0
+      typescript:
+        specifier: 'catalog:'
+        version: 6.0.3
+
+  packages/mdsync-contracts:
+    dependencies:
+      zod:
+        specifier: ^4.4.3
+        version: 4.4.3
     devDependencies:
       '@mdsync/config':
         specifier: workspace:*
@@ -518,9 +543,6 @@ importers:
       lucide-react:
         specifier: 'catalog:'
         version: 1.23.0(react@19.2.7)
-      next-themes:
-        specifier: 'catalog:'
-        version: 0.4.6(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       react:
         specifier: 'catalog:'
         version: 19.2.7
@@ -5574,12 +5596,6 @@ packages:
   neverthrow@8.2.0:
     resolution: {integrity: sha512-kOCT/1MCPAxY5iUV3wytNFUMUolzuwd/VF/1KCx7kf6CutrOsTie+84zTGTpgQycjvfLdBBdvBvFLqFD2c0wkQ==}
     engines: {node: '>=18'}
-
-  next-themes@0.4.6:
-    resolution: {integrity: sha512-pZvgD5L0IEvX5/9GWyHMf3m8BKiVQwsCMHfoFosXtXBMnaS0ZnIJ9ST4b4NqLVKDEm8QBxoNNGNaBv2JNF6XNA==}
-    peerDependencies:
-      react: ^16.8 || ^17 || ^18 || ^19 || ^19.0.0-rc
-      react-dom: ^16.8 || ^17 || ^18 || ^19 || ^19.0.0-rc
 
   next@16.2.10:
     resolution: {integrity: sha512-2som5AVXb3kE6Yjine3/mNbBayYF58eguBWIVVUdr1y/L426xyVEgYxgBG+1QC34P2x5E+tcDup6XkuOAX3dCA==}
@@ -12176,11 +12192,6 @@ snapshots:
   neverthrow@8.2.0:
     optionalDependencies:
       '@rollup/rollup-linux-x64-gnu': 4.62.2
-
-  next-themes@0.4.6(react-dom@19.2.7(react@19.2.7))(react@19.2.7):
-    dependencies:
-      react: 19.2.7
-      react-dom: 19.2.7(react@19.2.7)
 
   next@16.2.10(@playwright/test@1.61.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.7(react@19.2.7))(react@19.2.7):
     dependencies:
