@@ -25,6 +25,9 @@ npx skills add pax-k/robosync --skill ha2ha
 npx skills add pax-k/robosync --skill mdsync
 ```
 
+Browse the published [HA2HA skill](https://skills.sh/pax-k/robosync/ha2ha)
+and [MDSync skill](https://skills.sh/pax-k/robosync/mdsync) on skills.sh.
+
 The production deployment is available at:
 
 - [MDSync Web](https://mdsync-web-pax.pax.workers.dev)

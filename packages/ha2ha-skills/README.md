@@ -10,6 +10,8 @@ Install directly from the public skills repository:
 npx skills add pax-k/robosync --skill ha2ha
 ```
 
+Published listing: `https://skills.sh/pax-k/robosync/ha2ha`.
+
 Alternatively, install this package from a tarball or registry, then copy or
 register `skills/ha2ha` with the agent surface that supports Codex-style
 skills.

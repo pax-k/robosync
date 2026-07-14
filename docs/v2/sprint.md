@@ -35,7 +35,8 @@ client SDK, and installable MDSync agent skills.
   on an authenticated npm identity that owns both public scopes. The public
   skills release is sourced from `pax-k/robosync`, discovers only `ha2ha` and
   `mdsync`, and defaults new hosted publishing to the deployed Cloudflare
-  discovery endpoint.
+  discovery endpoint. GitHub release `v0.1.0` and both skills.sh listings are
+  live; npm promotion remains the only blocked distribution gate.
 
 ## Execution Order
 

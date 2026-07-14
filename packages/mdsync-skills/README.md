@@ -10,6 +10,8 @@ Install directly from the public skills repository:
 npx skills add pax-k/robosync --skill mdsync
 ```
 
+Published listing: `https://skills.sh/pax-k/robosync/mdsync`.
+
 For the SDK-backed workflow, install this package from npm, then copy or
 register `skills/mdsync` with the agent surface that supports Codex-style
 skills:
