@@ -2,7 +2,7 @@
 id: V3-001
 title: Convert v3 open decisions to decision records
 version: v3
-state: ready
+state: done
 priority: high
 depends_on: [V1-007]
 area: protocol-design
@@ -10,7 +10,11 @@ acceptance:
   - Each open decision has an owner, options, recommendation, and accepted outcome.
   - Decisions identify whether scope is protocol, product, or implementation.
   - No v3 schema work starts before the relevant decision is accepted.
-evidence: []
+evidence:
+  - "Added v3 decision records under `docs/v3/decisions/` with owner, scope, options, recommendation, accepted outcome, and implementation impact."
+  - "Decision records cover source of truth and delivery, methods/provisioning/failures, identity/authority/approval, evidence/review/governance/audit, engineering/provider boundaries, and skills/scripts/harness adapters."
+  - "Linked decision authority from `docs/v3/README.md` and `docs/v3/open-discussions.md`."
+  - "`pnpm --filter @ha2ha/protocol test` passed after v3 schema, validator, fixture, and decision-record work."
 ---
 
 ## Intent

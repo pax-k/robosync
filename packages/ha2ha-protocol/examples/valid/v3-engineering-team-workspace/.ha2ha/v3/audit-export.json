@@ -1,0 +1,15 @@
+{
+  "manifestVersion": "v3-audit-export-1",
+  "workspaceId": "v3-engineering-team-workspace",
+  "createdBy": "pax",
+  "createdAt": "2026-07-09T10:00:00Z",
+  "includes": {
+    "tasks": true,
+    "evidence": true,
+    "approvals": true,
+    "decisions": true,
+    "auditEvents": true,
+    "fileVersions": true,
+    "profileRecords": true
+  }
+}

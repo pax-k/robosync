@@ -1,0 +1,10 @@
+[
+  {
+    "id": "grant-agent-context-a",
+    "principal": "agent-context-a",
+    "grants": ["read", "write", "claim"],
+    "paths": ["tasks/", "evidence/"],
+    "grantedBy": "pax",
+    "grantedAt": "2026-07-09T10:00:00Z"
+  }
+]

@@ -1,7 +1,7 @@
 # v3: HA2HA Collaboration Standard
 
-v3 is the future HA2HA protocol track for humans cooperating through agents
-across general agentic work, including software engineering.
+v3 is the HA2HA protocol track for humans cooperating through agents across
+general agentic work, including software engineering.
 
 v1 defines the shared workspace substrate: files, versions, conflicts,
 canonical paths, events, history, schemas, and conformance. v2 defines MDSync
@@ -15,12 +15,14 @@ through separate agents?
 ```
 
 The current answer is: v1 is enough for inspectable file synchronization, but
-not enough for broad collaboration. v3 adds the missing protocol profiles.
+not enough for broad collaboration. v3 adds the missing optional protocol
+profiles, schemas, fixtures, validation rules, and conformance checks.
 
 ## Files
 
 - [sprint.md](sprint.md)
 - [tasks/](tasks/)
+- [decisions/](decisions/)
 - [collaboration-protocol.md](collaboration-protocol.md)
 - [transport-validation-methods.md](transport-validation-methods.md)
 - [governance-audit-proof-of-work.md](governance-audit-proof-of-work.md)
@@ -53,3 +55,16 @@ files, while adding optional profiles for:
 These profiles should be optional and independently conformable. A simple
 workspace should not need the engineering profile. An engineering workspace
 should not have to encode repo, CI, or review state as ad hoc Markdown.
+
+## Implementation
+
+The first v3 implementation slice ships in `@ha2ha/protocol`:
+
+- typed v3 constants for profiles, methods, failure classes, fixtures, and
+  conformance checks.
+- v3 schemas for method contracts, coordination, trust/delegation,
+  evidence/review, governance/audit/proof-of-work, and engineering records.
+- `validateHa2haV3Workspace()` and `ha2ha-validate --v3`.
+- valid and invalid fixtures under `packages/ha2ha-protocol/examples/`.
+- a dogfood engineering-team fixture with two agent contexts and one human
+  reviewer.

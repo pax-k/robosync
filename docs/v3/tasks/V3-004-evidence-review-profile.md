@@ -2,15 +2,20 @@
 id: V3-004
 title: Define evidence and review profile
 version: v3
-state: ready
+state: done
 priority: high
-depends_on: [V3-001, V3-002, V3-003]
+depends_on: [V3-001, V3-008, V3-002, V3-003]
 area: protocol-design
 acceptance:
   - Profile defines evidence records, check results, review comments, questions, responses, and approval records.
   - Review anchors use stable workspace coordinates.
   - Blocking review semantics compose with the coordination profile.
-evidence: []
+evidence:
+  - "Added v3 evidence/review schemas for evidence add requests, review anchors, review comments, questions, responses, and approvals."
+  - "Added `valid/v3-evidence-review-only` fixture proving evidence/review can be claimed independently."
+  - "Added tests proving review anchors require stable workspace coordinates."
+  - "Added completion-gate validation for missing evidence, missing approvals, and unresolved blocking reviews."
+  - "`pnpm --filter @ha2ha/protocol test` passed with evidence/review coverage."
 ---
 
 ## Intent

@@ -1,0 +1,17 @@
+{
+  "repositories": [
+    {
+      "id": "robosync",
+      "provider": "github",
+      "url": "https://github.com/example/robosync",
+      "defaultBranch": "main"
+    }
+  ],
+  "checks": [
+    {
+      "id": "typecheck",
+      "command": "pnpm run check-types",
+      "requiredFor": ["done"]
+    }
+  ]
+}

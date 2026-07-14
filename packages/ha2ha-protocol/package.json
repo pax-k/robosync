@@ -1,7 +1,7 @@
 {
   "name": "@ha2ha/protocol",
   "version": "0.1.0",
-  "description": "HA2HA v1 protocol constants, schemas, examples, validation API, and validator CLI.",
+  "description": "HA2HA protocol constants, schemas, examples, validation API, validator CLI, and v3 profile layer.",
   "license": "MIT",
   "homepage": "https://mdsync-ha2ha-pax.pax.workers.dev",
   "type": "module",
@@ -23,6 +23,18 @@
     "./validator": {
       "types": "./dist/validator.d.mts",
       "default": "./dist/validator.mjs"
+    },
+    "./v3-constants": {
+      "types": "./dist/v3-constants.d.mts",
+      "default": "./dist/v3-constants.mjs"
+    },
+    "./v3-schemas": {
+      "types": "./dist/v3-schemas.d.mts",
+      "default": "./dist/v3-schemas.mjs"
+    },
+    "./v3-validator": {
+      "types": "./dist/v3-validator.d.mts",
+      "default": "./dist/v3-validator.mjs"
     },
     "./examples/*": {
       "default": "./examples/*"

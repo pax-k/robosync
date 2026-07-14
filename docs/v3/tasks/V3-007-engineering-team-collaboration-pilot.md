@@ -2,9 +2,9 @@
 id: V3-007
 title: Run engineering team collaboration pilot
 version: v3
-state: ready
+state: done
 priority: high
-depends_on: [V3-002, V3-003, V3-004, V3-005, V3-006, V3-009, V3-010, V1-008, V2-008]
+depends_on: [V3-008, V3-002, V3-003, V3-004, V3-010, V3-005, V3-009, V3-006, V1-008, V2-008]
 area: product-protocol-pilot
 acceptance:
   - Pilot workspace claims coordination, trust, evidence/review, and engineering profiles.
@@ -12,7 +12,13 @@ acceptance:
   - Claims, handoffs, evidence, review comments, approvals, required checks, and engineering references are represented in portable workspace records.
   - Task completion is blocked when required evidence, review, approval, or check state is missing, stale, or failing.
   - Pilot evidence identifies launch blockers before an Engineering Team tier is marketed.
-evidence: []
+evidence:
+  - "Added `valid/v3-engineering-team-workspace` dogfood fixture claiming validation, methods, coordination, trust, evidence/review, governance, and engineering profiles."
+  - "Pilot fixture includes two independent agent contexts (`agent-context-a`, `agent-context-b`) and human reviewer `pax`."
+  - "Pilot fixture exercises claim, handoff, evidence, resolved review, answered question, approval, required check, audit event, audit export, and engineering references."
+  - "Added `invalid/v3-blocked-completion` proving completion is blocked when evidence, approval, review, or check state is missing, unresolved, or failing."
+  - "`pnpm --filter @ha2ha/protocol validate -- --v3 examples/valid/v3-engineering-team-workspace` passed."
+  - "`pnpm --filter @ha2ha/protocol test` passed with pilot fixture and blocked-completion coverage."
 ---
 
 ## Intent

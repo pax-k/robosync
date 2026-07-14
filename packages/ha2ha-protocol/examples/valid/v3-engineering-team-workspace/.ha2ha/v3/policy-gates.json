@@ -1,0 +1,10 @@
+[
+  {
+    "id": "gate-engineering-done",
+    "scope": "tasks/*",
+    "blocks": ["done"],
+    "requiredEvidenceKinds": ["command"],
+    "requiredChecks": ["typecheck"],
+    "requiredApprovals": 1
+  }
+]

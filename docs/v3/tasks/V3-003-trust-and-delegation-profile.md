@@ -2,15 +2,19 @@
 id: V3-003
 title: Define trust and delegation profile
 version: v3
-state: ready
+state: done
 priority: high
-depends_on: [V3-001]
+depends_on: [V3-001, V3-008]
 area: protocol-design
 acceptance:
   - Profile defines principals, participants, human-agent pairs, roles, authority grants, delegation, and audit events.
   - Participant frontmatter extensions distinguish human and agent actions.
   - Secrets and raw tokens are explicitly forbidden in manifests, logs, evidence, and audit events.
-evidence: []
+evidence:
+  - "Added v3 trust schemas for participant kind, roles, authority, delegation scope, principals, and authority grants."
+  - "Added `valid/v3-trust-only` fixture proving trust can be claimed independently."
+  - "Added `invalid/v3-secret-leak` fixture and validator rule `HA2HA_V3_SECRET_LEAK` proving raw token-like values are rejected from portable records."
+  - "`pnpm --filter @ha2ha/protocol test` passed with trust and secret-rejection coverage."
 ---
 
 ## Intent

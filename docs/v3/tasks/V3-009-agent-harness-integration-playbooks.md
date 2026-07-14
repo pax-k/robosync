@@ -1,8 +1,11 @@
 ---
 id: V3-009
 title: Define agent harness integration playbooks
+version: v3
+state: done
+priority: medium
+depends_on: [V3-008, V3-002, V3-003, V3-004, V3-010, V3-005]
 area: product-protocol-integration
-status: planned
 acceptance:
   - Playbooks distinguish models, agent harnesses, agent frameworks, HA2HA, MDSync, and external systems of action.
   - Integration modes cover skills, typed tools, local-first folders, MDSync control plane, and provider sync.
@@ -11,18 +14,20 @@ acceptance:
   - Adapter requirements include actor identity, allowed write paths, baseVersion, conflict stop behavior, evidence output, validation, and secret redaction.
   - Playbooks distinguish target adapter contracts from shipped installable SDK, package, or skill artifacts.
   - Playbooks distinguish portable HA2HA skill packages from hosted MDSync product skill packages.
-evidence: []
+evidence:
+  - "Added `V3-DR-006 Skills Scripts And Harness Adapters` documenting protocol/product package boundaries and harness-adapter scope."
+  - "Added v3 portable-boundary validation rejecting provider payloads, private reasoning keys, raw traces, secrets, and raw token-like values."
+  - "Added `valid/v3-engineering-team-workspace` as the heterogeneous-agent dogfood fixture with `agent-context-a`, `agent-context-b`, and human reviewer `pax`."
+  - "`pnpm --filter @ha2ha/protocol validate -- --v3 examples/valid/v3-engineering-team-workspace` passed."
 ---
 
-# V3-009 Agent Harness Integration Playbooks
-
-## Goal
+## Intent
 
 Define how teams using different models, coding agents, agent frameworks, and
 internal harnesses can coordinate through HA2HA and MDSync without adopting one
 shared agent runtime.
 
-## Context
+## Current Evidence
 
 - [../agent-harness-integration-playbooks.md](../agent-harness-integration-playbooks.md)
   captures the target playbooks.
@@ -49,6 +54,24 @@ shared agent runtime.
   their owning v1 and v2 tasks instead of treating skills as one generic
   artifact.
 - Choose the first heterogeneous-agent demo and required evidence.
+
+## Acceptance
+
+- Harness-specific playbooks preserve portable HA2HA state while leaving private
+  reasoning, provider traces, and execution details in the owning harness.
+- Adapter requirements are explicit enough for future SDK, MCP, skill, CLI, or
+  provider-sync implementations.
+- First-demo evidence requirements distinguish protocol claims from MDSync
+  product claims and shipped package claims.
+
+## Test Requirements
+
+- Add docs validation or searchable checks proving each named harness has an
+  integration mode, state boundary, adapter requirement, and non-goal.
+- Add fixtures or scripted checks for a two-agent handoff once the required v3
+  profile records exist.
+- Add negative tests proving provider-specific payloads and private harness
+  state are not encoded as portable HA2HA records.
 
 ## Out Of Scope
 

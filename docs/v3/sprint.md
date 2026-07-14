@@ -9,9 +9,10 @@ integration, conformance, and migration from v1/v2.
 
 ## Current State
 
-- v3 docs are future protocol direction, not current implementation scope.
+- v3 now has a first implementation slice in `@ha2ha/protocol`.
 - v1 remains the current protocol authority.
-- No v3 implementation is required before v1 schemas, validators, examples, and conformance exist.
+- v1 schemas, validators, examples, and conformance exist and remain the base
+  layer that v3 validation preserves.
 - v2 comments and identity remain product scope unless a v3 profile promotes portable semantics.
 - v3 adapter and typed-tool names are target contracts, not shipped SDK claims.
   External package readiness is tracked in
@@ -21,6 +22,8 @@ integration, conformance, and migration from v1/v2.
   [../v1/tasks/V1-011-ha2ha-installable-skill-package.md](../v1/tasks/V1-011-ha2ha-installable-skill-package.md);
   MDSync product skills remain v2 work tracked in
   [../v2/tasks/V2-009-mdsync-installable-skill-package.md](../v2/tasks/V2-009-mdsync-installable-skill-package.md).
+- v3 profile schemas, method contracts, fixtures, validation rules, CLI support,
+  and the engineering-team pilot fixture are tracked in the v3 task evidence.
 
 ## Execution Order
 
@@ -38,16 +41,18 @@ integration, conformance, and migration from v1/v2.
 
 ## Tasks
 
+Listed in execution order, not numeric ID order.
+
 - [V3-001 Open Decisions To Decision Records](tasks/V3-001-open-decisions-to-decision-records.md)
+- [V3-008 Transport Validation Method Contracts](tasks/V3-008-transport-validation-method-contracts.md)
 - [V3-002 Coordination Profile](tasks/V3-002-coordination-profile.md)
 - [V3-003 Trust And Delegation Profile](tasks/V3-003-trust-and-delegation-profile.md)
 - [V3-004 Evidence Review Profile](tasks/V3-004-evidence-review-profile.md)
+- [V3-010 Governance Audit And Proof Of Work](tasks/V3-010-governance-audit-proof-of-work.md)
 - [V3-005 Engineering Profile](tasks/V3-005-engineering-profile.md)
+- [V3-009 Agent Harness Integration Playbooks](tasks/V3-009-agent-harness-integration-playbooks.md)
 - [V3-006 Profile Conformance And Migration](tasks/V3-006-profile-conformance-and-migration.md)
 - [V3-007 Engineering Team Collaboration Pilot](tasks/V3-007-engineering-team-collaboration-pilot.md)
-- [V3-008 Transport Validation Method Contracts](tasks/V3-008-transport-validation-method-contracts.md)
-- [V3-009 Agent Harness Integration Playbooks](tasks/V3-009-agent-harness-integration-playbooks.md)
-- [V3-010 Governance Audit And Proof Of Work](tasks/V3-010-governance-audit-proof-of-work.md)
 
 ## Done Definition
 

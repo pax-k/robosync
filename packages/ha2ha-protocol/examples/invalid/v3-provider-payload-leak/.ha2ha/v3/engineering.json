@@ -1,0 +1,15 @@
+{
+  "repositories": [
+    {
+      "id": "robosync",
+      "provider": "github",
+      "url": "https://github.com/example/robosync",
+      "defaultBranch": "main"
+    }
+  ],
+  "providerPayload": {
+    "github": {
+      "raw": "provider-specific response body"
+    }
+  }
+}

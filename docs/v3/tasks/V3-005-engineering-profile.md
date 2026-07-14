@@ -2,15 +2,20 @@
 id: V3-005
 title: Define engineering profile
 version: v3
-state: ready
+state: done
 priority: medium
-depends_on: [V3-001, V3-002, V3-003, V3-004]
+depends_on: [V3-001, V3-008, V3-002, V3-003, V3-004, V3-010]
 area: protocol-design
 acceptance:
   - Profile defines portable repository, branch, commit, issue, pull request, check, deployment, and code review references.
   - Provider-specific models stay behind implementation adapters.
   - Required checks can block task completion when the profile is claimed.
-evidence: []
+evidence:
+  - "Added v3 engineering schemas for repositories, checks, deployments, and portable provider references."
+  - "Added `valid/v3-engineering-only` fixture proving engineering can be claimed independently."
+  - "Added `invalid/v3-provider-payload-leak` fixture and validator rule `HA2HA_V3_PROVIDER_PAYLOAD_LEAK` proving provider payloads remain adapter-owned."
+  - "Added completion-gate validation for failing required checks on done tasks."
+  - "`pnpm --filter @ha2ha/protocol test` passed with engineering fixture coverage."
 ---
 
 ## Intent

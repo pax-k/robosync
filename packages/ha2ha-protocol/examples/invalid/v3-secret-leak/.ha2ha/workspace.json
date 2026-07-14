@@ -1,0 +1,23 @@
+{
+  "protocol": "ha2ha",
+  "protocolVersion": "1.0.0",
+  "workspaceId": "v3-secret-leak",
+  "title": "v3 Secret Leak",
+  "paths": {
+    "manifestMarkdown": "HA2HA.md",
+    "status": "STATUS.md",
+    "participants": "participants/",
+    "tasks": "tasks/",
+    "evidence": "evidence/",
+    "decisions": "decisions/",
+    "logs": "logs/",
+    "workspaceManifest": ".ha2ha/workspace.json"
+  },
+  "capabilities": ["raw-read", "file-write"],
+  "profiles": ["ha2ha-trust"],
+  "routes": {
+    "rawListing": "/w/v3-secret-leak/raw",
+    "rawFile": "/w/v3-secret-leak/raw/{path}"
+  },
+  "conflictPolicy": "baseVersion-required"
+}

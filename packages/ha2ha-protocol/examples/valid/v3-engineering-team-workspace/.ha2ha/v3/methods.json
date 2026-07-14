@@ -1,0 +1,131 @@
+[
+  {
+    "name": "workspace.validate",
+    "profile": "ha2ha-validation",
+    "purpose": "Validate claimed workspace records without requiring a hosted service.",
+    "inputSchema": "ha2haV3WorkspaceValidateRequestSchema",
+    "outputSchema": "ha2haV3ValidationOutputSchema",
+    "allowedPaths": [
+      ".ha2ha/workspace.json",
+      "tasks/",
+      "participants/",
+      "evidence/"
+    ],
+    "requiresActor": true,
+    "requiresAuthority": ["read"],
+    "requiresBaseVersion": false,
+    "stateTransitions": [],
+    "emitsEvents": [],
+    "emitsEvidence": false,
+    "idempotency": "recommended",
+    "retry": "idempotent-only",
+    "failureClasses": ["validation_failed", "unsupported_profile"],
+    "blockingFailures": ["validation_failed", "unsupported_profile"],
+    "conformance": ["stable rule IDs", "profile-blocking output"]
+  },
+  {
+    "name": "task.claim",
+    "profile": "ha2ha-coordination",
+    "purpose": "Claim responsibility for a task through a version-aware task update.",
+    "inputSchema": "ha2haV3TaskClaimRequestSchema",
+    "outputSchema": "ha2haV3OperationRecordSchema",
+    "allowedPaths": ["tasks/"],
+    "requiresActor": true,
+    "requiresAuthority": ["claim"],
+    "requiresBaseVersion": true,
+    "stateTransitions": [
+      "ready->claimed",
+      "claimed->claimed",
+      "working->claimed"
+    ],
+    "emitsEvents": ["task.claimed"],
+    "emitsEvidence": false,
+    "idempotency": "required",
+    "retry": "once-on-version-conflict",
+    "failureClasses": [
+      "version_conflict",
+      "authority_denied",
+      "state_conflict"
+    ],
+    "blockingFailures": [
+      "version_conflict",
+      "authority_denied",
+      "state_conflict"
+    ],
+    "conformance": ["baseVersion required", "second conflict stops"]
+  },
+  {
+    "name": "task.handoff",
+    "profile": "ha2ha-coordination",
+    "purpose": "Record a portable handoff that another participant can continue from.",
+    "inputSchema": "ha2haV3TaskHandoffRequestSchema",
+    "outputSchema": "ha2haV3HandoffRecordSchema",
+    "allowedPaths": ["tasks/", "handoffs/"],
+    "requiresActor": true,
+    "requiresAuthority": ["write"],
+    "requiresBaseVersion": true,
+    "stateTransitions": [
+      "claimed->working",
+      "working->working",
+      "review->review"
+    ],
+    "emitsEvents": ["task.handoff"],
+    "emitsEvidence": false,
+    "idempotency": "required",
+    "retry": "once-on-version-conflict",
+    "failureClasses": [
+      "version_conflict",
+      "authority_denied",
+      "state_conflict"
+    ],
+    "blockingFailures": ["version_conflict", "authority_denied"],
+    "conformance": [
+      "summary",
+      "current state",
+      "next action",
+      "linked evidence"
+    ]
+  },
+  {
+    "name": "evidence.add",
+    "profile": "ha2ha-evidence-review",
+    "purpose": "Attach structured proof to a task or target coordinate.",
+    "inputSchema": "ha2haV3EvidenceAddRequestSchema",
+    "outputSchema": "ha2haV3ProofOfWorkRecordSchema",
+    "allowedPaths": ["evidence/"],
+    "requiresActor": true,
+    "requiresAuthority": ["write"],
+    "requiresBaseVersion": false,
+    "stateTransitions": [],
+    "emitsEvents": ["evidence.added"],
+    "emitsEvidence": true,
+    "idempotency": "required",
+    "retry": "idempotent-only",
+    "failureClasses": ["validation_failed", "authority_denied"],
+    "blockingFailures": ["validation_failed", "authority_denied"],
+    "conformance": ["actor", "timestamp", "result", "target or task"]
+  },
+  {
+    "name": "review.comment",
+    "profile": "ha2ha-evidence-review",
+    "purpose": "Record anchored review feedback with stable workspace coordinates.",
+    "inputSchema": "ha2haV3ReviewCommentRequestSchema",
+    "outputSchema": "ha2haV3ReviewCommentRecordSchema",
+    "allowedPaths": ["reviews/"],
+    "requiresActor": true,
+    "requiresAuthority": ["write"],
+    "requiresBaseVersion": false,
+    "stateTransitions": [],
+    "emitsEvents": ["review.comment"],
+    "emitsEvidence": false,
+    "idempotency": "required",
+    "retry": "idempotent-only",
+    "failureClasses": ["validation_failed", "authority_denied"],
+    "blockingFailures": [
+      "validation_failed",
+      "authority_denied",
+      "unresolved_review"
+    ],
+    "conformance": ["workspaceId", "path", "version", "selector"]
+  }
+]

@@ -1,0 +1,42 @@
+[
+  {
+    "id": "grant-pax-owner",
+    "principal": "pax",
+    "grants": ["read", "write", "claim", "approve", "administer"],
+    "paths": [
+      "HA2HA.md",
+      "STATUS.md",
+      "tasks/",
+      "evidence/",
+      "reviews/",
+      "approvals/"
+    ],
+    "methods": [
+      "task.claim",
+      "task.handoff",
+      "evidence.add",
+      "review.comment",
+      "approval.record"
+    ],
+    "grantedBy": "pax",
+    "grantedAt": "2026-07-09T09:00:00Z"
+  },
+  {
+    "id": "grant-agent-a-write",
+    "principal": "agent-context-a",
+    "grants": ["read", "write", "claim"],
+    "paths": ["tasks/", "evidence/", "handoffs/"],
+    "methods": ["task.claim", "task.handoff", "evidence.add"],
+    "grantedBy": "pax",
+    "grantedAt": "2026-07-09T09:05:00Z"
+  },
+  {
+    "id": "grant-agent-b-write",
+    "principal": "agent-context-b",
+    "grants": ["read", "write", "claim"],
+    "paths": ["tasks/", "evidence/", "handoffs/"],
+    "methods": ["task.claim", "task.handoff", "evidence.add"],
+    "grantedBy": "pax",
+    "grantedAt": "2026-07-09T09:05:00Z"
+  }
+]

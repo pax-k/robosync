@@ -1265,7 +1265,7 @@ function adminStatsPayload(state: WorkspaceFileState) {
 		},
 		events: {
 			byType: eventCounts,
-			recent: state.events.toReversed(),
+			recent: state.events.toReversed().map(protocolEventSummary),
 			total: state.events.length,
 		},
 		files: {
@@ -1339,6 +1339,17 @@ function sumFileSizes(files: WorkspaceCurrentFileState[]) {
 
 function taskStateFromContent(content: string) {
 	return TASK_STATE_PATTERN.exec(content)?.[1] ?? null;
+}
+
+function protocolEventSummary(event: WorkspaceEventState) {
+	return {
+		actor: event.actor,
+		createdAt: event.createdAt,
+		path: event.path,
+		payload: event.payload,
+		type: event.type,
+		version: event.version,
+	};
 }
 
 function versionMetadata(version: WorkspaceVersionState) {

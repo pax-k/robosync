@@ -1,0 +1,10 @@
+[
+  {
+    "id": "gate-gov-review",
+    "scope": "tasks/*",
+    "blocks": ["done"],
+    "requiredEvidenceKinds": [],
+    "requiredChecks": [],
+    "requiredApprovals": 0
+  }
+]

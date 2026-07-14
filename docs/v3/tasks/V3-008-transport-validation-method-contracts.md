@@ -1,29 +1,34 @@
 ---
 id: V3-008
 title: Define transport validation and method contracts
-area: protocol
-status: planned
+version: v3
+state: done
+priority: high
+depends_on: [V3-001]
+area: protocol-design
 acceptance:
   - Transport, provisioning, validation, method, and failure-class boundaries are documented before profile schema work depends on them.
   - v3 does not turn HA2HA into agent RPC, an agent registry, or a real-time editor.
   - Workspace provisioning is explicitly optional unless adopted as a claimed profile.
   - Method contracts define inputs, outputs, allowed write sets, authority, baseVersion behavior, events, evidence, idempotency, retries, failures, and conformance expectations.
   - Validation output includes stable rule IDs, severity, profile impact, messages, and repair hints.
-evidence: []
+evidence:
+  - "Added `packages/ha2ha-protocol/src/v3-constants.ts` with v3 method, profile, failure-class, fixture, and conformance-check constants."
+  - "Added `packages/ha2ha-protocol/src/v3-schemas.ts` with first-slice method schemas for `workspace.validate`, `task.claim`, `task.handoff`, `evidence.add`, and `review.comment`."
+  - "Added `packages/ha2ha-protocol/src/v3-validator.ts` and CLI support through `ha2ha-validate --v3`."
+  - "Added valid and invalid v3 method fixtures, including `valid/v3-methods-only` and `invalid/v3-missing-required-method`."
+  - "`pnpm --filter @ha2ha/protocol validate -- --v3 examples/valid/v3-engineering-team-workspace` passed."
 ---
 
-# V3-008 Transport Validation Method Contracts
+## Intent
 
-## Goal
+Define the cross-profile contracts before individual v3 profiles depend on
+their own incompatible transport, validation, method, provisioning, or failure
+semantics.
 
-Define the cross-profile contracts that individual v3 profiles depend on:
-transport, workspace provisioning, validation, durable method semantics, and
-shared failure classes.
+## Current Evidence
 
-## Context
-
-- [../transport-validation-methods.md](../transport-validation-methods.md)
-  captures the target direction.
+- [../transport-validation-methods.md](../transport-validation-methods.md) captures the target direction.
 - v1 already defines HTTP routes, file operations, schemas, validators, and
   conformance checks.
 - v3 coordination, trust, evidence/review, and engineering profiles need shared
@@ -45,6 +50,25 @@ shared failure classes.
 - Define validation output shape and profile-blocking behavior.
 - Add conformance expectations for claimed transport, provisioning,
   validation, and method profiles.
+
+## Acceptance
+
+- The contract boundaries are clear enough for downstream profile schemas and
+  validators.
+- Workspace provisioning remains optional unless explicitly claimed as a
+  profile.
+- Method semantics preserve v1 `baseVersion`, conflict, event, and file-history
+  behavior.
+
+## Test Requirements
+
+- Add docs validation or searchable checks proving each method defines inputs,
+  outputs, write sets, actor, authority, `baseVersion`, events, evidence,
+  idempotency, retries, failures, and conformance impact.
+- Add valid and invalid fixtures for the first cross-profile methods once v3
+  schemas exist.
+- Add negative tests proving v3 methods do not require real-time delivery,
+  provider-specific payloads, or agent RPC semantics.
 
 ## Out Of Scope
 

@@ -10,6 +10,7 @@ import {
 	HA2HA_PROTOCOL,
 	HA2HA_TASK_STATES,
 } from "./constants";
+import { HA2HA_V3_PROFILES } from "./v3-constants";
 
 const DUPLICATE_SLASH_PATTERN = /\/{2,}/u;
 const DOT_SEGMENT_PATTERN = /(?:^|\/)\.(?:\/|$)/u;
@@ -56,6 +57,8 @@ export const ha2haEvidenceResultSchema = z.enum(HA2HA_EVIDENCE_RESULTS);
 
 export const ha2haEventTypeSchema = z.enum(Object.values(HA2HA_EVENT_TYPES));
 
+const ha2haV3ProfileClaimSchema = z.enum(Object.values(HA2HA_V3_PROFILES));
+
 export const ha2haTargetCoordinateSchema = z
 	.object({
 		path: ha2haWorkspacePathSchema,
@@ -80,6 +83,7 @@ export const ha2haWorkspaceManifestSchema = z
 				workspaceManifest: z.literal(HA2HA_PATHS.workspaceManifest),
 			})
 			.strict(),
+		profiles: z.array(ha2haV3ProfileClaimSchema).optional(),
 		protocol: z.literal(HA2HA_PROTOCOL.name),
 		protocolVersion: z.string().trim().min(1),
 		routes: z
@@ -102,9 +106,24 @@ export const ha2haWorkspaceManifestSchema = z
 
 export const ha2haTaskFrontmatterSchema = z
 	.object({
+		acceptance: z.array(z.string().trim().min(1)).optional(),
+		approvals: z.array(z.string().trim().min(1)).optional(),
+		blocked_by: z.array(z.string().trim().min(1)).optional(),
+		branch: z.string().trim().min(1).optional(),
+		checks: z.array(z.unknown()).optional(),
+		claim: z.unknown().optional(),
+		commits: z.array(z.string().trim().min(1)).optional(),
+		depends_on: z.array(z.string().trim().min(1)).optional(),
+		deployment: z.string().trim().min(1).nullable().optional(),
 		evidence: z.array(ha2haWorkspacePathSchema).optional(),
+		handoffs: z.array(ha2haWorkspacePathSchema).optional(),
 		id: z.string().trim().min(1),
+		issues: z.array(z.string().trim().min(1)).optional(),
 		owner: z.string().trim().min(1).nullable().optional(),
+		priority: z.enum(["low", "medium", "high", "urgent"]).optional(),
+		pull_requests: z.array(z.unknown()).optional(),
+		repository: z.string().trim().min(1).optional(),
+		review: z.unknown().optional(),
 		state: ha2haTaskStateSchema,
 		title: z.string().trim().min(1),
 		updated_by: ha2haActorSchema.optional(),
@@ -114,20 +133,35 @@ export const ha2haTaskFrontmatterSchema = z
 export const ha2haParticipantFrontmatterSchema = z
 	.object({
 		agent_runtime: z.string().trim().min(1).optional(),
+		authority: z.unknown().optional(),
 		can_edit: z.boolean().optional(),
+		delegated_by: z.string().trim().min(1).optional(),
+		delegation_scope: z.unknown().optional(),
 		human: z.string().trim().min(1).optional(),
 		id: z.string().trim().min(1),
+		kind: z.string().trim().min(1).optional(),
 		last_seen: z.string().trim().min(1).optional(),
+		roles: z.array(z.string().trim().min(1)).optional(),
 	})
 	.strict();
 
 export const ha2haEvidenceMetadataSchema = z
 	.object({
 		actor: ha2haActorSchema,
+		artifacts: z
+			.array(z.object({ path: ha2haWorkspacePathSchema }).passthrough())
+			.optional(),
+		authority: z.unknown().optional(),
+		command: z.unknown().optional(),
 		created_at: z.string().trim().min(1),
+		environment: z.unknown().optional(),
+		hashes: z.record(ha2haWorkspacePathSchema, z.string()).optional(),
 		id: z.string().trim().min(1),
 		kind: z.string().trim().min(1),
+		links: z.array(z.unknown()).optional(),
+		quality: z.string().trim().min(1).optional(),
 		result: ha2haEvidenceResultSchema,
+		review: z.unknown().optional(),
 		target: ha2haTargetCoordinateSchema.optional(),
 		task: z.string().trim().min(1).optional(),
 	})

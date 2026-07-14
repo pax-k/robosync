@@ -1,0 +1,27 @@
+{
+  "protocol": "ha2ha",
+  "protocolVersion": "1.0.0",
+  "workspaceId": "v3-blocked-completion",
+  "title": "v3 Blocked Completion",
+  "paths": {
+    "manifestMarkdown": "HA2HA.md",
+    "status": "STATUS.md",
+    "participants": "participants/",
+    "tasks": "tasks/",
+    "evidence": "evidence/",
+    "decisions": "decisions/",
+    "logs": "logs/",
+    "workspaceManifest": ".ha2ha/workspace.json"
+  },
+  "capabilities": ["raw-read", "file-write"],
+  "profiles": [
+    "ha2ha-coordination",
+    "ha2ha-evidence-review",
+    "ha2ha-engineering"
+  ],
+  "routes": {
+    "rawListing": "/w/v3-blocked-completion/raw",
+    "rawFile": "/w/v3-blocked-completion/raw/{path}"
+  },
+  "conflictPolicy": "baseVersion-required"
+}

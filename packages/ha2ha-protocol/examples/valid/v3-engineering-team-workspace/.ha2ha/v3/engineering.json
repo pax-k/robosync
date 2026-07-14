@@ -1,0 +1,33 @@
+{
+  "repositories": [
+    {
+      "id": "robosync",
+      "provider": "github",
+      "url": "https://github.com/example/robosync",
+      "defaultBranch": "main"
+    }
+  ],
+  "checks": [
+    {
+      "id": "typecheck",
+      "command": "pnpm run check-types",
+      "requiredFor": ["review", "done"]
+    }
+  ],
+  "references": [
+    {
+      "type": "pull-request",
+      "id": "456",
+      "provider": "github",
+      "url": "https://github.com/example/robosync/pull/456"
+    }
+  ],
+  "deployments": [
+    {
+      "type": "deployment",
+      "id": "staging",
+      "provider": "vercel",
+      "url": "https://example.invalid/deployments/staging"
+    }
+  ]
+}

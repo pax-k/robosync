@@ -325,6 +325,9 @@ These discussions should become decision records before implementation:
 - Webhook event model, signing, retries, and authority.
 - Local tunnel policy for demos and development.
 
+Decision authority now lives in [decisions/](decisions/). This file remains
+background and rationale for future changes.
+
 ## Current Direction
 
 The strongest near-term bet is skills plus small reference scripts for the

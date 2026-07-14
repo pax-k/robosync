@@ -1,0 +1,19 @@
+[
+  {
+    "id": "audit-gov-001",
+    "workspaceId": "v3-governance-only",
+    "type": "policy.gate.checked",
+    "actor": "pax",
+    "principal": "pax",
+    "authorityBasis": "workspace-owner",
+    "target": {
+      "workspaceId": "v3-governance-only",
+      "path": "tasks/GOV-001.md",
+      "version": 1
+    },
+    "createdAt": "2026-07-09T10:20:00Z",
+    "payload": {
+      "gate": "gate-gov-review"
+    }
+  }
+]
