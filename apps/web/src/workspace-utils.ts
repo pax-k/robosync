@@ -58,6 +58,37 @@ export function capabilityQuery({
 	return "";
 }
 
+export function preserveCapabilitySearch(search: string) {
+	const params = new URLSearchParams(search);
+	const preserved = new URLSearchParams();
+	const editToken = params.get("edit");
+	const readToken = params.get("k");
+	if (editToken) {
+		preserved.set("edit", editToken);
+	}
+	if (readToken) {
+		preserved.set("k", readToken);
+	}
+	return preserved;
+}
+
+export function workspaceHref({
+	panel,
+	path,
+	search,
+}: {
+	panel?: "comments" | "history";
+	path: string;
+	search: string;
+}) {
+	const params = preserveCapabilitySearch(search);
+	if (panel) {
+		params.set("panel", panel);
+	}
+	const query = params.toString();
+	return query ? `${path}?${query}` : path;
+}
+
 export function encodePathSegments(path: string) {
 	return path.split("/").map(encodeURIComponent).join("/");
 }
@@ -78,6 +109,7 @@ export function replaceWorkspaceUrl({
 		? `${path}?edit=${encodeURIComponent(editToken)}`
 		: path;
 	window.history.replaceState(null, "", nextUrl);
+	window.dispatchEvent(new PopStateEvent("popstate"));
 }
 
 export function downloadJsonFile(payload: unknown, filename: string) {

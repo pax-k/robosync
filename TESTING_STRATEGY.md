@@ -120,6 +120,73 @@ Backfill e2e tests for:
 - Stale save conflict loads latest content and displays the conflict message.
 - Browser console has no unexpected errors or warnings during the core flow.
 
+For the V2-011 workspace foundation, keep committed browser coverage for:
+
+- Guided creation presets and the one-time capability share sheet.
+- Read and edit links landing on Overview while preserving `k` and `edit`
+  through route transitions.
+- Preview-first, dirty-aware editing; IndexedDB draft reload and discard; and
+  stale-save conflict recovery that retains both contents.
+- Addressable comments/history inspectors across refresh and Back/Forward.
+- Capability rotation/revocation confirmations and immediate read-only state.
+- Desktop, tablet, and 390px mobile navigation behavior.
+- Automated Axe checks against WCAG 2.2 AA and visual baselines for creation,
+  overview, document inspector, conflict resolution, settings, and mobile.
+
+Contract and route tests must also prove that the overview response is strict,
+read-authorized, deterministically ordered, tolerant of malformed task files,
+and excludes edit-only operational data.
+
+For V2-012 URL handoff, keep contract and integration coverage for:
+
+- Strict, secret-free Web/API discovery responses and matching configured
+  origins, including fail-closed custom domains.
+- Safe parsing of Overview, Work, Files, Activity, Settings, and raw URLs;
+  rejection of mixed capabilities, credentials, unsafe HTTP, and malformed
+  encoded paths without echoing token values.
+- Atomic HA2HA creation, generated manifest routes, all canonical task states,
+  invalid YAML/frontmatter, reserved paths, missing actors, and read-only
+  creation before any D1 or R2 mutation.
+- A URL-only two-agent smoke where Viewer mutation fails, Collaborator claim,
+  evidence, and status writes succeed, Agent A observes the result, a stale
+  write preserves both versions, and captured evidence contains no capability.
+- Strict activity projection coverage for read-token access, deterministic
+  ordering, stable derived comment IDs, redacted comment metadata, Overview
+  reuse, and unchanged `/events` plus `/raw/events` behavior.
+- Exact manifest validation for HA2HA `1.0.0`,
+  `baseVersion-required`, and the connected workspace ID.
+- An isolated pnpm consumer whose only direct dependency is `@mdsync/skills`
+  and whose code imports `@mdsync/skills/runtime`.
+- Public skill discovery that returns only `ha2ha` and `mdsync`, validates MIT
+  metadata and one-level references, rejects local/example origins and
+  capability-shaped values, and pins production guidance to the deployed
+  Cloudflare discovery contract.
+
+Validate the public skill surface before packaging or release:
+
+```bash
+pnpm run test:public-skills
+gh skill publish --dry-run .
+npx --yes skills add . --list
+```
+
+Run the same executable handoff against localhost and the deployed Cloudflare
+API:
+
+```bash
+MDSYNC_BASE_URL=http://127.0.0.1:3200 pnpm run test:mdsync-handoff
+MDSYNC_BASE_URL=https://mdsync-server-pax.pax.workers.dev pnpm run test:mdsync-handoff
+```
+
+After deterministic release checks, run the manual Codex dogfood harness. It
+must use a mode-`0600` temporary capability handoff, delete it in `finally`,
+emit only redacted structured role outcomes, and scan captured agent output,
+workspace files, and comments for leakage:
+
+```bash
+MDSYNC_BASE_URL=https://mdsync-server-pax.pax.workers.dev pnpm run test:mdsync-codex-dogfood
+```
+
 Extract pure helpers from `apps/web/src/app.tsx` only if unit tests need them:
 
 - API base URL resolution.
@@ -365,9 +432,10 @@ test expectations.
 - `pnpm run check`.
 - `pnpm run check-types`.
 - `pnpm run test`.
-- Installed-skill smoke proving MDSync product boundary guidance, `@mdsync/client`
-  usage, token rules, `baseVersion`, conflict stop rules, secret redaction, and
-  absence of repo-local paths.
+- Installed-skill smoke proving MDSync product boundary guidance,
+  `@mdsync/skills/runtime` usage from a single direct dependency, token rules,
+  `baseVersion`, conflict stop rules, secret redaction, and absence of
+  repo-local paths.
 
 ### v3 Task Test Requirements
 

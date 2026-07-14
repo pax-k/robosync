@@ -214,3 +214,19 @@ export interface VersionConflictResponse {
 	latest: WorkspaceFilePayload | null;
 	message: string;
 }
+
+export type WorkspaceOverview = WorkspaceOverviewResponse;
+
+export interface WorkspaceConflict {
+	localContent: string;
+	path: string;
+	remote: WorkspaceFilePayload;
+}
+
+export interface WorkspaceDraftRecovery {
+	draft: string;
+	draftBaseVersion: number;
+	remote: WorkspaceFilePayload;
+}
+
+import type { WorkspaceOverviewResponse } from "@mdsync/contracts/workspaces";

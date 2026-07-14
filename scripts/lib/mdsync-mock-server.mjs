@@ -3,6 +3,8 @@ import { createServer } from "node:http";
 const DEFAULT_CONTENT_TYPE = "text/markdown; charset=utf-8";
 const BEARER_PREFIX_PATTERN = /^Bearer\s+/u;
 const EXPORT_FORMAT = "mdsync.workspace-export.v1";
+const FRONTMATTER_ID_PATTERN = /^id:\s*(.+)$/mu;
+const TASK_FILE_PATTERN = /^tasks\/.+\.md$/u;
 
 export const createMdsyncMockServer = () => {
 	let server;
@@ -62,6 +64,15 @@ const routeRequest = ({
 	const url = new URL(request.url ?? "/", `http://${request.headers.host}`);
 	const method = request.method ?? "GET";
 	const parts = url.pathname.split("/").filter(Boolean);
+	if (method === "GET" && url.pathname === "/.well-known/mdsync.json") {
+		const origin = originFromRequest(request);
+		return sendJson(response, {
+			apiOrigin: origin,
+			discoveryVersion: 1,
+			product: "mdsync",
+			webOrigin: origin,
+		});
+	}
 
 	if (method === "POST" && url.pathname === "/api/workspaces") {
 		return handleCreateWorkspace({
@@ -214,6 +225,10 @@ const handleWorkspaceRequest = ({
 		return handleWorkspaceTree({ request, response, url, workspace });
 	}
 
+	if (parts[3] === "overview" && method === "GET") {
+		return handleWorkspaceOverview({ request, response, url, workspace });
+	}
+
 	if (parts[3] === "files" && parts[4] === "versions") {
 		return handleFileVersionsRequest({
 			parts,
@@ -230,6 +245,10 @@ const handleWorkspaceRequest = ({
 
 	if (parts[3] === "events" && method === "GET") {
 		return handleWorkspaceEvents({ request, response, url, workspace });
+	}
+
+	if (parts[3] === "activity" && method === "GET") {
+		return handleWorkspaceActivity({ request, response, url, workspace });
 	}
 
 	if (parts[3] === "comments") {
@@ -297,6 +316,124 @@ const handleWorkspaceTree = ({ request, response, url, workspace }) => {
 		})),
 		workspaceId: workspace.id,
 	});
+};
+
+const handleWorkspaceOverview = ({ request, response, url, workspace }) => {
+	if (!hasReadAccess(workspace, request, url)) {
+		return sendJson(response, { error: "invalid_token" }, 403);
+	}
+	const files = [...workspace.files.values()];
+	const taskItems = files
+		.filter((file) => TASK_FILE_PATTERN.test(file.path))
+		.map((file) => mockTaskItem(file))
+		.sort(compareMockTaskItems);
+	const states = [
+		"ready",
+		"claimed",
+		"working",
+		"blocked",
+		"review",
+		"done",
+		"abandoned",
+	];
+	const unresolved = workspace.comments.filter(
+		(comment) => !comment.resolvedAt
+	);
+	return sendJson(response, {
+		activity: {
+			recent: composeMockActivity(workspace)
+				.slice(0, 8)
+				.map(({ actor, createdAt, path, type, version }) => ({
+					actor,
+					createdAt,
+					path,
+					type,
+					version,
+				})),
+		},
+		comments: {
+			staleAnchors: unresolved.filter((comment) => {
+				const version = workspace.files.get(comment.path)?.version;
+				return version && comment.version < version;
+			}).length,
+			total: workspace.comments.length,
+			unresolved: unresolved.length,
+		},
+		files: {
+			latestUpdatedAt:
+				files
+					.map((file) => file.updatedAt)
+					.sort((left, right) => left.localeCompare(right))
+					.at(-1) ?? null,
+			total: files.length,
+		},
+		generatedAt: workspace.now,
+		tasks: {
+			byState: states.map((name) => ({
+				count: taskItems.filter((item) => item.state === name).length,
+				name,
+			})),
+			invalidCount: taskItems.filter((item) => !item.valid).length,
+			items: taskItems,
+			total: taskItems.length,
+		},
+		workspaceId: workspace.id,
+	});
+};
+
+const mockTaskItem = (file) => {
+	const value = (name) =>
+		file.content.match(new RegExp(`^${name}:\\s*(.+)$`, "mu"))?.[1]?.trim() ??
+		null;
+	const id = value("id");
+	const title = value("title");
+	const state = value("state");
+	const ownerValue = value("owner");
+	const priority = value("priority");
+	const validStates = new Set([
+		"ready",
+		"claimed",
+		"working",
+		"blocked",
+		"review",
+		"done",
+		"abandoned",
+	]);
+	const valid = Boolean(id && title && state && validStates.has(state));
+	return {
+		id,
+		owner: ownerValue === "null" ? null : ownerValue,
+		path: file.path,
+		priority: ["urgent", "high", "medium", "low"].includes(priority)
+			? priority
+			: null,
+		state: validStates.has(state) ? state : null,
+		title,
+		updatedBy: file.updatedBy,
+		valid,
+		version: file.version,
+	};
+};
+
+const compareMockTaskItems = (left, right) => {
+	const states = [
+		"invalid",
+		"blocked",
+		"review",
+		"working",
+		"claimed",
+		"ready",
+		"done",
+		"abandoned",
+	];
+	const priorities = ["urgent", "high", "medium", "low", null];
+	const leftState = left.valid ? left.state : "invalid";
+	const rightState = right.valid ? right.state : "invalid";
+	return (
+		states.indexOf(leftState) - states.indexOf(rightState) ||
+		priorities.indexOf(left.priority) - priorities.indexOf(right.priority) ||
+		left.path.localeCompare(right.path)
+	);
 };
 
 const handleFileVersionsRequest = ({
@@ -555,6 +692,55 @@ const handleCommentRequest = async ({
 	return sendJson(response, { error: "not_found" }, 404);
 };
 
+const handleWorkspaceActivity = ({ request, response, url, workspace }) => {
+	if (!hasReadAccess(workspace, request, url)) {
+		return sendJson(response, { error: "invalid_token" }, 403);
+	}
+	return sendJson(response, {
+		items: composeMockActivity(workspace),
+		workspaceId: workspace.id,
+	});
+};
+
+const composeMockActivity = (workspace) => {
+	const items = workspace.events.map((event) => ({
+		actor: event.actor,
+		createdAt: event.createdAt,
+		id: `event:${event.id}`,
+		path: event.path,
+		source: "event",
+		type: event.type,
+		version: event.version,
+	}));
+	for (const comment of workspace.comments) {
+		items.push({
+			actor: comment.authorId,
+			createdAt: comment.createdAt,
+			id: `comment:${comment.id}:created`,
+			path: comment.path,
+			source: "comment",
+			type: "comment.created",
+			version: comment.version,
+		});
+		if (comment.resolvedAt) {
+			items.push({
+				actor: comment.resolvedBy,
+				createdAt: comment.resolvedAt,
+				id: `comment:${comment.id}:resolved`,
+				path: comment.path,
+				source: "comment",
+				type: "comment.resolved",
+				version: comment.version,
+			});
+		}
+	}
+	return items.sort(
+		(left, right) =>
+			right.createdAt.localeCompare(left.createdAt) ||
+			left.id.localeCompare(right.id)
+	);
+};
+
 const handleCapabilityRequest = ({
 	method,
 	parts,
@@ -621,7 +807,59 @@ const createWorkspace = ({ body, origin, workspaceCounter }) => {
 		title: body.title ?? null,
 		writeAccess: body.writeAccess ?? "token",
 	};
-	for (const fileInput of body.files ?? []) {
+	const fileInputs = [...(body.files ?? [])];
+	if (body.protocol?.kind === "ha2ha") {
+		const taskId = String(
+			fileInputs
+				.find((file) => TASK_FILE_PATTERN.test(String(file.path ?? "")))
+				?.content?.match(FRONTMATTER_ID_PATTERN)?.[1] ?? "TASK-001"
+		).trim();
+		fileInputs.push(
+			{
+				content: JSON.stringify(
+					{
+						capabilities: ["raw-read", "file-write"],
+						conflictPolicy: "baseVersion-required",
+						paths: {
+							decisions: "decisions/",
+							evidence: "evidence/",
+							logs: "logs/",
+							manifestMarkdown: "HA2HA.md",
+							participants: "participants/",
+							status: "STATUS.md",
+							tasks: "tasks/",
+							workspaceManifest: ".ha2ha/workspace.json",
+						},
+						protocol: "ha2ha",
+						protocolVersion: "1.0.0",
+						routes: {
+							rawFile: `/w/${id}/raw/{path}`,
+							rawListing: `/w/${id}/raw`,
+						},
+						title: body.title ?? "HA2HA Workspace",
+						workspaceId: id,
+					},
+					null,
+					2
+				),
+				contentType: "application/json; charset=utf-8",
+				path: ".ha2ha/workspace.json",
+			},
+			{
+				content: `# ${body.title ?? "HA2HA Workspace"}\n`,
+				path: "HA2HA.md",
+			},
+			{
+				content: `# Status\n\n- ${taskId} is ready.\n`,
+				path: "STATUS.md",
+			},
+			{
+				content: `---\nid: ${body.actor}\ncan_edit: true\n---\n`,
+				path: `participants/${body.actor}.md`,
+			}
+		);
+	}
+	for (const fileInput of deduplicateFileInputs(fileInputs)) {
 		const file = {
 			content: String(fileInput.content ?? ""),
 			contentType: String(fileInput.contentType ?? DEFAULT_CONTENT_TYPE),
@@ -648,6 +886,16 @@ const createWorkspace = ({ body, origin, workspaceCounter }) => {
 		});
 	}
 	return workspace;
+};
+
+const deduplicateFileInputs = (files) => {
+	const byPath = new Map();
+	for (const file of files) {
+		if (!byPath.has(file.path)) {
+			byPath.set(file.path, file);
+		}
+	}
+	return [...byPath.values()];
 };
 
 const createWorkspaceFromBundle = ({ bundle, origin, workspaceCounter }) => {

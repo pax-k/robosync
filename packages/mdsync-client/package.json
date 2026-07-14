@@ -3,7 +3,18 @@
   "version": "0.1.0",
   "description": "Hosted MDSync product client SDK for workspace, capability, history, comments, admin, and retention routes.",
   "license": "MIT",
-  "homepage": "https://mdsync-ha2ha-pax.pax.workers.dev",
+  "publishConfig": {
+    "access": "public"
+  },
+  "homepage": "https://mdsync-web-pax.pax.workers.dev",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pax-k/robosync.git",
+    "directory": "packages/mdsync-client"
+  },
+  "bugs": {
+    "url": "https://github.com/pax-k/robosync/issues"
+  },
   "type": "module",
   "main": "./dist/index.mjs",
   "types": "./dist/index.d.mts",

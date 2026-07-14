@@ -1,15 +1,10 @@
+import type { WorkspaceActivityItem } from "@mdsync/contracts/workspaces";
+
 export type ActivityTimeFilter = "all" | "hour" | "day" | "week";
 
-export interface WorkspaceEvent {
-	actor: string | null;
-	createdAt: string;
-	id: string;
-	path: string | null;
-	payload: Record<string, unknown>;
-	type: string;
-	version: number | null;
-	workspaceId: string;
-}
+const DECISION_OR_LOG_PATH_PATTERN = /(^|\/)(decision|log)s?[-_.]/iu;
+
+export type WorkspaceEvent = WorkspaceActivityItem;
 
 export interface ActivityFilters {
 	actor: string;
@@ -38,6 +33,168 @@ export interface RestoreDraftInput {
 	historicalContent: string;
 	path: string;
 	restoreActor: string;
+}
+
+export type FileGroupName =
+	| "Overview"
+	| "Tasks"
+	| "Evidence"
+	| "Decisions and logs"
+	| "Other";
+
+export interface GroupableFile {
+	path: string;
+}
+
+export interface FocusAction {
+	description: string;
+	kind: "active" | "blocked" | "clear" | "invalid" | "ready" | "review";
+	path: string | null;
+	title: string;
+}
+
+export interface FocusOverview {
+	comments: { unresolved: number };
+	tasks: {
+		items: Array<{
+			path: string;
+			state: string | null;
+			title: string | null;
+			valid: boolean;
+		}>;
+	};
+}
+
+export function resolveConflictState({
+	choice,
+	localContent,
+	remoteContent,
+	remoteVersion,
+}: {
+	choice: "edit-merged" | "use-latest";
+	localContent: string;
+	remoteContent: string;
+	remoteVersion: number;
+}) {
+	return {
+		baseVersion: remoteVersion,
+		content: choice === "use-latest" ? remoteContent : localContent,
+		mode: choice === "use-latest" ? "preview" : "edit",
+	} as const;
+}
+
+const FILE_GROUP_ORDER: FileGroupName[] = [
+	"Overview",
+	"Tasks",
+	"Evidence",
+	"Decisions and logs",
+	"Other",
+];
+
+export function groupWorkspaceFiles<File extends GroupableFile>(files: File[]) {
+	const groups = new Map<FileGroupName, File[]>(
+		FILE_GROUP_ORDER.map((name) => [name, []])
+	);
+	for (const file of files) {
+		groups.get(fileGroupForPath(file.path))?.push(file);
+	}
+	return FILE_GROUP_ORDER.map((name) => ({
+		files: groups.get(name) ?? [],
+		name,
+	})).filter((group) => group.files.length > 0);
+}
+
+export function focusActionForOverview(overview: FocusOverview): FocusAction {
+	const invalid = overview.tasks.items.find((task) => !task.valid);
+	if (invalid) {
+		return {
+			description:
+				"Repair its frontmatter so the workspace can track it safely.",
+			kind: "invalid",
+			path: invalid.path,
+			title: `Fix ${invalid.title ?? invalid.path}`,
+		};
+	}
+	const blocked = overview.tasks.items.find((task) => task.state === "blocked");
+	if (blocked) {
+		return {
+			description: "Remove the blocker or record the next handoff.",
+			kind: "blocked",
+			path: blocked.path,
+			title: `Unblock ${blocked.title ?? blocked.path}`,
+		};
+	}
+	const review = overview.tasks.items.find((task) => task.state === "review");
+	if (review || overview.comments.unresolved > 0) {
+		return {
+			description: review
+				? "Review the result and resolve its open feedback."
+				: `Resolve ${overview.comments.unresolved} open comment${overview.comments.unresolved === 1 ? "" : "s"}.`,
+			kind: "review",
+			path: review?.path ?? null,
+			title: review
+				? `Review ${review.title ?? review.path}`
+				: "Review feedback",
+		};
+	}
+	const active = overview.tasks.items.find(
+		(task) => task.state === "working" || task.state === "claimed"
+	);
+	if (active) {
+		return {
+			description: "Continue from the latest durable workspace state.",
+			kind: "active",
+			path: active.path,
+			title: `Continue ${active.title ?? active.path}`,
+		};
+	}
+	const ready = overview.tasks.items.find((task) => task.state === "ready");
+	if (ready) {
+		return {
+			description: "Claim the next ready task and record progress in Markdown.",
+			kind: "ready",
+			path: ready.path,
+			title: `Start ${ready.title ?? ready.path}`,
+		};
+	}
+	return {
+		description: "There are no blocked, active, review, or ready tasks.",
+		kind: "clear",
+		path: null,
+		title: "Workspace clear",
+	};
+}
+
+export function activityLabel(type: string) {
+	const labels: Record<string, string> = {
+		"comment.created": "Added a comment",
+		"comment.resolved": "Resolved a comment",
+		"file.created": "Created a file",
+		"file.deleted": "Deleted a file",
+		"file.updated": "Updated a file",
+		"workspace.created": "Created the workspace",
+	};
+	return labels[type] ?? type.replaceAll(".", " ").replaceAll("_", " ");
+}
+
+function fileGroupForPath(path: string): FileGroupName {
+	if (path === "README.md" || path === "STATUS.md" || path === "HA2HA.md") {
+		return "Overview";
+	}
+	if (path.startsWith("tasks/")) {
+		return "Tasks";
+	}
+	if (path.startsWith("evidence/")) {
+		return "Evidence";
+	}
+	if (
+		path.startsWith("decisions/") ||
+		path.startsWith("logs/") ||
+		DECISION_OR_LOG_PATH_PATTERN.test(path)
+	) {
+		return "Decisions and logs";
+	}
+	return "Other";
 }
 
 const ONE_HOUR_MS = 60 * 60 * 1000;

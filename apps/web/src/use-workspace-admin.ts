@@ -12,6 +12,7 @@ import {
 	loadWorkspaceRetentionPolicy,
 	responseMessage,
 } from "./api/workspaces";
+import { useConfirmation } from "./confirmation";
 import type {
 	CapabilityKind,
 	CapabilityLinks,
@@ -42,6 +43,7 @@ export function useWorkspaceAdmin({
 	tokenQuery: string;
 	workspaceId: string;
 }) {
+	const confirm = useConfirmation();
 	const [adminStats, setAdminStats] = useState<WorkspaceAdminStats | null>(
 		null
 	);
@@ -98,8 +100,18 @@ export function useWorkspaceAdmin({
 	);
 
 	const rotateCapability = useCallback(
+		// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Confirmation, rotation, and current-session replacement form one capability transition.
 		async (capability: CapabilityKind) => {
 			if (!editToken) {
+				return;
+			}
+			const confirmed = await confirm({
+				confirmLabel: `Create ${capability} link`,
+				description: `The old ${capability} link will stop working immediately.`,
+				destructive: true,
+				title: `Create a new ${capability} link?`,
+			});
+			if (!confirmed) {
 				return;
 			}
 
@@ -145,12 +157,29 @@ export function useWorkspaceAdmin({
 				setBusy(false);
 			}
 		},
-		[apiBaseUrl, editToken, setBusy, setEditToken, setError, workspaceId]
+		[
+			apiBaseUrl,
+			confirm,
+			editToken,
+			setBusy,
+			setEditToken,
+			setError,
+			workspaceId,
+		]
 	);
 
 	const revokeCapability = useCallback(
 		async (capability: CapabilityKind) => {
 			if (!editToken) {
+				return;
+			}
+			const confirmed = await confirm({
+				confirmLabel: `Revoke ${capability} link`,
+				description: `The current ${capability} capability will stop working immediately.`,
+				destructive: true,
+				title: `Revoke the ${capability} link?`,
+			});
+			if (!confirmed) {
 				return;
 			}
 
@@ -194,6 +223,7 @@ export function useWorkspaceAdmin({
 		},
 		[
 			apiBaseUrl,
+			confirm,
 			editToken,
 			setBusy,
 			setEditToken,

@@ -1,0 +1,20 @@
+title = "MDSync public repository secret scanning"
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Intentional validator fixture for the v3 secret-leak rule"
+targetRules = ["generic-api-key"]
+condition = "AND"
+regexTarget = "line"
+regexes = ['''v3SecretLeak\s*:''']
+paths = ['''packages/ha2ha-protocol/src/validator-types\.ts''']
+
+[[allowlists]]
+description = "Intentional invalid participant fixture for secret-leak validation"
+targetRules = ["generic-api-key"]
+condition = "AND"
+regexTarget = "line"
+regexes = ['''raw_token\s*:''']
+paths = ['''packages/ha2ha-protocol/examples/invalid/v3-secret-leak/participants/agent\.md''']

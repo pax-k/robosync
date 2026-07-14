@@ -95,11 +95,15 @@ function MarkdownEditor({
 						<BoldItalicUnderlineToggles />
 						<ListsToggle />
 						<CreateLink />
-						<Separator />
-						<InsertTable />
-						<InsertCodeBlock />
-						<InsertFrontmatter />
-						<InsertThematicBreak />
+						<details className="editor-more-menu">
+							<summary>More</summary>
+							<div>
+								<InsertTable />
+								<InsertCodeBlock />
+								<InsertFrontmatter />
+								<InsertThematicBreak />
+							</div>
+						</details>
 					</DiffSourceToggleWrapper>
 				),
 			}),

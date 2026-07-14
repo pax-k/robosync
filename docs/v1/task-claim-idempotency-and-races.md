@@ -20,7 +20,7 @@ The v1 authority chain is:
   merge.
 - [schemas-and-validation.md](schemas-and-validation.md): minimal claim
   metadata is validated for examples and operation files.
-- [skills/core-ha2ha-agent-alpha/SKILL.md](skills/core-ha2ha-agent-alpha/SKILL.md):
+- [Historical core HA2HA agent alpha](skills/core-ha2ha-agent-alpha/REFERENCE.md):
   agent workflows read the target file immediately before writing, retry at
   most once after a conflict, and stop on repeated conflict.
 

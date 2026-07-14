@@ -1,5 +1,10 @@
 import type { z } from "zod";
 import type {
+	workspaceActivityItemSchema,
+	workspaceActivityResponseSchema,
+	workspaceActivitySourceSchema,
+} from "./activity";
+import type {
 	workspaceAdminEventSchema,
 	workspaceAdminStatsSchema,
 	workspaceNamedCountSchema,
@@ -22,6 +27,7 @@ import type {
 	workspaceCommentsResponseSchema,
 } from "./comments";
 import type { workspaceVersionConflictResponseSchema } from "./conflicts";
+import type { mdsyncDiscoveryResponseSchema } from "./discovery";
 import type {
 	workspaceEventSchema,
 	workspaceEventsResponseSchema,
@@ -46,12 +52,23 @@ import type {
 	workspaceExportBundleSchema,
 } from "./import-export";
 import type {
+	workspaceOverviewResponseSchema,
+	workspaceOverviewTaskStateSchema,
+} from "./overview";
+import type {
 	workspaceRetentionPolicyResponseSchema,
 	workspaceRetentionPruneRequestSchema,
 	workspaceRetentionPruneResponseSchema,
 } from "./retention";
 
 export type WorkspaceReadAccess = z.infer<typeof workspaceReadAccessSchema>;
+export type WorkspaceActivitySource = z.infer<
+	typeof workspaceActivitySourceSchema
+>;
+export type WorkspaceActivityItem = z.infer<typeof workspaceActivityItemSchema>;
+export type WorkspaceActivityResponse = z.infer<
+	typeof workspaceActivityResponseSchema
+>;
 export type WorkspaceWriteAccess = z.infer<typeof workspaceWriteAccessSchema>;
 export type WorkspaceCapabilityKind = z.infer<
 	typeof workspaceCapabilityKindSchema
@@ -129,4 +146,13 @@ export type WorkspaceRetentionPruneResponse = z.infer<
 >;
 export type WorkspaceVersionConflictResponse = z.infer<
 	typeof workspaceVersionConflictResponseSchema
+>;
+export type MdsyncDiscoveryResponse = z.infer<
+	typeof mdsyncDiscoveryResponseSchema
+>;
+export type WorkspaceOverviewResponse = z.infer<
+	typeof workspaceOverviewResponseSchema
+>;
+export type WorkspaceOverviewTaskState = z.infer<
+	typeof workspaceOverviewTaskStateSchema
 >;

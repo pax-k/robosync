@@ -14,11 +14,14 @@
     "test:unit": "pnpm run test:scripts && turbo run test --filter='./packages/*' --filter='./apps/*'",
     "test:ha2ha-packages": "node scripts/ha2ha-package-smoke.mjs && node scripts/ha2ha-skill-package-smoke.mjs && node scripts/ha2ha-client-package-smoke.mjs",
     "test:mdsync-packages": "node scripts/mdsync-client-package-smoke.mjs && node scripts/mdsync-skill-package-smoke.mjs",
+    "test:public-skills": "node --test scripts/public-skills.test.mjs",
+    "test:mdsync-handoff": "node scripts/mdsync-url-handoff-smoke.mjs",
+    "test:mdsync-codex-dogfood": "node scripts/mdsync-codex-dogfood.mjs",
     "test:integration": "turbo run test:integration --filter='@mdsync/db' --filter='@ha2ha/http'",
     "test:e2e": "playwright test",
     "test:scripts": "tsx --test scripts/*.test.mjs scripts/**/*.test.mjs",
     "dev:web": "pnpm --filter web run dev:bare",
-    "dev:server": "turbo run dev -F server",
+    "dev:server": "ROBOSYNC_SERVER_ONLY=1 ROBOSYNC_DEV_SERVER_PORT=3200 WEB_ORIGIN=http://127.0.0.1:3200 pnpm --filter @mdsync/infra run dev",
     "db:generate": "turbo run db:generate -F @mdsync/db",
     "deploy": "turbo run deploy -F @mdsync/infra",
     "deploy:server": "pnpm --filter @mdsync/infra run deploy:server",
@@ -32,6 +35,7 @@
     "zod": "catalog:"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.12.1",
     "@biomejs/biome": "2.5.2",
     "@cloudflare/workers-types": "catalog:",
     "@mdsync/config": "workspace:*",

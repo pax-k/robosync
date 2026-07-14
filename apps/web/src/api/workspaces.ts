@@ -2,21 +2,23 @@ import {
 	historicalWorkspaceFileResponseSchema,
 	type ImportedWorkspaceResponse,
 	importedWorkspaceResponseSchema,
+	type WorkspaceActivityResponse,
 	type WorkspaceAdminStats,
 	type WorkspaceCapabilitiesResponse,
 	type WorkspaceCommentsResponse,
-	type WorkspaceEventsResponse,
 	type WorkspaceExportBundle,
 	type WorkspaceFileResponse,
 	type WorkspaceFileVersionsResponse,
+	type WorkspaceOverviewResponse,
 	type WorkspaceRetentionPolicyResponse,
+	workspaceActivityResponseSchema,
 	workspaceAdminStatsSchema,
 	workspaceCapabilitiesResponseSchema,
 	workspaceCommentsResponseSchema,
-	workspaceEventsResponseSchema,
 	workspaceExportBundleSchema,
 	workspaceFileResponseSchema,
 	workspaceFileVersionsResponseSchema,
+	workspaceOverviewResponseSchema,
 	workspaceRetentionPolicyResponseSchema,
 } from "@mdsync/contracts/workspaces";
 import type { z } from "zod";
@@ -46,16 +48,29 @@ export function loadWorkspaceFile({
 	});
 }
 
-export function loadWorkspaceEventsPayload({
+export function loadWorkspaceActivityPayload({
 	apiBaseUrl,
 	signal,
 	tokenQuery,
 	workspaceId,
-}: WorkspaceRequestInput): Promise<WorkspaceEventsResponse> {
+}: WorkspaceRequestInput): Promise<WorkspaceActivityResponse> {
 	return requestWorkspaceJson({
-		schema: workspaceEventsResponseSchema,
+		schema: workspaceActivityResponseSchema,
 		signal,
-		url: `${apiBaseUrl}/api/workspaces/${workspaceId}/events${tokenQuery}`,
+		url: `${apiBaseUrl}/api/workspaces/${workspaceId}/activity${tokenQuery}`,
+	});
+}
+
+export function loadWorkspaceOverview({
+	apiBaseUrl,
+	signal,
+	tokenQuery,
+	workspaceId,
+}: WorkspaceRequestInput): Promise<WorkspaceOverviewResponse> {
+	return requestWorkspaceJson({
+		schema: workspaceOverviewResponseSchema,
+		signal,
+		url: `${apiBaseUrl}/api/workspaces/${workspaceId}/overview${tokenQuery}`,
 	});
 }
 

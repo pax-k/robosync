@@ -10,7 +10,7 @@ acceptance:
   - Control panel starts as a read-mostly operational surface.
   - UX exposes workspace inventory, boards, agent inbox state, health, recent activity, conflicts, unresolved comments, task state, storage, retention, service accounts, and integrations.
   - Mutating controls are explicitly gated behind team roles and audit-event requirements.
-  - Workspace drilldown preserves the existing workspace UI and admin panel.
+  - Workspace drilldown preserves stable workspace routes, capability contracts, addressable inspectors, optimistic concurrency, and user-visible behavior without freezing the exact v2 UI.
 evidence: []
 ---
 
@@ -32,6 +32,17 @@ many workspaces.
 - Design service-account and integration status sections.
 - Define which actions are read-only in v4.0.
 - Define which future actions require audit events and stronger policy checks.
+- Reuse the V2-011 shell and information architecture where they fit the team
+  context, while allowing the visual composition to evolve.
+
+## Compatibility Boundary
+
+The team control panel must preserve stable workspace routes, `k` and `edit`
+capability behavior, comments/history deep links, optimistic conflict handling,
+read-versus-edit authorization, and the V2-012 URL discovery/bootstrap contract.
+It may redesign navigation, cards, density, or the admin composition; V2-011
+and V2-012 are behavioral foundations rather than pixel-level compatibility
+promises.
 
 ## Out Of Scope
 

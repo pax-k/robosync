@@ -2,7 +2,12 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { createMdsyncMockServer } from "../../../scripts/lib/mdsync-mock-server.mjs";
-import { createMdsyncClient } from "./index";
+import {
+	createMdsyncClient,
+	createMdsyncClientFromUrl,
+	parseMdsyncWorkspaceUrl,
+	validateMdsyncHa2haManifest,
+} from "./index";
 
 const EDIT_TOKEN_QUERY_PATTERN = /edit=edit-token/u;
 const RAW_URL_FIELD_PATTERN = /rawUrl/u;
@@ -19,6 +24,157 @@ const TASK_CONTENT = [
 	"# Smoke task",
 	"",
 ].join("\n");
+
+test("workspace URL parsing accepts product routes and rejects unsafe capabilities", () => {
+	for (const [url, route, filePath] of [
+		["https://app.example.com/w/workspace-1?k=read", "overview", null],
+		["https://app.example.com/w/workspace-1/work?edit=write", "work", null],
+		[
+			"https://app.example.com/w/workspace-1/files/tasks%2FTASK-001.md?edit=write",
+			"files",
+			"tasks/TASK-001.md",
+		],
+		[
+			"https://api.example.com/w/workspace-1/raw/STATUS.md?k=read",
+			"raw",
+			"STATUS.md",
+		],
+		["https://app.example.com/w/workspace-1/activity", "activity", null],
+		["https://app.example.com/w/workspace-1/settings", "settings", null],
+	] as const) {
+		const parsed = parseMdsyncWorkspaceUrl(url);
+		assert.equal(parsed.ok, true, JSON.stringify(parsed, null, 2));
+		if (parsed.ok) {
+			assert.equal(parsed.data.route, route);
+			assert.equal(parsed.data.filePath, filePath);
+		}
+	}
+
+	for (const url of [
+		"http://app.example.com/w/workspace-1?edit=secret",
+		"https://user:password@app.example.com/w/workspace-1",
+		"https://app.example.com/w/workspace-1?edit=secret&k=read-secret",
+		"https://app.example.com/w/workspace-1?edit=one&edit=two",
+		"https://app.example.com/not-a-workspace?edit=secret",
+	]) {
+		const parsed = parseMdsyncWorkspaceUrl(url);
+		assert.equal(parsed.ok, false);
+		if (!parsed.ok) {
+			assert.equal(parsed.error.message.includes("secret"), false);
+			assert.equal(parsed.error.message.includes("password"), false);
+		}
+	}
+});
+
+test("URL bootstrap connects viewer and collaborator agents through discovery", async (t) => {
+	const server = createMdsyncMockServer();
+	const { baseUrl } = await server.start();
+	t.after(async () => {
+		await server.close();
+	});
+	const setup = createMdsyncClient({ apiOrigin: baseUrl });
+	const created = await setup.createHa2haWorkspace({
+		actor: "agent-a",
+		files: [{ content: TASK_CONTENT, path: "tasks/SMOKE-001.md" }],
+		title: "URL handoff",
+	});
+	assert.equal(created.ok, true, JSON.stringify(created, null, 2));
+	if (!(created.ok && created.data.editUrl)) {
+		return;
+	}
+
+	const viewer = await createMdsyncClientFromUrl({
+		actor: "reviewer",
+		url: created.data.workspaceUrl,
+	});
+	assert.equal(viewer.ok, true, JSON.stringify(viewer, null, 2));
+	if (viewer.ok) {
+		assert.equal(viewer.data.access, "read");
+		assert.equal((await viewer.data.client.getOverview()).ok, true);
+		assert.equal(viewer.data.client.createHa2haClient().ok, false);
+	}
+
+	const collaborator = await createMdsyncClientFromUrl({
+		actor: "agent-b",
+		url: created.data.editUrl,
+	});
+	assert.equal(collaborator.ok, true, JSON.stringify(collaborator, null, 2));
+	if (!collaborator.ok) {
+		return;
+	}
+	assert.equal(collaborator.data.access, "edit");
+	const manifest = await collaborator.data.client.readFile(
+		".ha2ha/workspace.json"
+	);
+	assert.equal(manifest.ok, true, JSON.stringify(manifest, null, 2));
+	if (manifest.ok) {
+		const validated = validateMdsyncHa2haManifest({
+			content: manifest.data.content,
+			workspaceId: collaborator.data.workspaceId,
+		});
+		assert.equal(validated.ok, true, JSON.stringify(validated, null, 2));
+		assert.equal(
+			validateMdsyncHa2haManifest({
+				content: manifest.data.content,
+				workspaceId: "another-workspace",
+			}).ok,
+			false
+		);
+	}
+	const ha2ha = collaborator.data.client.createHa2haClient();
+	assert.equal(ha2ha.ok, true, JSON.stringify(ha2ha, null, 2));
+	if (!ha2ha.ok) {
+		return;
+	}
+	assert.equal((await ha2ha.data.claimTask({ taskId: "SMOKE-001" })).ok, true);
+	assert.equal(
+		(
+			await ha2ha.data.addEvidence({
+				body: "Agent B joined from the collaborator URL.",
+				kind: "url-handoff",
+				result: "pass",
+				taskId: "SMOKE-001",
+			})
+		).ok,
+		true
+	);
+});
+
+test("URL bootstrap validates discovery origin and link builders split web and API origins", async () => {
+	const client = createMdsyncClient({
+		apiOrigin: "https://api.example.com/",
+		auth: { kind: "edit-token", token: "edit-token" },
+		webOrigin: "https://app.example.com/",
+		workspaceId: "workspace-1",
+	});
+	const workspaceUrl = client.workspaceUrl();
+	const rawUrl = client.rawUrl();
+	assert.equal(
+		workspaceUrl.ok && new URL(workspaceUrl.data).origin,
+		"https://app.example.com"
+	);
+	assert.equal(
+		rawUrl.ok && new URL(rawUrl.data).origin,
+		"https://api.example.com"
+	);
+
+	const joined = await createMdsyncClientFromUrl({
+		actor: "agent-a",
+		fetch: async () =>
+			Response.json({
+				apiOrigin: "https://api.example.com",
+				discoveryVersion: 1,
+				product: "mdsync",
+				webOrigin: "https://different.example.com",
+			}),
+		url: "https://app.example.com/w/workspace-1?edit=do-not-leak",
+	});
+	assert.equal(joined.ok, false);
+	if (!joined.ok) {
+		assert.equal(joined.error.code, "validation_error");
+		assert.equal(joined.error.message.includes("do-not-leak"), false);
+	}
+});
 
 test("hosted client covers product routes and HA2HA bridge", async (t) => {
 	const server = createMdsyncMockServer();
@@ -64,6 +220,12 @@ test("hosted client covers product routes and HA2HA bridge", async (t) => {
 			"STATUS.md",
 			"tasks/SMOKE-001.md",
 		]);
+	}
+	const overview = await readClient.getOverview();
+	assert.equal(overview.ok, true, JSON.stringify(overview, null, 2));
+	if (overview.ok) {
+		assert.equal(overview.data.tasks.items[0]?.id, "SMOKE-001");
+		assert.equal(overview.data.workspaceId, created.data.id);
 	}
 	assert.equal(readClient.createHa2haClient().ok, false);
 
@@ -154,6 +316,18 @@ test("hosted client covers product routes and HA2HA bridge", async (t) => {
 	if (events.ok) {
 		assert.equal(events.data.events.length >= 3, true);
 	}
+	const activity = await client.listActivity();
+	assert.equal(activity.ok, true, JSON.stringify(activity, null, 2));
+	if (activity.ok) {
+		assert.equal(
+			activity.data.items.some((item) => item.type === "comment.created"),
+			true
+		);
+		assert.equal(
+			activity.data.items.some((item) => item.type === "comment.resolved"),
+			true
+		);
+	}
 	assert.equal((await client.getCapabilities()).ok, true);
 	assert.equal((await client.rotateCapability("read")).ok, true);
 	assert.equal((await client.getAdminStats()).ok, true);
@@ -218,6 +392,35 @@ test("hosted client returns validation_error for malformed success payloads", as
 	}
 });
 
+test("listActivity rejects malformed product activity payloads", async () => {
+	const client = createMdsyncClient({
+		apiOrigin: "https://api.test",
+		fetch: async () =>
+			Response.json({
+				items: [
+					{
+						actor: null,
+						body: "must not be accepted",
+						createdAt: "2026-07-14T10:00:00.000Z",
+						id: "comment:1:created",
+						path: "README.md",
+						source: "comment",
+						type: "comment.created",
+						version: 1,
+					},
+				],
+				workspaceId: "workspace-1",
+			}),
+		workspaceId: "workspace-1",
+	});
+
+	const activity = await client.listActivity();
+	assert.equal(activity.ok, false);
+	if (!activity.ok) {
+		assert.equal(activity.error.code, "validation_error");
+	}
+});
+
 test("read token clients reject edit operations before issuing requests", async () => {
 	let called = false;
 	const client = createMdsyncClient({
@@ -237,4 +440,58 @@ test("read token clients reject edit operations before issuing requests", async 
 	}
 	assert.equal(client.createHa2haClient().ok, false);
 	assert.equal(called, false);
+});
+
+test("manifest validation requires exact MDSync HA2HA policy and version", () => {
+	const manifest = {
+		capabilities: ["raw-read", "file-write"],
+		conflictPolicy: "baseVersion-required",
+		paths: {
+			decisions: "decisions/",
+			evidence: "evidence/",
+			logs: "logs/",
+			manifestMarkdown: "HA2HA.md",
+			participants: "participants/",
+			status: "STATUS.md",
+			tasks: "tasks/",
+			workspaceManifest: ".ha2ha/workspace.json",
+		},
+		protocol: "ha2ha",
+		protocolVersion: "1.0.0",
+		routes: {
+			rawFile: "/w/workspace-1/raw/{path}",
+			rawListing: "/w/workspace-1/raw",
+		},
+		title: "Manifest test",
+		workspaceId: "workspace-1",
+	};
+
+	assert.equal(
+		validateMdsyncHa2haManifest({
+			content: JSON.stringify(manifest),
+			workspaceId: "workspace-1",
+		}).ok,
+		true
+	);
+	for (const invalidManifest of [
+		{ ...manifest, conflictPolicy: "last-write-wins" },
+		{ ...manifest, protocolVersion: "2.0.0" },
+		{ ...manifest, workspaceId: "workspace-2" },
+	]) {
+		const result = validateMdsyncHa2haManifest({
+			content: JSON.stringify(invalidManifest),
+			workspaceId: "workspace-1",
+		});
+		assert.equal(result.ok, false);
+		if (!result.ok) {
+			assert.equal(result.error.code, "validation_error");
+		}
+	}
+	assert.equal(
+		validateMdsyncHa2haManifest({
+			content: "not-json",
+			workspaceId: "workspace-1",
+		}).ok,
+		false
+	);
 });

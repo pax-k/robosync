@@ -22,6 +22,8 @@
       "!**/.expo",
       "!**/.wrangler",
       "!**/.alchemy",
+      "!test-results",
+      "!playwright-report",
       "!**/.svelte-kit",
       "!**/wrangler.jsonc",
       "!**/.source",

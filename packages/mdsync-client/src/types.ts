@@ -1,8 +1,13 @@
 import type { Ha2haClient } from "@ha2ha/client";
+import type {
+	WorkspaceActivityResponse,
+	WorkspaceOverviewResponse,
+} from "@mdsync/contracts/workspaces";
 
 export type MdsyncClientErrorCode =
 	| "comment_anchor_not_found"
 	| "comment_not_found"
+	| "discovery_unconfigured"
 	| "file_not_found"
 	| "invalid_request"
 	| "invalid_retention_cutoff"
@@ -38,6 +43,7 @@ export interface CreateMdsyncClientOptions {
 	apiOrigin: string;
 	auth?: MdsyncAuth;
 	fetch?: typeof fetch;
+	webOrigin?: string;
 	workspaceId?: string;
 }
 
@@ -50,9 +56,15 @@ export interface MdsyncWorkspaceFileInput {
 export interface CreateWorkspaceInput {
 	actor?: string;
 	files: MdsyncWorkspaceFileInput[];
+	protocol?: { kind: "ha2ha"; version: "1.0.0" };
 	readAccess?: "public" | "token";
 	title?: string;
 	writeAccess?: "none" | "public" | "token";
+}
+
+export interface CreateHa2haWorkspaceInput
+	extends Omit<CreateWorkspaceInput, "actor" | "protocol"> {
+	actor: string;
 }
 
 export interface MdsyncCreatedWorkspace {
@@ -215,6 +227,9 @@ export interface MdsyncAdminStats {
 	[key: string]: unknown;
 }
 
+export type MdsyncWorkspaceOverview = WorkspaceOverviewResponse;
+export type MdsyncWorkspaceActivity = WorkspaceActivityResponse;
+
 export interface MdsyncAdminEvent {
 	actor: string | null;
 	createdAt?: string;
@@ -302,6 +317,37 @@ export interface MdsyncLinkInput {
 	workspaceId?: string;
 }
 
+export type MdsyncWorkspaceAccess = "edit" | "public" | "read";
+export type MdsyncWorkspaceRouteKind =
+	| "activity"
+	| "files"
+	| "overview"
+	| "raw"
+	| "settings"
+	| "work";
+
+export interface ParsedMdsyncWorkspaceUrl {
+	auth: MdsyncAuth;
+	filePath: string | null;
+	origin: string;
+	route: MdsyncWorkspaceRouteKind;
+	workspaceId: string;
+}
+
+export interface CreateMdsyncClientFromUrlInput {
+	actor: string;
+	fetch?: typeof fetch;
+	url: string;
+}
+
+export interface MdsyncWorkspaceConnection {
+	access: MdsyncWorkspaceAccess;
+	apiOrigin: string;
+	client: MdsyncClient;
+	webOrigin: string;
+	workspaceId: string;
+}
+
 export interface CreateHostedHa2haClientInput {
 	actor?: string;
 	workspaceId?: string;
@@ -314,6 +360,9 @@ export interface MdsyncClient {
 	createHa2haClient: (
 		input?: CreateHostedHa2haClientInput
 	) => MdsyncResult<Ha2haClient>;
+	createHa2haWorkspace: (
+		input: CreateHa2haWorkspaceInput
+	) => Promise<MdsyncResult<MdsyncCreatedWorkspace>>;
 	createWorkspace: (
 		input: CreateWorkspaceInput
 	) => Promise<MdsyncResult<MdsyncCreatedWorkspace>>;
@@ -324,11 +373,13 @@ export interface MdsyncClient {
 	exportWorkspace: () => Promise<MdsyncResult<MdsyncWorkspaceExportBundle>>;
 	getAdminStats: () => Promise<MdsyncResult<MdsyncAdminStats>>;
 	getCapabilities: () => Promise<MdsyncResult<MdsyncCapabilityPayload>>;
+	getOverview: () => Promise<MdsyncResult<MdsyncWorkspaceOverview>>;
 	getRetention: () => Promise<MdsyncResult<MdsyncRetentionPolicy>>;
 	getWorkspace: () => Promise<MdsyncResult<MdsyncWorkspace>>;
 	importWorkspace: (
 		bundle: MdsyncWorkspaceExportBundle
 	) => Promise<MdsyncResult<MdsyncImportedWorkspace>>;
+	listActivity: () => Promise<MdsyncResult<MdsyncWorkspaceActivity>>;
 	listComments: (
 		input?: ListCommentsInput
 	) => Promise<

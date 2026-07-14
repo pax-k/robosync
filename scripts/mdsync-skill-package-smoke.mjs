@@ -39,21 +39,33 @@ const main = async () => {
 
 		await writeFile(
 			path.join(projectDir, "package.json"),
-			JSON.stringify({ private: true, type: "module" }, null, 2)
+			JSON.stringify(
+				{
+					dependencies: { "@mdsync/skills": `file:${mdsyncSkillsTarball}` },
+					packageManager: "pnpm@10.32.1",
+					pnpm: {
+						overrides: {
+							"@ha2ha/client": `file:${ha2haClientTarball}`,
+							"@ha2ha/protocol": `file:${protocolTarball}`,
+							"@ha2ha/skills": `file:${ha2haSkillsTarball}`,
+							"@mdsync/client": `file:${mdsyncClientTarball}`,
+							"@mdsync/contracts": `file:${contractsTarball}`,
+						},
+					},
+					private: true,
+					type: "module",
+				},
+				null,
+				2
+			)
 		);
 		await run(
-			"npm",
+			"pnpm",
 			[
 				"install",
 				"--ignore-scripts",
-				"--no-audit",
-				"--no-fund",
-				contractsTarball,
-				protocolTarball,
-				ha2haClientTarball,
-				ha2haSkillsTarball,
-				mdsyncClientTarball,
-				mdsyncSkillsTarball,
+				"--config.auto-install-peers=false",
+				"--config.node-linker=isolated",
 			],
 			{ cwd: projectDir }
 		);
@@ -74,18 +86,70 @@ const main = async () => {
 		assertNoTokenLikeSecrets(installedSkill);
 		assertIncludes(
 			installedSkill,
-			"@mdsync/client",
-			"MDSync client dependency"
+			"@mdsync/skills/runtime",
+			"MDSync runtime adapter"
 		);
 		assertIncludes(installedSkill, "MDSync product scope", "product boundary");
 		assertIncludes(installedSkill, "baseVersion", "baseVersion guidance");
 		assertIncludes(installedSkill, "version_conflict", "conflict guidance");
 		assertIncludes(
 			installedSkill,
+			"createHa2haWorkspace()",
+			"conformant publish workflow"
+		);
+		assertIncludes(
+			installedSkill,
+			"createMdsyncClientFromUrl()",
+			"URL-only join workflow"
+		);
+		assertIncludes(installedSkill, "Viewer URL", "viewer handoff label");
+		assertIncludes(
+			installedSkill,
+			"Collaborator URL",
+			"collaborator handoff label"
+		);
+		assertIncludes(
+			installedSkill,
 			"secret-redaction",
 			"secret redaction guidance"
 		);
 		assertIncludes(installedSkill, "edit token", "edit token guidance");
+		const installedHandoffReference = await readFile(
+			path.join(
+				projectDir,
+				"node_modules",
+				"@mdsync",
+				"skills",
+				"skills",
+				"mdsync",
+				"references",
+				"url-handoff.md"
+			),
+			"utf8"
+		);
+		assertNoRepoLocalPaths(installedHandoffReference);
+		assertNoTokenLikeSecrets(installedHandoffReference);
+		assertIncludes(
+			installedHandoffReference,
+			"HTTP Fallback",
+			"HTTP fallback workflow"
+		);
+		assertIncludes(
+			installedHandoffReference,
+			"baseVersion-required",
+			"exact conflict policy"
+		);
+		await readFile(
+			path.join(
+				projectDir,
+				"node_modules",
+				"@mdsync",
+				"skills",
+				"dist",
+				"runtime.mjs"
+			),
+			"utf8"
+		);
 
 		const { baseUrl } = await server.start();
 		await run(
@@ -94,24 +158,51 @@ const main = async () => {
 				"--input-type=module",
 				"--eval",
 				[
-					"import { createMdsyncClient } from '@mdsync/client';",
+					"import { createMdsyncClient, createMdsyncClientFromUrl, validateMdsyncHa2haManifest } from '@mdsync/skills/runtime';",
 					"const setup = createMdsyncClient({ apiOrigin: process.env.MDSYNC_BASE_URL, actor: 'agent-context-a' });",
 					"const taskContent = ['---', 'id: SKILL-001', 'title: Skill smoke', 'state: ready', 'owner: null', 'updated_by: agent-context-a', 'evidence: []', '---', '', '# Skill smoke', ''].join('\\n');",
-					"const created = await setup.createWorkspace({ title: 'MDSync skill smoke', files: [{ path: 'STATUS.md', content: '# Status\\n' }, { path: 'tasks/SKILL-001.md', content: taskContent }] });",
+					"const created = await setup.createHa2haWorkspace({ actor: 'agent-context-a', title: 'MDSync skill smoke', files: [{ path: 'tasks/SKILL-001.md', content: taskContent }] });",
 					"if (!created.ok) throw new Error(JSON.stringify(created));",
-					"const editToken = new URL(created.data.editUrl).searchParams.get('edit');",
-					"if (!editToken) throw new Error('Missing edit token.');",
-					"const client = createMdsyncClient({ apiOrigin: process.env.MDSYNC_BASE_URL, workspaceId: created.data.id, actor: 'agent-context-a', auth: { kind: 'edit-token', token: editToken } });",
-					"const capabilities = await client.getCapabilities();",
-					"if (!capabilities.ok) throw new Error(JSON.stringify(capabilities));",
-					"const comment = await client.createComment({ path: 'STATUS.md', version: 1, body: 'Human-visible product comment.' });",
-					"if (!comment.ok) throw new Error(JSON.stringify(comment));",
+					"if (!(created.data.workspaceUrl && created.data.editUrl)) throw new Error('Missing handoff links.');",
+					"const viewer = await createMdsyncClientFromUrl({ actor: 'coworker-viewer', url: created.data.workspaceUrl });",
+					"if (!viewer.ok || viewer.data.access !== 'read') throw new Error(JSON.stringify(viewer));",
+					"const viewerRead = await viewer.data.client.readFile('HA2HA.md');",
+					"if (!viewerRead.ok) throw new Error(JSON.stringify(viewerRead));",
+					"const viewerWrite = await viewer.data.client.writeFile({ path: 'STATUS.md', baseVersion: 1, content: '# denied\\n' });",
+					"if (viewerWrite.ok || viewerWrite.error.code !== 'missing_token') throw new Error(JSON.stringify(viewerWrite));",
+					"const collaborator = await createMdsyncClientFromUrl({ actor: 'agent-context-b', url: created.data.editUrl });",
+					"if (!collaborator.ok || collaborator.data.access !== 'edit') throw new Error(JSON.stringify(collaborator));",
+					"const client = collaborator.data.client;",
+					"const manifest = await client.readFile('.ha2ha/workspace.json');",
+					"if (!manifest.ok) throw new Error(JSON.stringify(manifest));",
+					"const validatedManifest = validateMdsyncHa2haManifest({ content: manifest.data.content, workspaceId: collaborator.data.workspaceId });",
+					"if (!validatedManifest.ok || validatedManifest.data.conflictPolicy !== 'baseVersion-required') throw new Error(JSON.stringify(validatedManifest));",
 					"const ha2ha = client.createHa2haClient();",
 					"if (!ha2ha.ok) throw new Error(JSON.stringify(ha2ha));",
 					"const claim = await ha2ha.data.claimTask({ taskId: 'SKILL-001' });",
 					"if (!claim.ok) throw new Error(JSON.stringify(claim));",
 					"const evidence = await ha2ha.data.addEvidence({ taskId: 'SKILL-001', kind: 'skill-smoke', result: 'pass', body: 'Installed MDSync skill package dogfood passed.' });",
 					"if (!evidence.ok) throw new Error(JSON.stringify(evidence));",
+					"const evidenceFile = await client.readFile(evidence.data.evidence.path);",
+					"if (!evidenceFile.ok) throw new Error(JSON.stringify(evidenceFile));",
+					"if (evidenceFile.data.content.includes(created.data.workspaceUrl) || evidenceFile.data.content.includes(created.data.editUrl)) throw new Error('Capability leaked into generated evidence.');",
+					"const statusWrite = await client.writeFile({ path: 'STATUS.md', baseVersion: 1, content: '# Status\\n\\nAgent B coordinated this workspace.\\n' });",
+					"if (!statusWrite.ok) throw new Error(JSON.stringify(statusWrite));",
+					"const comment = await client.createComment({ path: 'STATUS.md', version: statusWrite.data.version, body: 'Ready for review.' });",
+					"if (!comment.ok) throw new Error(JSON.stringify(comment));",
+					"const resolved = await client.resolveComment({ commentId: comment.data.id });",
+					"if (!resolved.ok) throw new Error(JSON.stringify(resolved));",
+					"const activity = await client.listActivity();",
+					"if (!activity.ok || !activity.data.items.some((item) => item.type === 'comment.created') || !activity.data.items.some((item) => item.type === 'comment.resolved')) throw new Error(JSON.stringify(activity));",
+					"const events = await client.listEvents();",
+					"if (!events.ok || events.data.events.some((event) => event.type.startsWith('comment.'))) throw new Error(JSON.stringify(events));",
+					"const observer = await createMdsyncClientFromUrl({ actor: 'agent-context-a', url: created.data.editUrl });",
+					"if (!observer.ok) throw new Error(JSON.stringify(observer));",
+					"const observed = await observer.data.client.readFile('tasks/SKILL-001.md');",
+					"if (!(observed.ok && observed.data.content.includes('owner: agent-context-b'))) throw new Error(JSON.stringify(observed));",
+					"const stale = await observer.data.client.writeFile({ path: 'STATUS.md', baseVersion: 1, content: '# stale\\n' });",
+					"if (stale.ok || stale.error.code !== 'version_conflict') throw new Error(JSON.stringify(stale));",
+					"if (!stale.error.latest || stale.error.latest.content !== '# Status\\n\\nAgent B coordinated this workspace.\\n') throw new Error('Latest content was not preserved.');",
 				].join("\n"),
 			],
 			{

@@ -1,7 +1,9 @@
 import {
+	workspaceActivityResponseSchema,
 	workspaceCommentsResponseSchema,
 	workspaceEventsResponseSchema,
 	workspaceFileVersionsResponseSchema,
+	workspaceOverviewResponseSchema,
 } from "@mdsync/contracts/workspaces";
 import { createHostedHa2haClient } from "./ha2ha";
 import {
@@ -42,9 +44,14 @@ export const createMdsyncClient = ({
 	apiOrigin,
 	auth = { kind: "none" },
 	fetch: fetchImpl = fetch,
+	webOrigin,
 	workspaceId,
 }: CreateMdsyncClientOptions): MdsyncClient => {
 	const origin = apiOrigin.replace(TRAILING_SLASH_PATTERN, "");
+	const workspaceOrigin = (webOrigin ?? apiOrigin).replace(
+		TRAILING_SLASH_PATTERN,
+		""
+	);
 
 	const scopedRequest = <Data>({
 		body,
@@ -100,6 +107,20 @@ export const createMdsyncClient = ({
 				workspaceId: id.data,
 			});
 		},
+		createHa2haWorkspace: (input) =>
+			requestJson({
+				auth,
+				body: {
+					...input,
+					protocol: { kind: "ha2ha", version: "1.0.0" },
+				},
+				fetchImpl,
+				method: "POST",
+				origin,
+				parse: parseCreatedWorkspace,
+				pathname: "/api/workspaces",
+				requirement: "none",
+			}),
 		createWorkspace: (input) =>
 			requestJson({
 				auth,
@@ -121,7 +142,14 @@ export const createMdsyncClient = ({
 				requirement: "edit",
 			}),
 		editUrl: (input = {}) =>
-			buildProductLink({ auth, input, mode: "edit", origin, workspaceId }),
+			buildProductLink({
+				apiOrigin: origin,
+				auth,
+				input,
+				mode: "edit",
+				webOrigin: workspaceOrigin,
+				workspaceId,
+			}),
 		exportWorkspace: () =>
 			scopedRequest({
 				parse: parseExportBundle,
@@ -141,6 +169,11 @@ export const createMdsyncClient = ({
 				pathname: (id) =>
 					`/api/workspaces/${encodeURIComponent(id)}/capabilities`,
 				requirement: "edit",
+			}),
+		getOverview: () =>
+			scopedRequest({
+				parse: (value) => workspaceOverviewResponseSchema.parse(value),
+				pathname: (id) => `/api/workspaces/${encodeURIComponent(id)}/overview`,
 			}),
 		getRetention: () =>
 			scopedRequest({
@@ -163,6 +196,11 @@ export const createMdsyncClient = ({
 				parse: parseImportedWorkspace,
 				pathname: "/api/workspaces/import",
 				requirement: "none",
+			}),
+		listActivity: () =>
+			scopedRequest({
+				parse: (value) => workspaceActivityResponseSchema.parse(value),
+				pathname: (id) => `/api/workspaces/${encodeURIComponent(id)}/activity`,
 			}),
 		listComments: (input = {}) =>
 			scopedRequest({
@@ -197,7 +235,14 @@ export const createMdsyncClient = ({
 				requirement: "edit",
 			}),
 		rawUrl: (input = {}) =>
-			buildProductLink({ auth, input, mode: "raw", origin, workspaceId }),
+			buildProductLink({
+				apiOrigin: origin,
+				auth,
+				input,
+				mode: "raw",
+				webOrigin: workspaceOrigin,
+				workspaceId,
+			}),
 		readFile: (path) =>
 			scopedRequest({
 				parse: parseFile,
@@ -239,7 +284,14 @@ export const createMdsyncClient = ({
 				requirement: "edit",
 			}),
 		workspaceUrl: (input = {}) =>
-			buildProductLink({ auth, input, mode: "workspace", origin, workspaceId }),
+			buildProductLink({
+				apiOrigin: origin,
+				auth,
+				input,
+				mode: "workspace",
+				webOrigin: workspaceOrigin,
+				workspaceId,
+			}),
 		writeFile: (input) =>
 			scopedRequest({
 				body: {

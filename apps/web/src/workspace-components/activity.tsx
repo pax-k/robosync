@@ -8,6 +8,7 @@ import type {
 	ActivityTimeFilter,
 	WorkspaceEvent,
 } from "../workspace-product";
+import { activityLabel } from "../workspace-product";
 import type { WorkspaceFile } from "../workspace-types";
 import { DEFAULT_ACTIVITY_FILTERS, formatDateTime } from "../workspace-utils";
 
@@ -71,7 +72,7 @@ export function ActivityPanel({
 		<section aria-labelledby="activity-heading" className="product-panel">
 			<div className="panel-heading">
 				<div>
-					<p className="eyebrow">Protocol events</p>
+					<p className="eyebrow">Workspace activity</p>
 					<h3 id="activity-heading">Workspace activity</h3>
 				</div>
 				<Button onClick={clearFilters} type="button" variant="outline">
@@ -173,7 +174,7 @@ function ActivityEventItem({
 			<div aria-hidden="true" className="event-marker" />
 			<div className="event-body">
 				<div className="event-title-row">
-					<strong>{event.type}</strong>
+					<strong>{activityLabel(event.type)}</strong>
 					<time dateTime={event.createdAt}>
 						{formatDateTime(event.createdAt)}
 					</time>
@@ -196,6 +197,10 @@ function ActivityEventItem({
 						<span>{event.path ?? "workspace"}</span>
 					)}
 				</div>
+				<details className="event-raw-details">
+					<summary>Technical details</summary>
+					<code>{`${event.source}: ${event.type}`}</code>
+				</details>
 			</div>
 		</li>
 	);

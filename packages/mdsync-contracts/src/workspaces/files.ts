@@ -6,6 +6,9 @@ import {
 	workspaceWriteAccessSchema,
 } from "./base";
 
+const HA2HA_ACTOR_HANDLE_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._-]{0,119}$/u;
+const HA2HA_TASK_PATH_PATTERN = /^tasks\/.+\.md$/u;
+
 export const workspaceFileInputSchema = z
 	.object({
 		content: z.string(),
@@ -14,15 +17,56 @@ export const workspaceFileInputSchema = z
 	})
 	.strict();
 
+export const workspaceProtocolCreateSchema = z
+	.object({
+		kind: z.literal("ha2ha"),
+		version: z.literal("1.0.0"),
+	})
+	.strict();
+
 export const createWorkspaceRequestSchema = z
 	.object({
 		actor: workspaceActorSchema.optional(),
 		files: z.array(workspaceFileInputSchema).min(1),
+		protocol: workspaceProtocolCreateSchema.optional(),
 		readAccess: workspaceReadAccessSchema.default("token"),
 		title: z.string().trim().min(1).max(200).optional(),
 		writeAccess: workspaceWriteAccessSchema.default("token"),
 	})
-	.strict();
+	.strict()
+	.superRefine((value, context) => {
+		if (!value.protocol) {
+			return;
+		}
+		if (!value.actor) {
+			context.addIssue({
+				code: "custom",
+				message: "HA2HA workspace creation requires an explicit actor.",
+				path: ["actor"],
+			});
+		} else if (!HA2HA_ACTOR_HANDLE_PATTERN.test(value.actor)) {
+			context.addIssue({
+				code: "custom",
+				message:
+					"HA2HA actor handles may contain letters, numbers, dots, underscores, and hyphens.",
+				path: ["actor"],
+			});
+		}
+		if (value.writeAccess === "none") {
+			context.addIssue({
+				code: "custom",
+				message: "HA2HA workspace creation requires writable access.",
+				path: ["writeAccess"],
+			});
+		}
+		if (!value.files.some((file) => HA2HA_TASK_PATH_PATTERN.test(file.path))) {
+			context.addIssue({
+				code: "custom",
+				message: "HA2HA workspace creation requires at least one task file.",
+				path: ["files"],
+			});
+		}
+	});
 
 export const updateWorkspaceFileRequestSchema = z
 	.object({

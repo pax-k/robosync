@@ -3,7 +3,18 @@
   "version": "0.1.0",
   "description": "Portable HA2HA v1 client SDK for local folders and conformant HTTP implementations.",
   "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "homepage": "https://mdsync-ha2ha-pax.pax.workers.dev",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pax-k/robosync.git",
+    "directory": "packages/ha2ha-client"
+  },
+  "bugs": {
+    "url": "https://github.com/pax-k/robosync/issues"
+  },
   "type": "module",
   "main": "./dist/index.mjs",
   "types": "./dist/index.d.mts",

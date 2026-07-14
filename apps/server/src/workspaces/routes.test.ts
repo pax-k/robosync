@@ -2,13 +2,19 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { test } from "node:test";
-import { HA2HA_EVENT_TYPES, HA2HA_HEADERS } from "@ha2ha/protocol";
+import {
+	HA2HA_EVENT_TYPES,
+	HA2HA_HEADERS,
+	ha2haParticipantFrontmatterSchema,
+	ha2haWorkspaceManifestSchema,
+} from "@ha2ha/protocol";
 import {
 	type Client,
 	createClient,
 	type InValue,
 	type ResultSet,
 } from "@libsql/client";
+import { workspaceOverviewResponseSchema } from "@mdsync/contracts/workspaces";
 
 import {
 	setWorkspaceBindingsForTest,
@@ -53,6 +59,19 @@ interface EventsPayload {
 		type: string;
 		version: number | null;
 		workspaceId: string;
+	}>;
+	workspaceId: string;
+}
+
+interface ActivityPayload {
+	items: Array<{
+		actor: string | null;
+		createdAt: string;
+		id: string;
+		path: string | null;
+		source: "comment" | "event";
+		type: string;
+		version: number | null;
 	}>;
 	workspaceId: string;
 }
@@ -271,6 +290,154 @@ interface RetentionPrunePayload {
 	workspaceId: string;
 }
 
+test("workspaceRoutes expose read-safe MDSync deployment discovery", async (t) => {
+	const { bindings, client } = await createTestBindings();
+	setWorkspaceBindingsForTest(bindings);
+	t.after(() => {
+		setWorkspaceBindingsForTest(null);
+		client.close();
+	});
+
+	const response = await workspaceRoutes.request(
+		"http://api.test/.well-known/mdsync.json?edit=secret"
+	);
+	assert.equal(response.status, 200);
+	assert.deepEqual(await response.json(), {
+		apiOrigin: "http://api.test",
+		discoveryVersion: 1,
+		product: "mdsync",
+		webOrigin: "http://web.test",
+	});
+});
+
+test("workspaceRoutes atomically create a conformant HA2HA workspace", async (t) => {
+	const { bindings, client } = await createTestBindings();
+	setWorkspaceBindingsForTest(bindings);
+	t.after(() => {
+		setWorkspaceBindingsForTest(null);
+		client.close();
+	});
+
+	const createResponse = await workspaceRoutes.request(
+		"http://api.test/api/workspaces",
+		{
+			body: JSON.stringify({
+				actor: "agent-a",
+				files: [
+					{
+						content: [
+							"---",
+							"id: HANDOFF-001",
+							"title: Coordinate the handoff",
+							"state: ready",
+							"owner: null",
+							"updated_by: agent-a",
+							"---",
+							"",
+							"# Coordinate the handoff",
+						].join("\n"),
+						path: "tasks/HANDOFF-001.md",
+					},
+				],
+				protocol: { kind: "ha2ha", version: "1.0.0" },
+				title: "URL handoff",
+			}),
+			headers: { "Content-Type": "application/json" },
+			method: "POST",
+		}
+	);
+	assert.equal(createResponse.status, 201);
+	const created = await readJson<CreateWorkspacePayload>(createResponse);
+	const editToken = new URL(created.editUrl ?? "").searchParams.get("edit");
+	const readToken = new URL(created.workspaceUrl).searchParams.get("k");
+	assert.ok(editToken);
+	assert.ok(readToken);
+
+	const manifestResponse = await workspaceRoutes.request(
+		`http://api.test/w/${created.id}/raw/.ha2ha/workspace.json?edit=${editToken}`
+	);
+	assert.equal(manifestResponse.status, 200);
+	const manifest = ha2haWorkspaceManifestSchema.parse(
+		JSON.parse(await manifestResponse.text())
+	);
+	assert.equal(manifest.workspaceId, created.id);
+	assert.equal(manifest.conflictPolicy, "baseVersion-required");
+	assert.equal(manifest.routes.tree, `/api/workspaces/${created.id}/tree`);
+
+	const participantResponse = await workspaceRoutes.request(
+		`http://api.test/w/${created.id}/raw/participants/agent-a.md?edit=${editToken}`
+	);
+	assert.equal(participantResponse.status, 200);
+	const participantContent = await participantResponse.text();
+	assert.equal(participantContent.includes("id: agent-a"), true);
+	assert.equal(
+		ha2haParticipantFrontmatterSchema.safeParse({
+			can_edit: true,
+			id: "agent-a",
+		}).success,
+		true
+	);
+
+	const treeResponse = await workspaceRoutes.request(
+		`http://api.test/api/workspaces/${created.id}/tree?edit=${editToken}`
+	);
+	const tree = await readJson<{ files: Array<{ path: string }> }>(treeResponse);
+	assert.deepEqual(tree.files.map((file) => file.path).sort(), [
+		".ha2ha/workspace.json",
+		"HA2HA.md",
+		"STATUS.md",
+		"participants/agent-a.md",
+		"tasks/HANDOFF-001.md",
+	]);
+});
+
+test("workspaceRoutes reject invalid HA2HA creation before persistence", async (t) => {
+	const { bindings, client, files } = await createTestBindings();
+	setWorkspaceBindingsForTest(bindings);
+	t.after(() => {
+		setWorkspaceBindingsForTest(null);
+		client.close();
+	});
+
+	const responses = await Promise.all(
+		[
+			{
+				actor: "agent-a",
+				files: [{ content: "# invalid", path: "tasks/BAD-001.md" }],
+				protocol: { kind: "ha2ha", version: "1.0.0" },
+			},
+			{
+				actor: "agent-a",
+				files: [
+					{
+						content: "{}",
+						path: ".ha2ha/workspace.json",
+					},
+					{
+						content: "---\nid: TASK-001\ntitle: Task\nstate: ready\n---\n",
+						path: "tasks/TASK-001.md",
+					},
+				],
+				protocol: { kind: "ha2ha", version: "1.0.0" },
+			},
+		].map((input) =>
+			workspaceRoutes.request("http://api.test/api/workspaces", {
+				body: JSON.stringify(input),
+				headers: { "Content-Type": "application/json" },
+				method: "POST",
+			})
+		)
+	);
+	for (const response of responses) {
+		assert.equal(response.status, 400);
+	}
+	assert.equal(files.size, 0);
+	const workspaceCount = await client.execute(
+		"select count(*) as count from workspaces"
+	);
+	assert.equal(Number(workspaceCount.rows[0]?.count), 0);
+});
+
 test("workspaceRoutes cover create, read, update, conflict, history, events, and delete", async (t) => {
 	const { bindings, client } = await createTestBindings();
 	setWorkspaceBindingsForTest(bindings);
@@ -430,6 +597,139 @@ test("workspaceRoutes cover create, read, update, conflict, history, events, and
 		),
 		true
 	);
+});
+
+test("workspace overview is read-authorized, resilient to invalid tasks, and excludes admin data", async (t) => {
+	const { bindings, client } = await createTestBindings();
+	setWorkspaceBindingsForTest(bindings);
+	t.after(() => {
+		setWorkspaceBindingsForTest(null);
+		client.close();
+	});
+
+	const taskFile = (state: string, priority: string) => ({
+		content: [
+			"---",
+			`id: ${state.toUpperCase()}-001`,
+			`title: ${state} task`,
+			`state: ${state}`,
+			"owner: null",
+			`priority: ${priority}`,
+			"---",
+			"",
+			`# ${state} task`,
+		].join("\n"),
+		path: `tasks/${state}.md`,
+	});
+	const createResponse = await workspaceRoutes.request(
+		"http://api.test/api/workspaces",
+		{
+			body: JSON.stringify({
+				actor: "creator",
+				files: [
+					{ content: "# Overview\n", path: "README.md" },
+					taskFile("ready", "low"),
+					taskFile("claimed", "medium"),
+					taskFile("working", "high"),
+					taskFile("blocked", "urgent"),
+					taskFile("review", "high"),
+					taskFile("done", "low"),
+					taskFile("abandoned", "low"),
+					{
+						content: "---\nid: BROKEN\nstate: nope\n",
+						path: "tasks/invalid.md",
+					},
+				],
+				readAccess: "token",
+				title: "Overview projection",
+				writeAccess: "token",
+			}),
+			headers: { "Content-Type": "application/json" },
+			method: "POST",
+		}
+	);
+	const created = await readJson<CreateWorkspacePayload>(createResponse);
+	const editToken = new URL(created.editUrl ?? "").searchParams.get("edit");
+	const readToken = new URL(created.workspaceUrl).searchParams.get("k");
+	assert.ok(editToken);
+	assert.ok(readToken);
+
+	const unauthorized = await workspaceRoutes.request(
+		`http://api.test/api/workspaces/${created.id}/overview`
+	);
+	assert.equal(unauthorized.status, 401);
+
+	const commentResponse = await workspaceRoutes.request(
+		`http://api.test/api/workspaces/${created.id}/comments`,
+		{
+			body: JSON.stringify({
+				actor: "reviewer",
+				body: "Review the opening.",
+				path: "README.md",
+				version: 1,
+			}),
+			headers: {
+				Authorization: `Bearer ${editToken}`,
+				"Content-Type": "application/json",
+			},
+			method: "POST",
+		}
+	);
+	assert.equal(commentResponse.status, 201);
+	const updateResponse = await workspaceRoutes.request(
+		`http://api.test/api/workspaces/${created.id}/files`,
+		{
+			body: JSON.stringify({
+				actor: "writer",
+				baseVersion: 1,
+				content: "# Overview\n\nUpdated.\n",
+				path: "README.md",
+			}),
+			headers: {
+				Authorization: `Bearer ${editToken}`,
+				"Content-Type": "application/json",
+			},
+			method: "PUT",
+		}
+	);
+	assert.equal(updateResponse.status, 200);
+
+	const response = await workspaceRoutes.request(
+		`http://api.test/api/workspaces/${created.id}/overview?k=${readToken}`
+	);
+	assert.equal(response.status, 200);
+	const payload: unknown = await response.json();
+	const overview = workspaceOverviewResponseSchema.parse(payload);
+	assert.equal(overview.tasks.invalidCount, 1);
+	assert.equal(overview.comments.staleAnchors, 1);
+	assert.equal(overview.activity.recent.length, 8);
+	assert.deepEqual(
+		overview.tasks.items.map((item) => (item.valid ? item.state : "invalid")),
+		[
+			"invalid",
+			"blocked",
+			"review",
+			"working",
+			"claimed",
+			"ready",
+			"done",
+			"abandoned",
+		]
+	);
+	assert.deepEqual(
+		overview.tasks.byState.map((item) => item.name),
+		["ready", "claimed", "working", "blocked", "review", "done", "abandoned"]
+	);
+	const serialized = JSON.stringify(overview);
+	for (const forbidden of [
+		"r2Prefix",
+		"retention",
+		"conflicts",
+		"cleanup",
+		"capabilities",
+	]) {
+		assert.equal(serialized.includes(forbidden), false);
+	}
 });
 
 test("workspaceRoutes rotate and revoke read and edit capabilities without plaintext token storage", async (t) => {
@@ -1092,6 +1392,22 @@ test("workspaceRoutes export import and prune retained product data without per-
 			type: event.type,
 		}))
 	);
+	const importedActivityResponse = await workspaceRoutes.request(
+		`http://api.test/api/workspaces/${imported.id}/activity?edit=${importedEditToken}`
+	);
+	assert.equal(importedActivityResponse.status, 200);
+	const importedActivity = await readJson<ActivityPayload>(
+		importedActivityResponse
+	);
+	assert.equal(
+		importedActivity.items.length,
+		bundle.events.length + bundle.comments.length + 1
+	);
+	assert.equal(
+		importedActivity.items.filter((item) => item.type === "comment.resolved")
+			.length,
+		1
+	);
 
 	const retentionResponse = await workspaceRoutes.request(
 		`http://api.test/api/workspaces/${created.id}/retention?edit=${editToken}`
@@ -1168,6 +1484,16 @@ test("workspaceRoutes export import and prune retained product data without per-
 			},
 		]
 	);
+	const prunedActivityResponse = await workspaceRoutes.request(
+		`http://api.test/api/workspaces/${created.id}/activity?edit=${editToken}`
+	);
+	assert.equal(prunedActivityResponse.status, 200);
+	assert.deepEqual(
+		(await readJson<ActivityPayload>(prunedActivityResponse)).items.map(
+			(item) => item.type
+		),
+		["comment.created"]
+	);
 
 	const prunedHistoryResponse = await workspaceRoutes.request(
 		`http://api.test/api/workspaces/${created.id}/files/versions?path=tasks/RS-007.md&edit=${editToken}`
@@ -1206,7 +1532,9 @@ test("workspaceRoutes create list and resolve product comments without moving an
 	assert.equal(createResponse.status, 201);
 	const created = await readJson<CreateWorkspacePayload>(createResponse);
 	const editToken = new URL(created.editUrl ?? "").searchParams.get("edit");
+	const readToken = new URL(created.workspaceUrl).searchParams.get("k");
 	assert.ok(editToken);
+	assert.ok(readToken);
 
 	const missingAnchorResponse = await workspaceRoutes.request(
 		`http://api.test/api/workspaces/${created.id}/comments`,
@@ -1313,6 +1641,62 @@ test("workspaceRoutes create list and resolve product comments without moving an
 	assert.deepEqual(
 		events.events.map((event) => event.type),
 		[HA2HA_EVENT_TYPES.fileCreated, HA2HA_EVENT_TYPES.fileUpdated]
+	);
+
+	const unauthorizedActivityResponse = await workspaceRoutes.request(
+		`http://api.test/api/workspaces/${created.id}/activity`
+	);
+	assert.equal(unauthorizedActivityResponse.status, 401);
+
+	const activityResponse = await workspaceRoutes.request(
+		`http://api.test/api/workspaces/${created.id}/activity?k=${readToken}`
+	);
+	assert.equal(activityResponse.status, 200);
+	const activity = await readJson<ActivityPayload>(activityResponse);
+	assert.deepEqual(
+		activity.items.map((item) => item.type).sort(),
+		[
+			HA2HA_EVENT_TYPES.fileCreated,
+			HA2HA_EVENT_TYPES.fileUpdated,
+			"comment.created",
+			"comment.resolved",
+		].sort()
+	);
+	assert.equal(
+		activity.items.every(
+			(item, index) =>
+				index === 0 ||
+				(activity.items[index - 1]?.createdAt.localeCompare(item.createdAt) ??
+					-1) >= 0
+		),
+		true
+	);
+	assert.equal(
+		activity.items.find((item) => item.type === "comment.created")?.id,
+		`comment:${comment.id}:created`
+	);
+	assert.equal(
+		activity.items.find((item) => item.type === "comment.resolved")?.id,
+		`comment:${comment.id}:resolved`
+	);
+	const serializedActivity = JSON.stringify(activity);
+	assert.equal(
+		serializedActivity.includes("Clarify the opening section."),
+		false
+	);
+	assert.equal(serializedActivity.includes("selector"), false);
+	assert.equal(serializedActivity.includes(editToken), false);
+
+	const overviewResponse = await workspaceRoutes.request(
+		`http://api.test/api/workspaces/${created.id}/overview?k=${readToken}`
+	);
+	assert.equal(overviewResponse.status, 200);
+	const overview = workspaceOverviewResponseSchema.parse(
+		await overviewResponse.json()
+	);
+	assert.equal(
+		overview.activity.recent.some((item) => item.type === "comment.resolved"),
+		true
 	);
 });
 

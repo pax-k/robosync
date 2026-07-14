@@ -1,7 +1,20 @@
 {
   "name": "@mdsync/contracts",
   "version": "0.1.0",
-  "private": true,
+  "description": "Public contracts and validation schemas for hosted MDSync workspace APIs.",
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "homepage": "https://mdsync-web-pax.pax.workers.dev",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pax-k/robosync.git",
+    "directory": "packages/mdsync-contracts"
+  },
+  "bugs": {
+    "url": "https://github.com/pax-k/robosync/issues"
+  },
   "type": "module",
   "main": "./dist/index.mjs",
   "types": "./dist/index.d.mts",
@@ -29,6 +42,7 @@
     "test": "pnpm run check-types && tsx --test src/**/*.test.ts"
   },
   "dependencies": {
+    "@ha2ha/protocol": "0.1.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {

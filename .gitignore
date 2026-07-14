@@ -48,6 +48,8 @@ lerna-debug.log*
 coverage
 .nyc_output
 .playwright-cli
+playwright-report
+test-results
 
 # Misc
 *.tgz

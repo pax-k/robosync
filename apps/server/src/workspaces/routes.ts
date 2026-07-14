@@ -1,8 +1,11 @@
 import {
 	createWorkspaceRequestSchema,
 	deleteWorkspaceFileRequestSchema,
+	mdsyncDiscoveryResponseSchema,
 	updateWorkspaceFileRequestSchema,
+	workspaceActivityResponseSchema,
 	workspaceExportBundleSchema,
+	workspaceOverviewResponseSchema,
 	workspaceRetentionPruneRequestSchema,
 } from "@mdsync/contracts/workspaces";
 import type { EvlogVariables } from "evlog/hono";
@@ -19,6 +22,7 @@ import {
 	validateUniquePaths,
 	WorkspaceError,
 } from "./domain";
+import { prepareHa2haWorkspaceFiles } from "./ha2ha-create";
 import {
 	authorizeRead,
 	authorizeWrite,
@@ -53,8 +57,10 @@ import {
 	deleteObjectBestEffort,
 	fetchObjectText,
 	getFile,
+	getWorkspaceActivity,
 	getWorkspaceAdminStats,
 	getWorkspaceFileVersion,
+	getWorkspaceOverview,
 	listWorkspaceEvents,
 	listWorkspaceFiles,
 	listWorkspaceFileVersions,
@@ -63,7 +69,24 @@ import {
 	updateWorkspaceTotals,
 } from "./storage";
 
+const TRAILING_SLASH_PATTERN = /\/$/u;
+
 export const workspaceRoutes = new Hono<EvlogVariables>();
+
+workspaceRoutes.get("/.well-known/mdsync.json", (c) => {
+	const apiOrigin = new URL(c.req.url).origin;
+	const webOrigin =
+		workspaceBindings().WEB_ORIGIN?.replace(TRAILING_SLASH_PATTERN, "") ??
+		apiOrigin;
+	return c.json(
+		mdsyncDiscoveryResponseSchema.parse({
+			apiOrigin,
+			discoveryVersion: 1,
+			product: "mdsync",
+			webOrigin,
+		})
+	);
+});
 
 workspaceRoutes.post("/api/workspaces", async (c) => {
 	try {
@@ -80,13 +103,29 @@ workspaceRoutes.post("/api/workspaces", async (c) => {
 			parsed.writeAccess === "token" ? randomCapabilityToken() : null;
 		const readTokenHash = readToken ? await tokenHash(readToken) : null;
 		const writeTokenHash = writeToken ? await tokenHash(writeToken) : null;
-		const normalizedFiles = parsed.files.map((file) => ({
+		let normalizedFiles = parsed.files.map((file) => ({
 			content: file.content,
 			contentType: normalizeContentType(file.contentType),
 			path: normalizeFilePath(file.path),
 		}));
 
 		validateUniquePaths(normalizedFiles.map((file) => file.path));
+		if (parsed.protocol) {
+			if (!parsed.actor) {
+				throw new WorkspaceError(
+					400,
+					"missing_actor",
+					"HA2HA workspace creation requires an explicit actor."
+				);
+			}
+			normalizedFiles = prepareHa2haWorkspaceFiles({
+				actor: parsed.actor,
+				files: normalizedFiles,
+				title: parsed.title ?? null,
+				workspaceId: id,
+			});
+			validateUniquePaths(normalizedFiles.map((file) => file.path));
+		}
 
 		const uploadedObjects = await uploadWorkspaceObjects(normalizedFiles, id);
 		try {
@@ -167,6 +206,20 @@ workspaceRoutes.get("/api/workspaces/:workspaceId/tree", async (c) => {
 	}
 });
 
+workspaceRoutes.get("/api/workspaces/:workspaceId/overview", async (c) => {
+	try {
+		const workspace = await requireWorkspace(c.req.param("workspaceId"));
+		await authorizeRead(workspace, c.req.raw);
+		return c.json(
+			workspaceOverviewResponseSchema.parse(
+				await getWorkspaceOverview(workspace)
+			)
+		);
+	} catch (error) {
+		return handleWorkspaceError(c, error);
+	}
+});
+
 workspaceRoutes.get("/api/workspaces/:workspaceId/events", async (c) => {
 	try {
 		const workspace = await requireWorkspace(c.req.param("workspaceId"));
@@ -176,6 +229,20 @@ workspaceRoutes.get("/api/workspaces/:workspaceId/events", async (c) => {
 			events: events.map(serializeWorkspaceEvent),
 			workspaceId: workspace.id,
 		});
+	} catch (error) {
+		return handleWorkspaceError(c, error);
+	}
+});
+
+workspaceRoutes.get("/api/workspaces/:workspaceId/activity", async (c) => {
+	try {
+		const workspace = await requireWorkspace(c.req.param("workspaceId"));
+		await authorizeRead(workspace, c.req.raw);
+		return c.json(
+			workspaceActivityResponseSchema.parse(
+				await getWorkspaceActivity(workspace.id)
+			)
+		);
 	} catch (error) {
 		return handleWorkspaceError(c, error);
 	}

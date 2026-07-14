@@ -15,6 +15,25 @@ This project started from Better-T-Stack and now uses a Vite React web app plus 
 - [MDSync Product Roadmap](docs/v2/product-roadmap.md)
 - [Execution Sprints And Tasks](docs/README.md#execution-tracking)
 
+## Install Agent Skills
+
+Install the portable HA2HA protocol skill or the hosted MDSync product skill
+from the public repository:
+
+```bash
+npx skills add pax-k/robosync --skill ha2ha
+npx skills add pax-k/robosync --skill mdsync
+```
+
+The production deployment is available at:
+
+- [MDSync Web](https://mdsync-web-pax.pax.workers.dev)
+- [MDSync API discovery](https://mdsync-server-pax.pax.workers.dev/.well-known/mdsync.json)
+- [HA2HA documentation](https://mdsync-ha2ha-pax.pax.workers.dev)
+
+Installing a skill grants no workspace access. Viewer and Collaborator URLs
+remain transferable capability secrets.
+
 ## Features
 
 - **TypeScript** - For type safety and improved developer experience
@@ -113,10 +132,12 @@ packages/
 - `pnpm run dev`: Start all applications in development mode
 - `pnpm run build`: Build all applications
 - `pnpm run dev:web`: Start only the Vite web application
-- `pnpm run dev:server`: Start only the server
+- `pnpm run dev:server`: Start only the server on `127.0.0.1:3200` in the
+  isolated Alchemy `local` stage
 - `pnpm run check-types`: Check TypeScript types across all apps
 - `pnpm run db:generate`: Generate database client/types
-- `pnpm run deploy:server`: Deploy only the backend Worker, D1, and R2 resources
+- `pnpm run deploy:server`: Compatibility alias for the full shared-stack deploy;
+  deploying an incomplete Alchemy stack would remove omitted Web resources
 - `pnpm run check`: Run Biome formatting and linting
 
 ## MDSync Backend

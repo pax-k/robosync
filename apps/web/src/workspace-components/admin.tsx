@@ -59,7 +59,7 @@ export function AdminPanel({
 			<section aria-labelledby="admin-heading" className="product-panel">
 				<div className="panel-heading">
 					<div>
-						<p className="eyebrow">Product admin</p>
+						<p className="eyebrow">Settings</p>
 						<h3 id="admin-heading">Workspace health</h3>
 					</div>
 				</div>
@@ -75,7 +75,7 @@ export function AdminPanel({
 			<section aria-labelledby="admin-heading" className="product-panel">
 				<div className="panel-heading">
 					<div>
-						<p className="eyebrow">Product admin</p>
+						<p className="eyebrow">Settings</p>
 						<h3 id="admin-heading">Workspace health</h3>
 					</div>
 					<Button onClick={refresh} type="button" variant="outline">
@@ -92,7 +92,7 @@ export function AdminPanel({
 		<section aria-labelledby="admin-heading" className="product-panel">
 			<div className="panel-heading">
 				<div>
-					<p className="eyebrow">Product admin</p>
+					<p className="eyebrow">Settings</p>
 					<h3 id="admin-heading">Workspace health</h3>
 				</div>
 				<Button onClick={refresh} type="button" variant="outline">
@@ -170,7 +170,7 @@ export function AdminPanel({
 					)}
 				</section>
 				<section className="admin-section">
-					<h4>Storage and retention</h4>
+					<h4>Advanced diagnostics</h4>
 					<dl className="admin-facts">
 						<div>
 							<dt>R2 prefix</dt>
@@ -191,7 +191,7 @@ export function AdminPanel({
 					</dl>
 				</section>
 				<section className="admin-section">
-					<h4>Cleanup</h4>
+					<h4>Operational signals</h4>
 					<dl className="admin-facts">
 						<div>
 							<dt>Failed jobs</dt>
@@ -228,7 +228,7 @@ export function AdminPanel({
 					retentionPolicy={retentionPolicy}
 				/>
 				<section className="admin-section full-width">
-					<h4>Capabilities</h4>
+					<h4>Sharing &amp; access</h4>
 					{capabilities ? (
 						<>
 							<div className="capability-grid">
@@ -402,7 +402,7 @@ function AdminImportExportSection({
 
 	return (
 		<section className="admin-section full-width">
-			<h4>Import and export</h4>
+			<h4>Data &amp; portability</h4>
 			<div className="admin-action-row">
 				<Button
 					disabled={busy}

@@ -36,7 +36,7 @@ must not make MDSync product features a requirement for protocol adoption.
 
 ## Current Evidence
 
-- [../skills/core-ha2ha-agent-alpha/SKILL.md](../skills/core-ha2ha-agent-alpha/SKILL.md)
+- [Historical core HA2HA agent alpha](../skills/core-ha2ha-agent-alpha/REFERENCE.md)
   is the current alpha skill.
 - [V1-008](V1-008-core-ha2ha-agent-skill-alpha.md) proved the core workflow as a
   repo-local Codex skill.

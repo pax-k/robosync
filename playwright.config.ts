@@ -19,10 +19,11 @@ export default defineConfig({
 	},
 	webServer: [
 		{
-			command: "pnpm --filter web run dev:bare",
-			reuseExistingServer: true,
+			command:
+				"VITE_API_BASE_URL=http://localhost:4300 pnpm --filter web exec vite --host 0.0.0.0 --port 4173 --strictPort",
+			reuseExistingServer: false,
 			timeout: 30_000,
-			url: "http://localhost:5173",
+			url: "http://localhost:4173",
 		},
 		{
 			command: "pnpm --filter ha2ha run dev",

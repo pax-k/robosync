@@ -5,13 +5,15 @@ export const buildProductLink = ({
 	auth,
 	input,
 	mode,
-	origin,
+	apiOrigin,
+	webOrigin,
 	workspaceId,
 }: {
+	apiOrigin: string;
 	auth: MdsyncAuth;
 	input: MdsyncLinkInput;
 	mode: "edit" | "raw" | "workspace";
-	origin: string;
+	webOrigin: string;
 	workspaceId?: string;
 }): MdsyncResult<string> => {
 	const resolvedWorkspaceId = resolveWorkspaceId(
@@ -28,6 +30,7 @@ export const buildProductLink = ({
 		mode === "raw"
 			? `/w/${encodedWorkspaceId}/raw${encodedPath}`
 			: `/w/${encodedWorkspaceId}`;
+	const origin = mode === "raw" ? apiOrigin : webOrigin;
 	const url = new URL(pathname, `${origin}/`);
 	if (mode === "edit" && auth.kind === "edit-token") {
 		url.searchParams.set("edit", auth.token);

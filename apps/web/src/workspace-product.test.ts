@@ -139,10 +139,9 @@ function workspaceEvent(
 		createdAt: "2026-07-08T00:00:00.000Z",
 		id: "event",
 		path: "README.md",
-		payload: {},
+		source: "event",
 		type: "file.created",
 		version: 1,
-		workspaceId: "ws-test",
 		...overrides,
 	};
 }

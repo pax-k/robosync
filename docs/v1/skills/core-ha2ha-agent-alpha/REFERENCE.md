@@ -5,6 +5,9 @@ description: Coordinate through HA2HA v1 workspaces using raw/API semantics. Use
 
 # Core HA2HA Agent Alpha
 
+> Historical reference only. This alpha was superseded by the public `ha2ha`
+> skill in `@ha2ha/skills` and is intentionally excluded from skill discovery.
+
 ## Overview
 
 Use this alpha skill to coordinate through HA2HA v1 files and HTTP semantics.

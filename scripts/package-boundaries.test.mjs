@@ -59,6 +59,41 @@ test("installable MDSync client declares its contract dependency", async () => {
 	assert.equal(manifest.dependencies["@mdsync/contracts"], "0.1.0");
 });
 
+test("MDSync skills exposes a built runtime adapter with explicit dependencies", async () => {
+	const manifest = JSON.parse(
+		await readFile(
+			path.join(ROOT_DIR, "packages/mdsync-skills/package.json"),
+			"utf8"
+		)
+	);
+	assert.equal(manifest.exports["./runtime"].default, "./dist/runtime.mjs");
+	assert.equal(manifest.exports["./runtime"].types, "./dist/runtime.d.mts");
+	assert.equal(manifest.files.includes("dist"), true);
+	assert.equal(manifest.dependencies["@mdsync/client"], "0.1.0");
+	assert.equal(manifest.dependencies["@ha2ha/protocol"], undefined);
+	const runtime = await readFile(
+		path.join(ROOT_DIR, "packages/mdsync-skills/src/runtime.ts"),
+		"utf8"
+	);
+	assert.equal(runtime.includes('from "@mdsync/client"'), true);
+	assert.equal(runtime.includes('from "@ha2ha/protocol"'), false);
+});
+
+test("Alchemy local development cannot mutate the deployed shared stage", async () => {
+	const infraManifest = JSON.parse(
+		await readFile(path.join(ROOT_DIR, "packages/infra/package.json"), "utf8")
+	);
+	const rootManifest = JSON.parse(
+		await readFile(path.join(ROOT_DIR, "package.json"), "utf8")
+	);
+	assert.equal(infraManifest.scripts.dev, "alchemy dev --stage local");
+	assert.equal(infraManifest.scripts["deploy:server"], "alchemy deploy");
+	assert.equal(
+		rootManifest.scripts["dev:server"],
+		"ROBOSYNC_SERVER_ONLY=1 ROBOSYNC_DEV_SERVER_PORT=3200 WEB_ORIGIN=http://127.0.0.1:3200 pnpm --filter @mdsync/infra run dev"
+	);
+});
+
 test("workspace persistence uses the Drizzle repository boundary", async () => {
 	const workspaceSourceDir = path.join(ROOT_DIR, "apps/server/src/workspaces");
 	const files = (await listSourceFiles(workspaceSourceDir)).filter(

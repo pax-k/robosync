@@ -22,6 +22,7 @@ export const toErrorCode = (value: string): MdsyncClientErrorCode => {
 	const known = new Set<MdsyncClientErrorCode>([
 		"comment_anchor_not_found",
 		"comment_not_found",
+		"discovery_unconfigured",
 		"file_not_found",
 		"invalid_request",
 		"invalid_retention_cutoff",

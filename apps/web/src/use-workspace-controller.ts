@@ -1,39 +1,48 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 import {
 	loadHistoricalWorkspaceFile,
-	loadWorkspaceCommentsPayload,
-	loadWorkspaceEventsPayload,
 	loadWorkspaceFile,
-	loadWorkspaceFileVersions,
 	responseMessage,
 } from "./api/workspaces";
 import type { MarkdownEditorError } from "./components/markdown-editor";
+import { useConfirmation } from "./confirmation";
 import { useWorkspaceAdmin } from "./use-workspace-admin";
+import { useWorkspaceComments } from "./use-workspace-comments";
+import { useWorkspaceLoaders } from "./use-workspace-loaders";
+import {
+	deleteWorkspaceDraft,
+	getWorkspaceDraft,
+	listWorkspaceDraftPaths,
+	putWorkspaceDraft,
+} from "./workspace-drafts";
+import { writeWorkspaceFile } from "./workspace-mutations";
 import {
 	type ActivityFilters,
 	buildLineDiff,
-	createRestoreDraft,
 	filterWorkspaceEvents,
 	groupActivityByDay,
+	resolveConflictState,
 	uniqueEventTypes,
 	type WorkspaceEvent,
 } from "./workspace-product";
 import type {
 	HistoricalWorkspaceFilePayload,
-	VersionConflictResponse,
 	ViewMode,
 	WorkspaceComment,
+	WorkspaceConflict,
+	WorkspaceDraftRecovery,
 	WorkspaceFile,
 	WorkspaceFilePayload,
 	WorkspaceFileVersionMetadata,
 	WorkspaceMetadata,
+	WorkspaceOverview,
 } from "./workspace-types";
 import {
 	capabilityQuery,
 	DEFAULT_ACTIVITY_FILTERS,
 	encodePathSegments,
 	getSearchParam,
-	PRODUCT_ACTOR,
 	resolveApiBaseUrl,
 } from "./workspace-utils";
 
@@ -42,6 +51,7 @@ export function useWorkspaceController({
 }: {
 	workspaceId: string;
 }) {
+	const confirm = useConfirmation();
 	const apiBaseUrl = useMemo(() => resolveApiBaseUrl(), []);
 	const [editToken, setEditToken] = useState(() => getSearchParam("edit"));
 	const [readToken] = useState(() => getSearchParam("k"));
@@ -51,6 +61,7 @@ export function useWorkspaceController({
 	);
 	const canEdit = Boolean(editToken);
 	const [workspace, setWorkspace] = useState<WorkspaceMetadata | null>(null);
+	const [overview, setOverview] = useState<WorkspaceOverview | null>(null);
 	const [files, setFiles] = useState<WorkspaceFile[]>([]);
 	const [selectedPath, setSelectedPath] = useState<string | null>(null);
 	const [file, setFile] = useState<WorkspaceFilePayload | null>(null);
@@ -70,7 +81,11 @@ export function useWorkspaceController({
 	const [commentDraft, setCommentDraft] = useState("");
 	const [commentLine, setCommentLine] = useState("");
 	const [draft, setDraft] = useState("");
-	const [mode, setMode] = useState<ViewMode>(canEdit ? "edit" : "preview");
+	const [draftPaths, setDraftPaths] = useState<string[]>([]);
+	const [conflict, setConflict] = useState<WorkspaceConflict | null>(null);
+	const [draftRecovery, setDraftRecovery] =
+		useState<WorkspaceDraftRecovery | null>(null);
+	const [mode, setMode] = useState<ViewMode>("preview");
 	const [busy, setBusy] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const {
@@ -99,63 +114,32 @@ export function useWorkspaceController({
 		workspaceId,
 	});
 
-	const loadWorkspaceEvents = useCallback(
-		async (signal?: AbortSignal) => {
-			const eventsPayload = await loadWorkspaceEventsPayload({
-				apiBaseUrl,
-				signal,
-				tokenQuery,
-				workspaceId,
-			});
-			if (!signal?.aborted) {
-				setEvents(eventsPayload.events);
-			}
-		},
-		[apiBaseUrl, tokenQuery, workspaceId]
-	);
-
-	const loadComments = useCallback(
-		async (path: string, signal?: AbortSignal) => {
-			const commentsPayload = await loadWorkspaceCommentsPayload({
-				apiBaseUrl,
-				path,
-				signal,
-				tokenQuery,
-				workspaceId,
-			});
-			if (!signal?.aborted) {
-				setComments(commentsPayload.comments);
-			}
-		},
-		[apiBaseUrl, tokenQuery, workspaceId]
-	);
-
-	const loadFileHistory = useCallback(
-		async (path: string, signal?: AbortSignal) => {
-			const historyPayload = await loadWorkspaceFileVersions({
-				apiBaseUrl,
-				path,
-				signal,
-				tokenQuery,
-				workspaceId,
-			});
-			if (signal?.aborted) {
-				return;
-			}
-			const { versions } = historyPayload;
-			setFileVersions(versions);
-			setSelectedHistoryVersion((currentVersion) => {
-				if (
-					currentVersion &&
-					versions.some((version) => version.version === currentVersion)
-				) {
-					return currentVersion;
-				}
-				return versions.at(-1)?.version ?? null;
-			});
-		},
-		[apiBaseUrl, tokenQuery, workspaceId]
-	);
+	const { loadComments, loadFileHistory, loadOverview, loadWorkspaceActivity } =
+		useWorkspaceLoaders({
+			apiBaseUrl,
+			setComments,
+			setEvents,
+			setFileVersions,
+			setOverview,
+			setSelectedHistoryVersion,
+			tokenQuery,
+			workspaceId,
+		});
+	const { createComment, resolveComment } = useWorkspaceComments({
+		apiBaseUrl,
+		commentDraft,
+		commentLine,
+		editToken,
+		file,
+		loadOverview,
+		loadWorkspaceActivity,
+		setBusy,
+		setCommentDraft,
+		setCommentLine,
+		setComments,
+		setError,
+		workspaceId,
+	});
 
 	const loadWorkspace = useCallback(async () => {
 		setBusy(true);
@@ -186,7 +170,9 @@ export function useWorkspaceController({
 				(currentPath) => currentPath ?? treePayload.files[0]?.path ?? null
 			);
 			await Promise.all([
-				loadWorkspaceEvents(),
+				loadWorkspaceActivity(),
+				loadOverview(),
+				listWorkspaceDraftPaths(workspaceId).then(setDraftPaths),
 				editToken ? loadCapabilities() : Promise.resolve(),
 			]);
 		} catch (cause) {
@@ -200,7 +186,8 @@ export function useWorkspaceController({
 		apiBaseUrl,
 		editToken,
 		loadCapabilities,
-		loadWorkspaceEvents,
+		loadOverview,
+		loadWorkspaceActivity,
 		tokenQuery,
 		workspaceId,
 	]);
@@ -210,6 +197,7 @@ export function useWorkspaceController({
 	}, [loadWorkspace]);
 
 	const loadSelectedFile = useCallback(
+		// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Abort-safe file and draft recovery are one atomic load transition.
 		async (path: string, signal?: AbortSignal) => {
 			setBusy(true);
 			setError(null);
@@ -223,8 +211,27 @@ export function useWorkspaceController({
 					workspaceId,
 				});
 				if (!signal?.aborted) {
+					const storedDraft = await getWorkspaceDraft(workspaceId, path);
+					if (signal?.aborted) {
+						return;
+					}
 					setFile(payload);
-					setDraft(payload.content);
+					setConflict(null);
+					if (storedDraft?.baseVersion === payload.version) {
+						setDraft(storedDraft.content);
+						setDraftRecovery(null);
+					} else {
+						setDraft(payload.content);
+						setDraftRecovery(
+							storedDraft
+								? {
+										draft: storedDraft.content,
+										draftBaseVersion: storedDraft.baseVersion,
+										remote: payload,
+									}
+								: null
+						);
+					}
 				}
 			} catch (cause) {
 				if (!signal?.aborted) {
@@ -240,6 +247,28 @@ export function useWorkspaceController({
 		},
 		[apiBaseUrl, tokenQuery, workspaceId]
 	);
+
+	useEffect(() => {
+		if (!(file && draft !== file.content)) {
+			return;
+		}
+		const timer = window.setTimeout(() => {
+			putWorkspaceDraft({
+				baseVersion: file.version,
+				content: draft,
+				path: file.path,
+				updatedAt: new Date().toISOString(),
+				workspaceId,
+			})
+				.then(() => {
+					setDraftPaths((paths) =>
+						paths.includes(file.path) ? paths : [...paths, file.path]
+					);
+				})
+				.catch(() => undefined);
+		}, 500);
+		return () => window.clearTimeout(timer);
+	}, [draft, file, workspaceId]);
 
 	useEffect(() => {
 		if (!selectedPath) {
@@ -312,41 +341,32 @@ export function useWorkspaceController({
 		setError(null);
 
 		try {
-			const response = await fetch(
-				`${apiBaseUrl}/api/workspaces/${workspaceId}/files`,
-				{
-					body: JSON.stringify({
-						actor: PRODUCT_ACTOR,
-						baseVersion: file.version,
-						content: draft,
-						contentType: file.contentType,
+			const result = await writeWorkspaceFile({
+				apiBaseUrl,
+				content: draft,
+				contentType: file.contentType,
+				editToken,
+				path: file.path,
+				version: file.version,
+				workspaceId,
+			});
+
+			if (result.kind === "conflict") {
+				if (result.payload.latest) {
+					setFile(result.payload.latest);
+					setConflict({
+						localContent: draft,
 						path: file.path,
-					}),
-					headers: {
-						Authorization: `Bearer ${editToken}`,
-						"Content-Type": "application/json",
-					},
-					method: "PUT",
+						remote: result.payload.latest,
+					});
 				}
-			);
-
-			if (response.status === 409) {
-				const conflict = (await response.json()) as VersionConflictResponse;
-				if (conflict.latest) {
-					setFile(conflict.latest);
-					setDraft(conflict.latest.content);
-				}
-				throw new Error("File changed elsewhere. Latest content loaded.");
+				setError(
+					"This file changed elsewhere. Reconcile both versions before saving."
+				);
+				return;
 			}
 
-			if (!response.ok) {
-				throw new Error(await responseMessage(response));
-			}
-
-			const payload = (await response.json()) as Pick<
-				WorkspaceFilePayload,
-				"path" | "updatedAt" | "updatedBy" | "version"
-			>;
+			const { payload } = result;
 
 			setFile({
 				...file,
@@ -355,6 +375,11 @@ export function useWorkspaceController({
 				updatedBy: payload.updatedBy,
 				version: payload.version,
 			});
+			setDraft(draft);
+			setConflict(null);
+			setDraftRecovery(null);
+			await deleteWorkspaceDraft(workspaceId, payload.path);
+			setDraftPaths((paths) => paths.filter((path) => path !== payload.path));
 			setFiles((currentFiles) =>
 				currentFiles.map((item) =>
 					item.path === payload.path
@@ -367,9 +392,13 @@ export function useWorkspaceController({
 						: item
 				)
 			);
-			await Promise.all([loadWorkspaceEvents(), loadFileHistory(payload.path)]);
+			await Promise.all([
+				loadWorkspaceActivity(),
+				loadFileHistory(payload.path),
+			]);
 			await loadComments(payload.path);
 			setMode("preview");
+			toast.success(`Saved as version ${payload.version}.`);
 		} catch (cause) {
 			setError(cause instanceof Error ? cause.message : "Save failed.");
 		} finally {
@@ -382,12 +411,138 @@ export function useWorkspaceController({
 		file,
 		loadComments,
 		loadFileHistory,
-		loadWorkspaceEvents,
+		loadWorkspaceActivity,
 		workspaceId,
 	]);
 
+	const cancelEditing = useCallback(async () => {
+		if (!file) {
+			setMode("preview");
+			return;
+		}
+		const hasChanges = draft !== file.content;
+		if (
+			hasChanges &&
+			!(await confirm({
+				confirmLabel: "Discard draft",
+				description: "Your unsaved local changes cannot be recovered.",
+				destructive: true,
+				title: "Discard this local draft?",
+			}))
+		) {
+			return;
+		}
+		setDraft(file.content);
+		setConflict(null);
+		setDraftRecovery(null);
+		setMode("preview");
+		if (hasChanges) {
+			deleteWorkspaceDraft(workspaceId, file.path).catch(() => undefined);
+			setDraftPaths((paths) => paths.filter((path) => path !== file.path));
+		}
+	}, [confirm, draft, file, workspaceId]);
+
+	const enterEditing = useCallback(() => {
+		if (canEdit && file) {
+			setMode("edit");
+		}
+	}, [canEdit, file]);
+
+	const useLatestConflict = useCallback(async () => {
+		if (!conflict) {
+			return;
+		}
+		const confirmed = await confirm({
+			confirmLabel: "Use latest",
+			description:
+				"Your local draft will be discarded and cannot be recovered.",
+			destructive: true,
+			title: "Use the latest saved version?",
+		});
+		if (!confirmed) {
+			return;
+		}
+		const resolution = resolveConflictState({
+			choice: "use-latest",
+			localContent: conflict.localContent,
+			remoteContent: conflict.remote.content,
+			remoteVersion: conflict.remote.version,
+		});
+		setDraft(resolution.content);
+		setFile(conflict.remote);
+		setConflict(null);
+		setMode(resolution.mode);
+		deleteWorkspaceDraft(workspaceId, conflict.path).catch(() => undefined);
+		setDraftPaths((paths) => paths.filter((path) => path !== conflict.path));
+	}, [confirm, conflict, workspaceId]);
+
+	const editMergedConflict = useCallback(() => {
+		if (!conflict) {
+			return;
+		}
+		const resolution = resolveConflictState({
+			choice: "edit-merged",
+			localContent: conflict.localContent,
+			remoteContent: conflict.remote.content,
+			remoteVersion: conflict.remote.version,
+		});
+		setDraft(resolution.content);
+		setFile(conflict.remote);
+		setConflict(null);
+		setMode(resolution.mode);
+	}, [conflict]);
+
+	const copyLocalConflict = useCallback(async () => {
+		if (!conflict) {
+			return;
+		}
+		await navigator.clipboard.writeText(conflict.localContent);
+		toast.success("Local draft copied.");
+	}, [conflict]);
+
+	const restoreRecoveredDraft = useCallback(() => {
+		if (!draftRecovery) {
+			return;
+		}
+		setDraft(draftRecovery.draft);
+		setFile(draftRecovery.remote);
+		setDraftRecovery(null);
+		setMode("edit");
+	}, [draftRecovery]);
+
+	const discardRecoveredDraft = useCallback(async () => {
+		if (!draftRecovery) {
+			return;
+		}
+		const confirmed = await confirm({
+			confirmLabel: "Discard older draft",
+			description: "The older local draft cannot be recovered after this step.",
+			destructive: true,
+			title: "Keep the latest saved version?",
+		});
+		if (!confirmed) {
+			return;
+		}
+		setDraft(draftRecovery.remote.content);
+		setDraftRecovery(null);
+		deleteWorkspaceDraft(workspaceId, draftRecovery.remote.path).catch(
+			() => undefined
+		);
+		setDraftPaths((paths) =>
+			paths.filter((path) => path !== draftRecovery.remote.path)
+		);
+	}, [confirm, draftRecovery, workspaceId]);
+
 	const restoreHistoricalVersion = useCallback(async () => {
 		if (!(editToken && file && historicalFile)) {
+			return;
+		}
+		const confirmed = await confirm({
+			confirmLabel: `Restore version ${historicalFile.version}`,
+			description: "The selected content will become a new current version.",
+			title: `Restore version ${historicalFile.version}?`,
+		});
+		if (!confirmed) {
 			return;
 		}
 
@@ -395,43 +550,32 @@ export function useWorkspaceController({
 		setError(null);
 
 		try {
-			const response = await fetch(
-				`${apiBaseUrl}/api/workspaces/${workspaceId}/files`,
-				{
-					body: JSON.stringify(
-						createRestoreDraft({
-							contentType: historicalFile.contentType,
-							currentVersion: file.version,
-							historicalContent: historicalFile.content,
-							path: file.path,
-							restoreActor: PRODUCT_ACTOR,
-						})
-					),
-					headers: {
-						Authorization: `Bearer ${editToken}`,
-						"Content-Type": "application/json",
-					},
-					method: "PUT",
-				}
-			);
+			const result = await writeWorkspaceFile({
+				apiBaseUrl,
+				content: historicalFile.content,
+				contentType: historicalFile.contentType,
+				editToken,
+				path: file.path,
+				version: file.version,
+				workspaceId,
+			});
 
-			if (response.status === 409) {
-				const conflict = (await response.json()) as VersionConflictResponse;
-				if (conflict.latest) {
-					setFile(conflict.latest);
-					setDraft(conflict.latest.content);
+			if (result.kind === "conflict") {
+				if (result.payload.latest) {
+					setFile(result.payload.latest);
+					setConflict({
+						localContent: historicalFile.content,
+						path: file.path,
+						remote: result.payload.latest,
+					});
 				}
-				throw new Error("File changed elsewhere. Latest content loaded.");
+				setError(
+					"The file changed before restore. Reconcile both versions first."
+				);
+				return;
 			}
 
-			if (!response.ok) {
-				throw new Error(await responseMessage(response));
-			}
-
-			const payload = (await response.json()) as Pick<
-				WorkspaceFilePayload,
-				"path" | "updatedAt" | "updatedBy" | "version"
-			>;
+			const { payload } = result;
 
 			setFile({
 				...file,
@@ -454,9 +598,13 @@ export function useWorkspaceController({
 						: item
 				)
 			);
-			await Promise.all([loadWorkspaceEvents(), loadFileHistory(payload.path)]);
+			await Promise.all([
+				loadWorkspaceActivity(),
+				loadFileHistory(payload.path),
+			]);
 			await loadComments(payload.path);
 			setMode("preview");
+			toast.success(`Restored as version ${payload.version}.`);
 		} catch (cause) {
 			setError(cause instanceof Error ? cause.message : "Restore failed.");
 		} finally {
@@ -464,103 +612,15 @@ export function useWorkspaceController({
 		}
 	}, [
 		apiBaseUrl,
+		confirm,
 		editToken,
 		file,
 		historicalFile,
 		loadComments,
 		loadFileHistory,
-		loadWorkspaceEvents,
+		loadWorkspaceActivity,
 		workspaceId,
 	]);
-
-	const createComment = useCallback(async () => {
-		const trimmedBody = commentDraft.trim();
-		if (!(editToken && file && trimmedBody)) {
-			return;
-		}
-
-		setBusy(true);
-		setError(null);
-
-		try {
-			const line = Number(commentLine);
-			const selector =
-				commentLine.trim() && Number.isInteger(line) && line > 0
-					? { line }
-					: undefined;
-			const response = await fetch(
-				`${apiBaseUrl}/api/workspaces/${workspaceId}/comments`,
-				{
-					body: JSON.stringify({
-						actor: PRODUCT_ACTOR,
-						body: trimmedBody,
-						path: file.path,
-						selector,
-						version: file.version,
-					}),
-					headers: {
-						Authorization: `Bearer ${editToken}`,
-						"Content-Type": "application/json",
-					},
-					method: "POST",
-				}
-			);
-
-			if (!response.ok) {
-				throw new Error(await responseMessage(response));
-			}
-
-			const comment = (await response.json()) as WorkspaceComment;
-			setComments((currentComments) => [...currentComments, comment]);
-			setCommentDraft("");
-			setCommentLine("");
-		} catch (cause) {
-			setError(cause instanceof Error ? cause.message : "Comment failed.");
-		} finally {
-			setBusy(false);
-		}
-	}, [apiBaseUrl, commentDraft, commentLine, editToken, file, workspaceId]);
-
-	const resolveComment = useCallback(
-		async (commentId: string) => {
-			if (!editToken) {
-				return;
-			}
-
-			setBusy(true);
-			setError(null);
-
-			try {
-				const response = await fetch(
-					`${apiBaseUrl}/api/workspaces/${workspaceId}/comments/${encodeURIComponent(commentId)}/resolve`,
-					{
-						body: JSON.stringify({ actor: PRODUCT_ACTOR }),
-						headers: {
-							Authorization: `Bearer ${editToken}`,
-							"Content-Type": "application/json",
-						},
-						method: "POST",
-					}
-				);
-
-				if (!response.ok) {
-					throw new Error(await responseMessage(response));
-				}
-
-				const resolvedComment = (await response.json()) as WorkspaceComment;
-				setComments((currentComments) =>
-					currentComments.map((comment) =>
-						comment.id === resolvedComment.id ? resolvedComment : comment
-					)
-				);
-			} catch (cause) {
-				setError(cause instanceof Error ? cause.message : "Resolve failed.");
-			} finally {
-				setBusy(false);
-			}
-		},
-		[apiBaseUrl, editToken, workspaceId]
-	);
 
 	const handleDraftChange = useCallback((nextMarkdown: string) => {
 		setDraft(nextMarkdown);
@@ -581,6 +641,7 @@ export function useWorkspaceController({
 					loadComments(selectedPath),
 					mode === "admin" && canEdit ? loadAdminStats() : Promise.resolve(),
 					canEdit ? loadCapabilities() : Promise.resolve(),
+					loadOverview(),
 				]);
 			}
 		} catch (cause) {
@@ -592,34 +653,12 @@ export function useWorkspaceController({
 		loadCapabilities,
 		loadComments,
 		loadFileHistory,
+		loadOverview,
 		loadSelectedFile,
 		loadWorkspace,
 		mode,
 		selectedPath,
 	]);
-	const toggleMode = useCallback(() => {
-		setMode((currentMode) => (currentMode === "edit" ? "preview" : "edit"));
-	}, []);
-	const showActivity = useCallback(() => {
-		setMode("activity");
-	}, []);
-	const showHistory = useCallback(() => {
-		setMode("history");
-	}, []);
-	const showComments = useCallback(() => {
-		setMode("comments");
-	}, []);
-	const showAdmin = useCallback(() => {
-		setMode("admin");
-		loadAdminStats().catch((cause) => {
-			setError(cause instanceof Error ? cause.message : "Admin load failed.");
-		});
-	}, [loadAdminStats]);
-	const selectActivityPath = useCallback((path: string) => {
-		setSelectedPath(path);
-		setMode("preview");
-	}, []);
-
 	const activityTypes = useMemo(() => uniqueEventTypes(events), [events]);
 	const filteredActivityEvents = useMemo(
 		() =>
@@ -654,6 +693,7 @@ export function useWorkspaceController({
 		adminActionNotice,
 		adminStats,
 		busy,
+		cancelEditing,
 		canEdit,
 		capabilities,
 		capabilityLinks,
@@ -661,10 +701,17 @@ export function useWorkspaceController({
 		commentDraft,
 		commentLine,
 		comments,
+		conflict,
+		copyLocalConflict,
 		createComment,
 		diffLines,
+		discardRecoveredDraft,
 		draft,
+		draftPaths,
+		draftRecovery,
+		editMergedConflict,
 		editorRevisionKey,
+		enterEditing,
 		error,
 		exportWorkspace,
 		file,
@@ -679,14 +726,15 @@ export function useWorkspaceController({
 		loadAdminStats,
 		loadRetentionPolicy,
 		mode,
+		overview,
 		rawUrl,
 		resolveComment,
 		restoreHistoricalVersion,
+		restoreRecoveredDraft,
 		retentionPolicy,
 		revokeCapability,
 		rotateCapability,
 		saveFile,
-		selectActivityPath,
 		selectedHistoryVersion,
 		selectedPath,
 		setActivityFilters,
@@ -694,11 +742,7 @@ export function useWorkspaceController({
 		setCommentLine,
 		setSelectedHistoryVersion,
 		setSelectedPath,
-		showActivity,
-		showAdmin,
-		showComments,
-		showHistory,
-		toggleMode,
+		useLatestConflict,
 		workspace,
 	};
 }

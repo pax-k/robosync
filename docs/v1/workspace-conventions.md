@@ -177,7 +177,7 @@ local HA2HA folders or conformant HTTP implementations, no MDSync dashboards,
 comments, hosted auth, stats, admin, or provider sync.
 
 The earlier v1 alpha Codex skill package is
-[skills/core-ha2ha-agent-alpha/SKILL.md](skills/core-ha2ha-agent-alpha/SKILL.md).
+[historical core HA2HA agent alpha](skills/core-ha2ha-agent-alpha/REFERENCE.md).
 It remains historical V1-008 repo-local evidence. The installable package work
 is tracked in
 [tasks/V1-011-ha2ha-installable-skill-package.md](tasks/V1-011-ha2ha-installable-skill-package.md).

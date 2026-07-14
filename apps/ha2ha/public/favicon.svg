@@ -4,8 +4,14 @@
 	viewBox="0 0 64 64"
 	xmlns="http://www.w3.org/2000/svg"
 >
-	<rect fill="#f7f3ea" height="64" rx="12" width="64" />
-	<path d="M14 20h36v24H14z" fill="#20332d" />
-	<path d="M20 28h8v8h-8zm16 0h8v8h-8z" fill="#f3b33d" />
-	<path d="M28 36h8" stroke="#f7f3ea" stroke-linecap="round" stroke-width="4" />
+	<rect fill="#171717" height="64" rx="12" width="64" />
+	<path d="M15 20v24M49 20v24M15 32h34" stroke="#fff" stroke-width="5" />
+	<path
+		d="m24 27-5 5 5 5m16-10 5 5-5 5"
+		fill="none"
+		stroke="#fff"
+		stroke-linecap="round"
+		stroke-linejoin="round"
+		stroke-width="3"
+	/>
 </svg>

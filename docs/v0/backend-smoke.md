@@ -12,12 +12,15 @@ To test another server URL:
 BASE_URL="https://example.com" scripts/smoke-backend.sh
 ```
 
-For a backend-only Cloudflare deployment, use:
+To deploy the shared Cloudflare stack and then run only the backend smoke, use:
 
 ```bash
 pnpm run deploy:server
 BASE_URL="<server-url-from-deploy-output>" scripts/smoke-backend.sh
 ```
+
+`deploy:server` is a compatibility alias for the full stack deploy. Omitting
+the Web resources from the same Alchemy stage would remove them.
 
 The manual curl flow below mirrors the executable script.
 

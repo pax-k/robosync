@@ -2,7 +2,10 @@
 
 ## Goal
 
-Build product experiences on top of v0 and v1: changelog, file history, diff/restore, comments, stats, admin, token/identity UX, encryption decisions, import/export, retention, storage evolution, the MDSync client SDK, and installable MDSync agent skills.
+Build product experiences on top of v0 and v1: a work-first workspace,
+changelog, file history, diff/restore, comments, stats, admin, token/identity UX,
+encryption decisions, import/export, retention, storage evolution, the MDSync
+client SDK, and installable MDSync agent skills.
 
 ## Current State
 
@@ -22,6 +25,17 @@ Build product experiences on top of v0 and v1: changelog, file history, diff/res
 - `@ha2ha/skills` is now available as the installable, protocol-only v1 skill
   package, and `@mdsync/skills` is available as the hosted MDSync product skill
   package built after `@mdsync/client`.
+- V2-011 provides the routed, responsive workspace shell, guided creation,
+  read-safe work overview, and durable draft/conflict editing foundation.
+- V2-012 turns installed MDSync skills and capability links into an executable
+  HA2HA publish-and-join handoff with deployment discovery and atomic creation.
+  Dogfood hardening now provides a combined product activity feed, an
+  `@mdsync/skills/runtime` adapter, strict single-package consumer proof, and a
+  redacted four-context Codex harness. Registry promotion remains blocked only
+  on an authenticated npm identity that owns both public scopes. The public
+  skills release is sourced from `pax-k/robosync`, discovers only `ha2ha` and
+  `mdsync`, and defaults new hosted publishing to the deployed Cloudflare
+  discovery endpoint.
 
 ## Execution Order
 
@@ -35,6 +49,8 @@ Build product experiences on top of v0 and v1: changelog, file history, diff/res
 8. Package a limited team-workspace product pilot over v1 skills and v2 UX.
 9. Document and ship the MDSync client SDK.
 10. Package first-party MDSync product skills for installation.
+11. Ship the work-first workspace foundation over existing v1 and v2 behavior.
+12. Ship URL-only HA2HA agent handoff and public package distribution proof.
 
 ## Tasks
 
@@ -48,6 +64,8 @@ Build product experiences on top of v0 and v1: changelog, file history, diff/res
 - [V2-008 Team Workspace Product Pilot](tasks/V2-008-team-workspace-product-pilot.md)
 - [V2-010 MDSync Client SDK](tasks/V2-010-mdsync-client-sdk.md)
 - [V2-009 MDSync Installable Skill Package](tasks/V2-009-mdsync-installable-skill-package.md)
+- [V2-011 Work-First Workspace Foundation](tasks/V2-011-apple-like-workspace-foundation.md)
+- [V2-012 URL-Based HA2HA Agent Handoff](tasks/V2-012-url-based-ha2ha-agent-handoff.md)
 
 ## Done Definition
 
@@ -64,6 +82,16 @@ Build product experiences on top of v0 and v1: changelog, file history, diff/res
 - MDSync client SDK claims distinguish hosted product integration from portable
   HA2HA protocol integration, should wrap `@ha2ha/client` one-way where useful,
   and include local or deployed dogfood evidence.
+- Workspace UX preserves stable capability routes, optimistic concurrency, and
+  protocol behavior while keeping operational internals out of read surfaces.
+- Responsive workspace flows include automated WCAG 2.2 AA and visual browser
+  coverage before V2-011 is complete.
+- MDSync agent handoff starts from a single capability URL, discovers the
+  deployment without forwarding secrets, and proves least-privilege two-agent
+  coordination before V2-012 is complete.
+- MDSync product activity may derive comment lifecycle items, but portable
+  HA2HA events, raw routes, export/import, and retention semantics remain
+  unchanged.
 
 ## Verification Commands
 

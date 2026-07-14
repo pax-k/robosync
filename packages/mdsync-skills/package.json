@@ -3,28 +3,47 @@
   "version": "0.1.0",
   "description": "Installable MDSync hosted product agent skill package.",
   "license": "MIT",
-  "homepage": "https://mdsync-ha2ha-pax.pax.workers.dev",
+  "publishConfig": {
+    "access": "public"
+  },
+  "homepage": "https://mdsync-web-pax.pax.workers.dev",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pax-k/robosync.git",
+    "directory": "packages/mdsync-skills"
+  },
+  "bugs": {
+    "url": "https://github.com/pax-k/robosync/issues"
+  },
   "type": "module",
   "exports": {
     "./package.json": "./package.json",
+    "./runtime": {
+      "types": "./dist/runtime.d.mts",
+      "default": "./dist/runtime.mjs"
+    },
     "./skills/mdsync": "./skills/mdsync/SKILL.md"
   },
   "files": [
+    "dist",
     "README.md",
     "skills"
   ],
   "scripts": {
+    "build": "tsdown",
+    "check-types": "tsc -b",
     "pack:dry-run": "npm pack --dry-run --json",
+    "prepack": "pnpm run build",
     "test": "node ../../scripts/mdsync-skill-package-smoke.mjs"
   },
-  "devDependencies": {
-    "@ha2ha/client": "workspace:*",
-    "@ha2ha/skills": "workspace:*",
-    "@mdsync/client": "workspace:*"
-  },
-  "peerDependencies": {
+  "dependencies": {
     "@ha2ha/client": "0.1.0",
     "@ha2ha/skills": "0.1.0",
     "@mdsync/client": "0.1.0"
+  },
+  "devDependencies": {
+    "@mdsync/config": "workspace:*",
+    "tsdown": "^0.22.4",
+    "typescript": "catalog:"
   }
 }

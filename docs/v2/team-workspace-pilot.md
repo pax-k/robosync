@@ -30,7 +30,7 @@ evidence/TEAM-001/typecheck.md
 
 The pilot uses the repo-local v1 core HA2HA agent alpha:
 
-- `docs/v1/skills/core-ha2ha-agent-alpha/SKILL.md`
+- historical `docs/v1/skills/core-ha2ha-agent-alpha/REFERENCE.md`
 - `docs/v1/tasks/V1-008-core-ha2ha-agent-skill-alpha.md`
 
 It does not use product-private agent behavior. Agent workflows are modeled as

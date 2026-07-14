@@ -1,6 +1,7 @@
 ---
 name: ha2ha
 description: Coordinate through HA2HA v1 workspaces using portable protocol files, local folders, or conformant HTTP implementations. Use when Codex needs to publish or join a HA2HA workspace, validate workspace state, update a file with baseVersion, claim a task, add evidence, record a decision, write a handoff, or stop safely on HA2HA conflicts without using MDSync product-only dashboards, comments, admin, stats, hosted auth, or provider sync.
+license: MIT
 ---
 
 # HA2HA
@@ -10,6 +11,12 @@ description: Coordinate through HA2HA v1 workspaces using portable protocol file
 Use this skill to operate portable HA2HA v1 workspaces. Keep workspace files,
 task state, evidence, decisions, and handoffs as the authority; do not hide
 state in chat or product-private systems.
+
+## Protocol Documentation
+
+Use `https://mdsync-ha2ha-pax.pax.workers.dev` as the canonical public HA2HA
+documentation for this release. Keep the skill portable: do not infer MDSync
+dashboard, capability, comment, admin, or retention behavior from the protocol.
 
 ## Safety Envelope
 

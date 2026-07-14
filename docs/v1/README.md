@@ -25,7 +25,7 @@ Implementation-specific infrastructure belongs outside normative protocol docs. 
 - [mdsync-conformance-plan.md](mdsync-conformance-plan.md)
 - [mdsync-conformance.md](mdsync-conformance.md)
 - [protocol-leak-review.md](protocol-leak-review.md)
-- [skills/core-ha2ha-agent-alpha/SKILL.md](skills/core-ha2ha-agent-alpha/SKILL.md)
+- [Historical core HA2HA agent alpha](skills/core-ha2ha-agent-alpha/REFERENCE.md)
 - [../../packages/ha2ha-skills/README.md](../../packages/ha2ha-skills/README.md)
 - [../../packages/ha2ha-client/README.md](../../packages/ha2ha-client/README.md)
 - [research/a2a-inspired-human-agent-sync.md](research/a2a-inspired-human-agent-sync.md)

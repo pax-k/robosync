@@ -3,7 +3,18 @@
   "version": "0.1.0",
   "description": "Installable HA2HA protocol-only agent skill package.",
   "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "homepage": "https://mdsync-ha2ha-pax.pax.workers.dev",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pax-k/robosync.git",
+    "directory": "packages/ha2ha-skills"
+  },
+  "bugs": {
+    "url": "https://github.com/pax-k/robosync/issues"
+  },
   "type": "module",
   "exports": {
     "./package.json": "./package.json",
@@ -19,7 +30,7 @@
     "pack:dry-run": "npm pack --dry-run --json",
     "test": "node ../../scripts/ha2ha-skill-package-smoke.mjs"
   },
-  "peerDependencies": {
+  "dependencies": {
     "@ha2ha/protocol": "0.1.0"
   }
 }

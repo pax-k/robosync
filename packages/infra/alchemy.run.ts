@@ -16,11 +16,18 @@ const db = await D1Database("database", {
 
 const files = await R2Bucket("files");
 const deployWeb = process.env.ROBOSYNC_SERVER_ONLY !== "1";
+const devServerPort = positiveInteger(
+	"ROBOSYNC_DEV_SERVER_PORT",
+	process.env.ROBOSYNC_DEV_SERVER_PORT ?? "3000"
+);
 export const web = deployWeb
 	? await Vite("web", {
 			assets: {
 				directory: "dist",
 				run_worker_first: true,
+			},
+			bindings: {
+				API_ORIGIN: process.env.VITE_API_BASE_URL ?? "",
 			},
 			build: {
 				command: "pnpm build",
@@ -82,7 +89,7 @@ export const server = await Worker("server", {
 	compatibility: "node",
 	cwd: "../../apps/server",
 	dev: {
-		port: 3000,
+		port: devServerPort,
 	},
 	entrypoint: "src/index.ts",
 	url: true,
@@ -125,4 +132,12 @@ function requiredValue<T>(name: string, value: T | null | undefined): T {
 
 function withoutTrailingSlash(value: string) {
 	return value.replace(TRAILING_SLASH_PATTERN, "");
+}
+
+function positiveInteger(name: string, value: string) {
+	const parsedValue = Number(value);
+	if (!Number.isInteger(parsedValue) || parsedValue <= 0) {
+		throw new Error(`${name} must be a positive integer.`);
+	}
+	return parsedValue;
 }
