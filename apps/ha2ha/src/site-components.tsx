@@ -10,30 +10,10 @@ import {
 	FAQ_ITEMS,
 	NAV_ITEMS,
 	PRINCIPLES,
+	PROTOCOL_MATURITY,
 	SITE_LINKS,
 	WORKSPACE_TREE,
 } from "./site-content";
-
-interface UnavailableLinkProps {
-	label: string;
-	testId?: string;
-}
-
-function UnavailableLink({ label, testId }: UnavailableLinkProps) {
-	return (
-		<button
-			className="unavailable-link"
-			data-testid={testId}
-			disabled
-			type="button"
-		>
-			{label}
-			<span aria-hidden="true" className="coming-soon">
-				Coming soon
-			</span>
-		</button>
-	);
-}
 
 export function SiteHeader() {
 	return (
@@ -52,13 +32,14 @@ export function SiteHeader() {
 						</a>
 					))}
 				</nav>
-				{SITE_LINKS.github ? (
+				<div className="header-links">
 					<a className="header-external" href={SITE_LINKS.github}>
 						GitHub
 					</a>
-				) : (
-					<UnavailableLink label="GitHub" testId="github-placeholder-header" />
-				)}
+					<a className="header-skill" href={SITE_LINKS.ha2haSkill}>
+						Install skill
+					</a>
+				</div>
 			</div>
 		</header>
 	);
@@ -132,16 +113,12 @@ export function Hero() {
 						<a className="button button-primary" href="#protocol">
 							Read the protocol
 						</a>
-						{SITE_LINKS.github ? (
-							<a className="button button-secondary" href={SITE_LINKS.github}>
-								View on GitHub
-							</a>
-						) : (
-							<UnavailableLink
-								label="View on GitHub"
-								testId="github-placeholder-hero"
-							/>
-						)}
+						<a className="button button-secondary" href={SITE_LINKS.ha2haSkill}>
+							Install the skill
+						</a>
+						<a className="hero-text-link text-link" href={SITE_LINKS.github}>
+							View on GitHub
+						</a>
 					</div>
 				</div>
 				<WorkspaceSpecimen />
@@ -191,6 +168,15 @@ export function ProtocolSection() {
 						Adopt only what the work needs. Every capability builds on the same
 						portable files, versioned targets, and explicit actors.
 					</p>
+				</div>
+				<div className="maturity-grid">
+					{PROTOCOL_MATURITY.map((item) => (
+						<article key={item.title}>
+							<span>{item.label}</span>
+							<h3>{item.title}</h3>
+							<p>{item.description}</p>
+						</article>
+					))}
 				</div>
 				<div className="capability-grid">
 					{CAPABILITY_GROUPS.map((group) => (
@@ -319,6 +305,11 @@ export function AdoptionSection() {
 						<CommandCard key={command.name} {...command} />
 					))}
 				</div>
+				<p className="adoption-tools">
+					Need validators, clients, or conformance fixtures? The source packages
+					are available on <a href={SITE_LINKS.github}>GitHub</a>. Registry
+					publication remains pending.
+				</p>
 			</div>
 		</section>
 	);
@@ -387,16 +378,14 @@ export function MdsyncSection() {
 						local tools and independent implementations without MDSync product
 						state.
 					</p>
-					{SITE_LINKS.mdsync ? (
+					<div className="mdsync-links">
 						<a className="text-link" href={SITE_LINKS.mdsync}>
 							Explore MDSync
 						</a>
-					) : (
-						<UnavailableLink
-							label="Explore MDSync"
-							testId="mdsync-placeholder"
-						/>
-					)}
+						<a className="text-link" href={SITE_LINKS.mdsyncSkill}>
+							Install the MDSync skill
+						</a>
+					</div>
 				</div>
 			</div>
 		</section>
@@ -435,15 +424,9 @@ export function SiteFooter() {
 				<nav aria-label="Footer navigation">
 					<a href="#protocol">Protocol</a>
 					<a href="#adopt">Adopt</a>
-					<a href="#conformance">Conformance</a>
-					{SITE_LINKS.github ? (
-						<a href={SITE_LINKS.github}>GitHub</a>
-					) : (
-						<UnavailableLink
-							label="GitHub"
-							testId="github-placeholder-footer"
-						/>
-					)}
+					<a href={SITE_LINKS.ha2haSkill}>HA2HA skill</a>
+					<a href={SITE_LINKS.mdsync}>MDSync</a>
+					<a href={SITE_LINKS.github}>GitHub</a>
 				</nav>
 			</div>
 		</footer>

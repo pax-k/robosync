@@ -162,6 +162,18 @@ For V2-012 URL handoff, keep contract and integration coverage for:
   capability-shaped values, and pins production guidance to the deployed
   Cloudflare discovery contract.
 
+For V2-013 developer experience and public documentation, keep committed
+coverage for:
+
+- `/` as the developer landing, `/new` as guided creation, direct `/docs/*`
+  refresh, unknown-route fallback, and unchanged capability workspace routes.
+- Exact enabled links between MDSync, HA2HA, GitHub, and both skills.sh pages.
+- Working skills.sh install commands and honest pending npm/CLI distribution
+  language across public documentation and package READMEs.
+- Supported HA2HA Core 1.0 versus draft extended-profile presentation.
+- Copy announcements, route metadata, keyboard navigation, 390px responsive
+  behavior, Axe checks, and capability-shaped value rejection.
+
 Validate the public skill surface before packaging or release:
 
 ```bash

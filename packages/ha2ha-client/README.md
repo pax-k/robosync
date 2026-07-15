@@ -3,11 +3,11 @@
 Portable HA2HA v1 client SDK for local folders and conformant HTTP
 implementations.
 
-## Install
+## Distribution Status
 
-```bash
-npm install @ha2ha/client
-```
+The package is registry-ready but not yet public on npm. Use a workspace build
+or packed tarball from `https://github.com/pax-k/ha2ha-mdsync` until the public
+release gate passes.
 
 During pre-publication development, install the packed tarball from this
 package instead of the npm registry.

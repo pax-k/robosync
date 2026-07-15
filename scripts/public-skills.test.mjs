@@ -53,13 +53,37 @@ const TOKEN_LIKE_PATTERNS = [
 	/xox[baprs]-[A-Za-z0-9-]{20,}/u,
 	/[?&](?:edit|k)=[A-Za-z0-9_-]{16,}/u,
 ];
+const UNAVAILABLE_NPM_INSTALL_PATTERN = /npm install\s+@(ha2ha|mdsync)\//u;
+const PENDING_REGISTRY_PATTERN = /registry publication remains pending/iu;
 const FRONTMATTER_PATTERN = /^---\n([\s\S]*?)\n---/u;
 const HA2HA_PORTABILITY_PATTERN = /Keep the skill portable/u;
 const MARKDOWN_LINK_PATTERN = /\[[^\]]+\]\(([^)]+)\)/gu;
 const REFERENCE_PATH_PATTERN = /^references\/[^/]+$/u;
 const PRODUCTION_WEB_ORIGIN = "https://mdsync-web-pax.pax.workers.dev";
 const PRODUCTION_API_ORIGIN = "https://mdsync-server-pax.pax.workers.dev";
-const PUBLIC_REPOSITORY = "git+https://github.com/pax-k/robosync.git";
+const PRODUCTION_HA2HA_ORIGIN = "https://mdsync-ha2ha-pax.pax.workers.dev";
+const PUBLIC_GITHUB = "https://github.com/pax-k/ha2ha-mdsync";
+const PUBLIC_HA2HA_SKILL = "https://skills.sh/pax-k/ha2ha-mdsync/ha2ha";
+const PUBLIC_MDSYNC_SKILL = "https://skills.sh/pax-k/ha2ha-mdsync/mdsync";
+const PUBLIC_REPOSITORY = "git+https://github.com/pax-k/ha2ha-mdsync.git";
+const PUBLIC_INSTRUCTION_FILES = [
+	"README.md",
+	"packages/ha2ha-client/README.md",
+	"packages/ha2ha-http/README.md",
+	"packages/ha2ha-protocol/README.md",
+	"packages/ha2ha-skills/README.md",
+	"packages/mdsync-client/README.md",
+	"packages/mdsync-skills/README.md",
+];
+const PUBLIC_UI_FILES = [
+	"apps/ha2ha/src/site-components.tsx",
+	"apps/ha2ha/src/site-content.ts",
+	"apps/web/src/app.tsx",
+	"apps/web/src/docs-pages.tsx",
+	"apps/web/src/landing-page.tsx",
+	"apps/web/src/public-components.tsx",
+	"apps/web/src/public-content.ts",
+];
 const PUBLIC_PACKAGES = new Map([
 	[
 		"packages/ha2ha-protocol",
@@ -159,10 +183,62 @@ test("public package metadata identifies the monorepo and product boundary", asy
 				assert.equal(manifest.homepage, homepage);
 				assert.equal(
 					manifest.bugs.url,
-					"https://github.com/pax-k/robosync/issues"
+					"https://github.com/pax-k/ha2ha-mdsync/issues"
 				);
 			}
 		)
+	);
+});
+
+test("public apps expose the canonical developer journey without placeholders", async () => {
+	const publicUiText = (
+		await Promise.all(
+			PUBLIC_UI_FILES.map((file) => readFile(path.join(ROOT_DIR, file), "utf8"))
+		)
+	).join("\n");
+	for (const expectedLink of [
+		PUBLIC_GITHUB,
+		PRODUCTION_HA2HA_ORIGIN,
+		PUBLIC_HA2HA_SKILL,
+		PUBLIC_MDSYNC_SKILL,
+	]) {
+		assert.ok(publicUiText.includes(expectedLink), `Missing ${expectedLink}`);
+	}
+	for (const route of [
+		'path="/"',
+		'path="/new"',
+		'path="/docs"',
+		'path="/docs/getting-started"',
+		'path="/docs/agent-handoff"',
+		'path="/docs/security"',
+		'path="/w/:workspaceId/*"',
+	]) {
+		assert.ok(publicUiText.includes(route), `Missing public route ${route}`);
+	}
+	assert.equal(publicUiText.includes("Coming soon"), false);
+	assert.equal(publicUiText.includes("github-placeholder"), false);
+	assert.equal(publicUiText.includes("mdsync-placeholder"), false);
+	assert.ok(publicUiText.includes("HA2HA Core 1.0"));
+	assert.ok(publicUiText.includes("Extended collaboration profiles"));
+	assertSafePublishedText("public UI", publicUiText);
+});
+
+test("public instructions describe pending registry distribution honestly", async () => {
+	const instructionText = (
+		await Promise.all(
+			PUBLIC_INSTRUCTION_FILES.map((file) =>
+				readFile(path.join(ROOT_DIR, file), "utf8")
+			)
+		)
+	).join("\n");
+	assert.equal(UNAVAILABLE_NPM_INSTALL_PATTERN.test(instructionText), false);
+	assert.ok(instructionText.includes("registry-ready"));
+	assert.match(instructionText, PENDING_REGISTRY_PATTERN);
+	assert.ok(
+		instructionText.includes("npx skills add pax-k/ha2ha-mdsync --skill ha2ha")
+	);
+	assert.ok(
+		instructionText.includes("npx skills add pax-k/ha2ha-mdsync --skill mdsync")
 	);
 });
 

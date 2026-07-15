@@ -7,18 +7,15 @@ Installable MDSync hosted product agent skill package.
 Install directly from the public skills repository:
 
 ```bash
-npx skills add pax-k/robosync --skill mdsync
+npx skills add pax-k/ha2ha-mdsync --skill mdsync
 ```
 
-Published listing: `https://skills.sh/pax-k/robosync/mdsync`.
+Published listing: `https://skills.sh/pax-k/ha2ha-mdsync/mdsync`.
 
-For the SDK-backed workflow, install this package from npm, then copy or
-register `skills/mdsync` with the agent surface that supports Codex-style
-skills:
-
-```bash
-npm install @mdsync/skills
-```
+Registry publication remains pending. Until it succeeds, use the public
+skills.sh installation and its complete HTTP fallback. The SDK-backed runtime
+becomes the preferred path when `@mdsync/skills/runtime` resolves from an
+installed source build or future registry release.
 
 The same skill directory can be registered directly from a public source
 checkout at `packages/mdsync-skills/skills/mdsync`. The included HTTP fallback
@@ -27,6 +24,10 @@ does not require repo-local scripts.
 New hosted workspaces default to discovery at
 `https://mdsync-web-pax.pax.workers.dev/.well-known/mdsync.json`. Set
 `MDSYNC_BASE_URL` only when intentionally targeting another conformant API.
+
+Product documentation is served from
+`https://mdsync-web-pax.pax.workers.dev/docs`. Source is available at
+`https://github.com/pax-k/ha2ha-mdsync`.
 
 The npm package installs `@mdsync/client`, `@ha2ha/client`, and `@ha2ha/skills`
 as runtime dependencies. Skill installation grants no workspace access: users

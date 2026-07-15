@@ -9,11 +9,12 @@ admin stats, import/export, and retention.
 Use `@ha2ha/client` directly when the goal is portable HA2HA protocol adoption
 against local folders or conformant HTTP implementations.
 
-## Install
+## Distribution Status
 
-```bash
-npm install @mdsync/client @ha2ha/client @ha2ha/protocol
-```
+The package is registry-ready but not yet public on npm. Use a workspace build
+or packed tarball from `https://github.com/pax-k/ha2ha-mdsync` until the public
+release gate passes. The skills.sh MDSync workflow remains available through
+its HTTP fallback without this package.
 
 ## Publish And Hand Off
 

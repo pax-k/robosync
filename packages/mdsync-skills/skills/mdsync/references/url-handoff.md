@@ -1,5 +1,20 @@
 # URL-Based HA2HA Handoff
 
+## Public Documentation
+
+Use the production guides for human-facing handoff context:
+
+- Getting started: `https://mdsync-web-pax.pax.workers.dev/docs/getting-started`
+- Agent handoff: `https://mdsync-web-pax.pax.workers.dev/docs/agent-handoff`
+- Capability security: `https://mdsync-web-pax.pax.workers.dev/docs/security`
+- HA2HA protocol: `https://mdsync-ha2ha-pax.pax.workers.dev`
+- Source: `https://github.com/pax-k/ha2ha-mdsync`
+
+The MDSync and HA2HA skills are published at
+`https://skills.sh/pax-k/ha2ha-mdsync/mdsync` and
+`https://skills.sh/pax-k/ha2ha-mdsync/ha2ha`. These references never replace
+discovery from the pasted workspace URL.
+
 ## Publish
 
 Use an unscoped client only to create the workspace. The actor must be an

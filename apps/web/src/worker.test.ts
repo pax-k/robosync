@@ -103,6 +103,30 @@ test("web worker falls back to index.html for missing HTML GET routes", async ()
 	assert.deepEqual(requestedPaths, ["/w/workspace-1", "/index.html"]);
 });
 
+test("web worker supports direct public documentation routes", async () => {
+	const requestedPaths: string[] = [];
+	const env = createAssetEnv((request) => {
+		const { pathname } = new URL(request.url);
+		requestedPaths.push(pathname);
+		if (pathname === "/index.html") {
+			return new Response('<div id="root"></div>', {
+				headers: { "Content-Type": "text/html; charset=utf-8" },
+			});
+		}
+		return new Response("missing", { status: 404 });
+	});
+
+	const response = await worker.fetch(
+		new Request("https://web.example.com/docs/security", {
+			headers: { Accept: "text/html" },
+		}),
+		env
+	);
+
+	assert.equal(response.status, 200);
+	assert.deepEqual(requestedPaths, ["/docs/security", "/index.html"]);
+});
+
 test("web worker preserves non-HTML missing asset responses", async () => {
 	const env = createAssetEnv(() => new Response("missing", { status: 404 }));
 

@@ -9,11 +9,11 @@
   "homepage": "https://mdsync-web-pax.pax.workers.dev",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/pax-k/robosync.git",
+    "url": "git+https://github.com/pax-k/ha2ha-mdsync.git",
     "directory": "packages/mdsync-skills"
   },
   "bugs": {
-    "url": "https://github.com/pax-k/robosync/issues"
+    "url": "https://github.com/pax-k/ha2ha-mdsync/issues"
   },
   "type": "module",
   "exports": {

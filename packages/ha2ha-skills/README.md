@@ -7,21 +7,26 @@ Installable HA2HA protocol-only agent skill package.
 Install directly from the public skills repository:
 
 ```bash
-npx skills add pax-k/robosync --skill ha2ha
+npx skills add pax-k/ha2ha-mdsync --skill ha2ha
 ```
 
-Published listing: `https://skills.sh/pax-k/robosync/ha2ha`.
+Published listing: `https://skills.sh/pax-k/ha2ha-mdsync/ha2ha`.
+
+Public protocol documentation: `https://mdsync-ha2ha-pax.pax.workers.dev`.
+Source: `https://github.com/pax-k/ha2ha-mdsync`.
 
 Alternatively, install this package from a tarball or registry, then copy or
 register `skills/ha2ha` with the agent surface that supports Codex-style
 skills.
 
-The skill assumes the `ha2ha-validate` CLI from `@ha2ha/protocol` is available
-when validating workspaces. It does not require MDSync dashboards, comments,
-stats, admin routes, hosted auth, or provider sync.
+The skill uses `ha2ha-validate` when an installed source or package build makes
+the CLI available. Registry publication remains pending, so the public skill
+workflow must not assume the CLI exists. It does not require MDSync dashboards,
+comments, stats, admin routes, hosted auth, or provider sync.
 
-Public protocol documentation is served from
-`https://mdsync-ha2ha-pax.pax.workers.dev`.
+MDSync is the hosted implementation at
+`https://mdsync-web-pax.pax.workers.dev`; it does not change the portable skill
+contract.
 
 ## Included Skill
 

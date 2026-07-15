@@ -6,14 +6,12 @@ v1 remains the core workspace/file/version/conflict substrate. v3 adds optional
 human-agent collaboration profile schemas and validation for coordination,
 trust, evidence/review, governance, engineering, and method contracts.
 
-## Install
+## Distribution Status
 
-```bash
-npm install @ha2ha/protocol
-```
-
-During pre-publication development, install the packed tarball from this
-package instead of the npm registry.
+The package is registry-ready but not yet public on npm. Use a workspace build
+or packed tarball from `https://github.com/pax-k/ha2ha-mdsync` during
+pre-publication development. Do not treat the package name as an available
+registry installation until the public release gate passes.
 
 ## API
 

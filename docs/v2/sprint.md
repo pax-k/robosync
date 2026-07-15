@@ -33,10 +33,13 @@ client SDK, and installable MDSync agent skills.
   `@mdsync/skills/runtime` adapter, strict single-package consumer proof, and a
   redacted four-context Codex harness. Registry promotion remains blocked only
   on an authenticated npm identity that owns both public scopes. The public
-  skills release is sourced from `pax-k/robosync`, discovers only `ha2ha` and
+  skills release is sourced from `pax-k/ha2ha-mdsync`, discovers only `ha2ha` and
   `mdsync`, and defaults new hosted publishing to the deployed Cloudflare
   discovery endpoint. GitHub release `v0.1.0` and both skills.sh listings are
   live; npm promotion remains the only blocked distribution gate.
+- V2-013 connects the public HA2HA site, MDSync product, GitHub repository, and
+  published skills through a developer-first landing, addressable docs, honest
+  distribution status, and canonical link enforcement.
 
 ## Execution Order
 
@@ -52,6 +55,7 @@ client SDK, and installable MDSync agent skills.
 10. Package first-party MDSync product skills for installation.
 11. Ship the work-first workspace foundation over existing v1 and v2 behavior.
 12. Ship URL-only HA2HA agent handoff and public package distribution proof.
+13. Ship the public developer journey and product documentation.
 
 ## Tasks
 
@@ -67,6 +71,7 @@ client SDK, and installable MDSync agent skills.
 - [V2-009 MDSync Installable Skill Package](tasks/V2-009-mdsync-installable-skill-package.md)
 - [V2-011 Work-First Workspace Foundation](tasks/V2-011-apple-like-workspace-foundation.md)
 - [V2-012 URL-Based HA2HA Agent Handoff](tasks/V2-012-url-based-ha2ha-agent-handoff.md)
+- [V2-013 MDSync Developer Experience And Public Documentation](tasks/V2-013-developer-experience-public-docs.md)
 
 ## Done Definition
 
@@ -93,6 +98,9 @@ client SDK, and installable MDSync agent skills.
 - MDSync product activity may derive comment lifecycle items, but portable
   HA2HA events, raw routes, export/import, and retention semantics remain
   unchanged.
+- Public product and protocol surfaces expose working installation paths,
+  preserve the HA2HA/MDSync boundary, and keep capability values out of
+  examples, metadata, diagnostics, and release evidence.
 
 ## Verification Commands
 

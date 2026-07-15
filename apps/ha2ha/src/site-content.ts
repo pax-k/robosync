@@ -12,8 +12,10 @@ import {
 } from "@ha2ha/protocol/v3-constants";
 
 interface SiteLinks {
-	github: string | null;
-	mdsync: string | null;
+	github: string;
+	ha2haSkill: string;
+	mdsync: string;
+	mdsyncSkill: string;
 }
 
 interface CapabilityGroup {
@@ -31,8 +33,10 @@ const removeInternalVersionLabel = (value: string) =>
 	value.replaceAll(".ha2ha/v3/", "").replaceAll("v3-", "");
 
 export const SITE_LINKS: SiteLinks = {
-	github: null,
-	mdsync: null,
+	github: "https://github.com/pax-k/ha2ha-mdsync",
+	ha2haSkill: "https://skills.sh/pax-k/ha2ha-mdsync/ha2ha",
+	mdsync: "https://mdsync-web-pax.pax.workers.dev",
+	mdsyncSkill: "https://skills.sh/pax-k/ha2ha-mdsync/mdsync",
 };
 
 export const NAV_ITEMS = [
@@ -130,6 +134,21 @@ export const CAPABILITY_GROUPS: readonly CapabilityGroup[] = [
 	},
 ];
 
+export const PROTOCOL_MATURITY = [
+	{
+		description:
+			"Portable files, actors, task state, evidence, versioned writes, and deterministic conflicts used by the current HA2HA skill and MDSync.",
+		label: "Supported",
+		title: "HA2HA Core 1.0",
+	},
+	{
+		description:
+			"Coordination, trust, review, governance, and engineering profiles are measurable drafts for broader implementation feedback.",
+		label: "Draft",
+		title: "Extended collaboration profiles",
+	},
+] as const;
+
 export const WORKSPACE_TREE = [
 	HA2HA_PATHS.manifestMarkdown,
 	HA2HA_PATHS.status,
@@ -170,14 +189,14 @@ export const ADOPTION_STEPS = [
 
 export const COMMANDS = [
 	{
-		command: "ha2ha-validate ./workspace",
-		label: "Validate a workspace",
-		name: "ha2ha-validate",
+		command: "npx skills add pax-k/ha2ha-mdsync --skill ha2ha",
+		label: "Portable and local workspaces",
+		name: "HA2HA skill install",
 	},
 	{
-		command: "ha2ha-http-conformance https://your-implementation.example",
-		label: "Test an HTTP implementation",
-		name: "ha2ha-http-conformance",
+		command: "npx skills add pax-k/ha2ha-mdsync --skill mdsync",
+		label: "Hosted MDSync workspaces",
+		name: "MDSync skill install",
 	},
 ] as const;
 

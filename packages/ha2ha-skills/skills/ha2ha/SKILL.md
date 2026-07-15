@@ -18,6 +18,17 @@ Use `https://mdsync-ha2ha-pax.pax.workers.dev` as the canonical public HA2HA
 documentation for this release. Keep the skill portable: do not infer MDSync
 dashboard, capability, comment, admin, or retention behavior from the protocol.
 
+Public references:
+
+- Source: `https://github.com/pax-k/ha2ha-mdsync`
+- Published skill: `https://skills.sh/pax-k/ha2ha-mdsync/ha2ha`
+- Hosted implementation: `https://mdsync-web-pax.pax.workers.dev`
+- Hosted implementation skill: `https://skills.sh/pax-k/ha2ha-mdsync/mdsync`
+
+The hosted links are an implementation path, not part of the portable HA2HA
+contract. This skill supports HA2HA Core 1.0. Treat extended collaboration
+profiles as draft unless a workspace explicitly claims and validates them.
+
 ## Safety Envelope
 
 Before any mutation, state the actor handle, target workspace, allowed paths,

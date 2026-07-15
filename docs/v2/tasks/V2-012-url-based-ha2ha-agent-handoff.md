@@ -36,7 +36,7 @@ evidence:
   - "2026-07-14: Public skill verification passes 4/4 and repository discovery returns exactly ha2ha and mdsync; the historical core alpha is retained as a non-discoverable reference."
   - "2026-07-14: Gitleaks 8.30.1 found no secrets in the public working-tree projection or all 14 Git commits after narrowly allowlisting the two intentional protocol secret-leak fixtures."
   - "2026-07-14: Production URL handoff passed with capabilityLeak false, comment lifecycle coverage, protocol-only events, and preserved version_conflict; four-context Codex dogfood also passed with capabilityFileMode 0600 and capabilityLeak false."
-  - "2026-07-14: Created the public pax-k/robosync repository, protected v* tags against deletion and non-fast-forward updates, and published the immutable v0.1.0 GitHub skill release."
+  - "2026-07-14: Created the public pax-k/ha2ha-mdsync repository, protected v* tags against deletion and non-fast-forward updates, and published the immutable v0.1.0 GitHub skill release."
   - "2026-07-14: Warning-free gh skill publish validation passed; a fresh GitHub install contained both complete skill payloads, and the ha2ha and mdsync skills.sh listings both resolved with HTTP 200."
 ---
 
@@ -73,7 +73,7 @@ external distribution gaps.
 
 ## Public Skill Release
 
-- Publish `ha2ha` and `mdsync` together from `pax-k/robosync` under release
+- Publish `ha2ha` and `mdsync` together from `pax-k/ha2ha-mdsync` under release
   `v0.1.0`.
 - Use `https://mdsync-web-pax.pax.workers.dev/.well-known/mdsync.json` as the
   production publishing discovery entrypoint. Joining remains driven by the

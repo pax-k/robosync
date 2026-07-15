@@ -26,6 +26,16 @@ Use these canonical production origins for new workspaces:
 - API: `https://mdsync-server-pax.pax.workers.dev`
 - HA2HA documentation: `https://mdsync-ha2ha-pax.pax.workers.dev`
 
+Public references:
+
+- Product docs: `https://mdsync-web-pax.pax.workers.dev/docs`
+- Getting started: `https://mdsync-web-pax.pax.workers.dev/docs/getting-started`
+- Agent handoff: `https://mdsync-web-pax.pax.workers.dev/docs/agent-handoff`
+- Security: `https://mdsync-web-pax.pax.workers.dev/docs/security`
+- Source: `https://github.com/pax-k/ha2ha-mdsync`
+- Published MDSync skill: `https://skills.sh/pax-k/ha2ha-mdsync/mdsync`
+- Portable HA2HA skill: `https://skills.sh/pax-k/ha2ha-mdsync/ha2ha`
+
 Discover the API from
 `https://mdsync-web-pax.pax.workers.dev/.well-known/mdsync.json` before
 publishing. Honor an explicit `MDSYNC_BASE_URL` for another conformant

@@ -1,3 +1,4 @@
+import AxeBuilder from "@axe-core/playwright";
 import { expect, type Page, test } from "@playwright/test";
 
 const HA2HA_ORIGIN = "http://localhost:5174";
@@ -51,38 +52,46 @@ test("HA2HA presents the current protocol without internal version labels", asyn
 			.getByText("version_conflict", { exact: true })
 	).toBeVisible();
 	await expect(page.getByText("task.claim", { exact: true })).toBeVisible();
-	await expect(page.getByText("ha2ha-validate ./workspace")).toBeVisible();
+	await expect(
+		page.getByText("npx skills add pax-k/ha2ha-mdsync --skill ha2ha")
+	).toBeVisible();
+	await expect(
+		page.getByRole("heading", { name: "HA2HA Core 1.0" })
+	).toBeVisible();
+	await expect(
+		page.getByRole("heading", { name: "Extended collaboration profiles" })
+	).toBeVisible();
 	await expect(
 		page.getByRole("heading", {
 			level: 2,
 			name: "The first HA2HA implementation.",
 		})
 	).toBeVisible();
+	await expect(page).toHaveScreenshot("ha2ha-public.png", {
+		animations: "disabled",
+		fullPage: true,
+	});
+	await expectNoSeriousAxeViolations(page);
 
 	const visibleText = await page.locator("body").innerText();
 	expect(visibleText).not.toMatch(INTERNAL_VERSION_PATTERN);
 	expect(consoleErrors).toEqual([]);
 });
 
-test("unavailable external destinations are honest disabled placeholders", async ({
+test("public destinations link to GitHub, skills, and MDSync", async ({
 	page,
 }) => {
 	await page.goto(HA2HA_ORIGIN);
 
-	await Promise.all(
-		[
-			"github-placeholder-header",
-			"github-placeholder-hero",
-			"github-placeholder-footer",
-			"mdsync-placeholder",
-		].flatMap((testId) => {
-			const placeholder = page.getByTestId(testId);
-			return [
-				expect(placeholder).toBeDisabled(),
-				expect(placeholder).not.toHaveAttribute("href"),
-			];
-		})
-	);
+	await expect(
+		page.getByRole("link", { name: "GitHub" }).first()
+	).toHaveAttribute("href", "https://github.com/pax-k/ha2ha-mdsync");
+	await expect(
+		page.getByRole("link", { name: "Install skill" })
+	).toHaveAttribute("href", "https://skills.sh/pax-k/ha2ha-mdsync/ha2ha");
+	await expect(
+		page.getByRole("link", { name: "Explore MDSync" })
+	).toHaveAttribute("href", "https://mdsync-web-pax.pax.workers.dev");
 });
 
 test("copy controls announce success without console errors", async ({
@@ -96,9 +105,11 @@ test("copy controls announce success without console errors", async ({
 	await page.goto(HA2HA_ORIGIN);
 
 	await page
-		.getByRole("button", { name: "Copy ha2ha-validate command" })
+		.getByRole("button", { name: "Copy HA2HA skill install command" })
 		.click();
-	await expect(page.getByText("Copied ha2ha-validate command.")).toBeVisible();
+	await expect(
+		page.getByText("Copied HA2HA skill install command.")
+	).toBeVisible();
 	expect(consoleErrors).toEqual([]);
 });
 
@@ -117,7 +128,7 @@ test("copy controls explain clipboard failures without console errors", async ({
 	await page.goto(HA2HA_ORIGIN);
 
 	await page
-		.getByRole("button", { name: "Copy ha2ha-validate command" })
+		.getByRole("button", { name: "Copy HA2HA skill install command" })
 		.click();
 	await expect(
 		page.getByText("Copy unavailable. Select and copy the command.")
@@ -154,6 +165,7 @@ test("mobile layout preserves heading order without horizontal overflow", async 
 			document.documentElement.clientWidth
 	);
 	expect(hasHorizontalOverflow).toBe(false);
+	await expectNoSeriousAxeViolations(page);
 });
 
 function collectConsoleErrors(page: Page) {
@@ -167,4 +179,12 @@ function collectConsoleErrors(page: Page) {
 		errors.push(error.message);
 	});
 	return errors;
+}
+
+async function expectNoSeriousAxeViolations(page: Page) {
+	const results = await new AxeBuilder({ page }).analyze();
+	const serious = results.violations.filter((violation) =>
+		["critical", "serious"].includes(violation.impact ?? "")
+	);
+	expect(serious).toEqual([]);
 }

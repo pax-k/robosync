@@ -21,16 +21,17 @@ Install the portable HA2HA protocol skill or the hosted MDSync product skill
 from the public repository:
 
 ```bash
-npx skills add pax-k/robosync --skill ha2ha
-npx skills add pax-k/robosync --skill mdsync
+npx skills add pax-k/ha2ha-mdsync --skill ha2ha
+npx skills add pax-k/ha2ha-mdsync --skill mdsync
 ```
 
-Browse the published [HA2HA skill](https://skills.sh/pax-k/robosync/ha2ha)
-and [MDSync skill](https://skills.sh/pax-k/robosync/mdsync) on skills.sh.
+Browse the published [HA2HA skill](https://skills.sh/pax-k/ha2ha-mdsync/ha2ha)
+and [MDSync skill](https://skills.sh/pax-k/ha2ha-mdsync/mdsync) on skills.sh.
 
 The production deployment is available at:
 
-- [MDSync Web](https://mdsync-web-pax.pax.workers.dev)
+- [MDSync product](https://mdsync-web-pax.pax.workers.dev)
+- [MDSync documentation](https://mdsync-web-pax.pax.workers.dev/docs)
 - [MDSync API discovery](https://mdsync-server-pax.pax.workers.dev/.well-known/mdsync.json)
 - [HA2HA documentation](https://mdsync-ha2ha-pax.pax.workers.dev)
 
@@ -116,19 +117,22 @@ mdsync/
 │   └── db/          # Database schema & queries
 ```
 
-Target public split:
+Public application split:
 
 ```txt
 apps/
   ha2ha/       # public HA2HA protocol website and docs
-  mdsync/      # MDSync public landing/product site
-  web/         # MDSync workspace application
+  web/         # MDSync public site, docs, and workspace application
   server/      # MDSync API/backend implementation
 
 packages/
   ha2ha-protocol/   # schemas, constants, examples, validators
   ha2ha-http/       # HTTP profile helpers/client/conformance
 ```
+
+GitHub and skills.sh installation are public. The coordinated npm packages are
+registry-ready but remain unpublished until the public scopes are authenticated
+and controlled by the release account.
 
 ## Available Scripts
 
