@@ -22,11 +22,11 @@ checkout at `packages/mdsync-skills/skills/mdsync`. The included HTTP fallback
 does not require repo-local scripts.
 
 New hosted workspaces default to discovery at
-`https://mdsync-web-pax.pax.workers.dev/.well-known/mdsync.json`. Set
+`https://sync.ha2ha.md/.well-known/mdsync.json`. Set
 `MDSYNC_BASE_URL` only when intentionally targeting another conformant API.
 
 Product documentation is served from
-`https://mdsync-web-pax.pax.workers.dev/docs`. Source is available at
+`https://sync.ha2ha.md/docs`. Source is available at
 `https://github.com/pax-k/ha2ha-mdsync`.
 
 The npm package installs `@mdsync/client`, `@ha2ha/client`, and `@ha2ha/skills`

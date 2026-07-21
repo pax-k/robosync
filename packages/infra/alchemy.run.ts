@@ -70,12 +70,14 @@ const betterAuthSecret = requiredValue(
 );
 const betterAuthUrl = requiredValue(
 	"BETTER_AUTH_URL",
-	alchemy.env.BETTER_AUTH_URL
+	process.env.BETTER_AUTH_URL ?? alchemy.env.BETTER_AUTH_URL
 );
-const webOrigin = web
-	? withoutTrailingSlash(requiredValue("web.url", web.url))
-	: (process.env.WEB_ORIGIN ??
-		requiredValue("CORS_ORIGIN", alchemy.env.CORS_ORIGIN));
+const webOrigin = withoutTrailingSlash(
+	process.env.WEB_ORIGIN ??
+		(web
+			? requiredValue("web.url", web.url)
+			: requiredValue("CORS_ORIGIN", alchemy.env.CORS_ORIGIN))
+);
 
 export const server = await Worker("server", {
 	bindings: {

@@ -91,7 +91,7 @@ test("public destinations link to GitHub, skills, and MDSync", async ({
 	).toHaveAttribute("href", "https://skills.sh/pax-k/ha2ha-mdsync/ha2ha");
 	await expect(
 		page.getByRole("link", { name: "Explore MDSync" })
-	).toHaveAttribute("href", "https://mdsync-web-pax.pax.workers.dev");
+	).toHaveAttribute("href", "https://sync.ha2ha.md");
 });
 
 test("copy controls announce success without console errors", async ({

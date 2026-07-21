@@ -1,6 +1,6 @@
 export const PUBLIC_LINKS = {
 	github: "https://github.com/pax-k/ha2ha-mdsync",
-	ha2haDocs: "https://mdsync-ha2ha-pax.pax.workers.dev",
+	ha2haDocs: "https://ha2ha.md",
 	ha2haSkill: "https://skills.sh/pax-k/ha2ha-mdsync/ha2ha",
 	mdsyncSkill: "https://skills.sh/pax-k/ha2ha-mdsync/mdsync",
 } as const;

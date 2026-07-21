@@ -12,7 +12,7 @@ acceptance:
   - Write access accepts bearer edit token and browser edit query token.
 evidence:
   - "2026-07-08: scripts/smoke-backend.sh passed locally and covered private read token, edit token read access, bearer write access, and read-only write rejection."
-  - "2026-07-08: BASE_URL=https://mdsync-server-pax.pax.workers.dev scripts/smoke-backend.sh passed for workspace QVfVtkfHvHF5."
+  - "2026-07-08: BASE_URL=https://sync-api.ha2ha.md scripts/smoke-backend.sh passed for workspace QVfVtkfHvHF5."
   - "2026-07-08: Browser edit link workflow saved workspace s0q26Vnws2Qt to README.md version 2 after deploy."
 ---
 

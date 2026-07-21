@@ -49,9 +49,9 @@ attribution contract.
 After upload, the agent should return:
 
 ```txt
-Human preview: https://mdsync.dev/w/abc123?k=...
-Agent raw listing: https://mdsync.dev/w/abc123/raw?k=...
-Edit link: https://mdsync.dev/w/abc123?edit=...
+Human preview: https://sync.ha2ha.md/w/abc123?k=...
+Agent raw listing: https://sync-api.ha2ha.md/w/abc123/raw?k=...
+Edit link: https://sync.ha2ha.md/w/abc123?edit=...
 ```
 
 If the workspace is read-only, omit the edit link.
@@ -90,7 +90,7 @@ Authorization: Bearer <write-token>
 For browser edit links, query parameters are acceptable:
 
 ```txt
-https://mdsync.dev/w/abc123?edit=<write-token>
+https://sync.ha2ha.md/w/abc123?edit=<write-token>
 ```
 
 ## Environment

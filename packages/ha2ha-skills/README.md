@@ -12,7 +12,7 @@ npx skills add pax-k/ha2ha-mdsync --skill ha2ha
 
 Published listing: `https://skills.sh/pax-k/ha2ha-mdsync/ha2ha`.
 
-Public protocol documentation: `https://mdsync-ha2ha-pax.pax.workers.dev`.
+Public protocol documentation: `https://ha2ha.md`.
 Source: `https://github.com/pax-k/ha2ha-mdsync`.
 
 Alternatively, install this package from a tarball or registry, then copy or
@@ -25,7 +25,7 @@ workflow must not assume the CLI exists. It does not require MDSync dashboards,
 comments, stats, admin routes, hosted auth, or provider sync.
 
 MDSync is the hosted implementation at
-`https://mdsync-web-pax.pax.workers.dev`; it does not change the portable skill
+`https://sync.ha2ha.md`; it does not change the portable skill
 contract.
 
 ## Included Skill

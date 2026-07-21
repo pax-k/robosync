@@ -112,6 +112,6 @@
     "event-profile",
     "file-history-profile"
   ],
-  "target": "https://mdsync-server-pax.pax.workers.dev",
+  "target": "https://sync-api.ha2ha.md",
   "timestamp": "2026-07-08T18:59:41.248Z"
 }

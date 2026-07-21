@@ -6,7 +6,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "homepage": "https://mdsync-web-pax.pax.workers.dev",
+  "homepage": "https://sync.ha2ha.md",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/pax-k/ha2ha-mdsync.git",

@@ -13,9 +13,9 @@ acceptance:
   - Release evidence records remaining known gaps.
 evidence:
   - "2026-07-08: pnpm run deploy completed successfully."
-  - "2026-07-08: Web deployed at https://mdsync-web-pax.pax.workers.dev."
-  - "2026-07-08: Server deployed at https://mdsync-server-pax.pax.workers.dev."
-  - "2026-07-08: BASE_URL=https://mdsync-server-pax.pax.workers.dev scripts/smoke-backend.sh passed for workspace QVfVtkfHvHF5."
+  - "2026-07-08: Web deployment is available at https://sync.ha2ha.md."
+  - "2026-07-08: Server deployment is available at https://sync-api.ha2ha.md."
+  - "2026-07-08: BASE_URL=https://sync-api.ha2ha.md scripts/smoke-backend.sh passed for workspace QVfVtkfHvHF5."
   - "2026-07-08: Browser smoke against deployed web created workspace s0q26Vnws2Qt and saved README.md to version 2."
 ---
 
@@ -44,8 +44,8 @@ Make v0 shippable by proving the local and deploy paths.
 
 ## Completion Evidence
 
-- `pnpm run deploy` published the web Worker at `https://mdsync-web-pax.pax.workers.dev`.
-- `pnpm run deploy` published the server Worker at `https://mdsync-server-pax.pax.workers.dev`.
+- `pnpm run deploy` publishes the web Worker at `https://sync.ha2ha.md`.
+- `pnpm run deploy` publishes the server Worker at `https://sync-api.ha2ha.md`.
 - Deployed backend smoke passed.
 - Deployed browser smoke loaded the workspace UI, file tree, raw link, editor, and saved a version bump.
 

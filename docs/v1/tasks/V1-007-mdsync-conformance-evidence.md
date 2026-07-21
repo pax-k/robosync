@@ -16,7 +16,7 @@ evidence:
   - "`docs/v1/mdsync-conformance.md` records target URL `http://localhost:3000`, timestamp `2026-07-08T18:42:47.286Z`, 17 passing checks, actor-attribution checks, target-coordinate checks, delete `baseVersion` checks, and import/export/snapshot status."
   - "Linked MDSync evidence from `docs/v1/README.md` and `docs/v1/conformance.md`."
   - "`HA2HA_BASE_URL=http://localhost:3000 pnpm --filter @mdsync/ha2ha-http conformance` passed on 2026-07-08 with 17 checks and 0 failures."
-  - "After Cloudflare deploy, `docs/v1/evidence/mdsync-deployed-conformance-2026-07-08.json` captured `https://mdsync-server-pax.pax.workers.dev` passing 17/17 checks at `2026-07-08T18:59:41.248Z`."
+  - "After Cloudflare deploy, `docs/v1/evidence/mdsync-deployed-conformance-2026-07-08.json` captured `https://sync-api.ha2ha.md` passing 17/17 checks at `2026-07-08T18:59:41.248Z`."
   - "`pnpm run check` passed on 2026-07-08."
 ---
 

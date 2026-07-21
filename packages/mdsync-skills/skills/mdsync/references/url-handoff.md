@@ -4,10 +4,10 @@
 
 Use the production guides for human-facing handoff context:
 
-- Getting started: `https://mdsync-web-pax.pax.workers.dev/docs/getting-started`
-- Agent handoff: `https://mdsync-web-pax.pax.workers.dev/docs/agent-handoff`
-- Capability security: `https://mdsync-web-pax.pax.workers.dev/docs/security`
-- HA2HA protocol: `https://mdsync-ha2ha-pax.pax.workers.dev`
+- Getting started: `https://sync.ha2ha.md/docs/getting-started`
+- Agent handoff: `https://sync.ha2ha.md/docs/agent-handoff`
+- Capability security: `https://sync.ha2ha.md/docs/security`
+- HA2HA protocol: `https://ha2ha.md`
 - Source: `https://github.com/pax-k/ha2ha-mdsync`
 
 The MDSync and HA2HA skills are published at
@@ -24,7 +24,7 @@ frontmatter.
 ```js
 import { createMdsyncClient } from "@mdsync/skills/runtime";
 
-const productionWebOrigin = "https://mdsync-web-pax.pax.workers.dev";
+const productionWebOrigin = "https://sync.ha2ha.md";
 const configuredApiOrigin = process.env.MDSYNC_BASE_URL?.trim();
 let apiOrigin = configuredApiOrigin;
 let webOrigin = productionWebOrigin;
@@ -109,7 +109,7 @@ When the SDK is unavailable:
 4. Use `k` only on read requests. Send `edit` as `Authorization: Bearer <token>`
    for mutations; never print the resulting command with the token expanded.
 5. For publishing without an explicit `MDSYNC_BASE_URL`, start discovery at
-   `https://mdsync-web-pax.pax.workers.dev/.well-known/mdsync.json`. POST to
+   `https://sync.ha2ha.md/.well-known/mdsync.json`. POST to
    `<apiOrigin>/api/workspaces` with
    `protocol: {"kind":"ha2ha","version":"1.0.0"}`, an explicit actor, token
    read/write access, and valid task files.

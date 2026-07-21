@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "description": "HA2HA v1 HTTP profile conformance runner and CLI.",
   "license": "MIT",
-  "homepage": "https://mdsync-ha2ha-pax.pax.workers.dev",
+  "homepage": "https://ha2ha.md",
   "type": "module",
   "main": "./dist/index.mjs",
   "types": "./dist/index.d.mts",

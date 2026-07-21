@@ -30,10 +30,10 @@ and [MDSync skill](https://skills.sh/pax-k/ha2ha-mdsync/mdsync) on skills.sh.
 
 The production deployment is available at:
 
-- [MDSync product](https://mdsync-web-pax.pax.workers.dev)
-- [MDSync documentation](https://mdsync-web-pax.pax.workers.dev/docs)
-- [MDSync API discovery](https://mdsync-server-pax.pax.workers.dev/.well-known/mdsync.json)
-- [HA2HA documentation](https://mdsync-ha2ha-pax.pax.workers.dev)
+- [MDSync product](https://sync.ha2ha.md)
+- [MDSync documentation](https://sync.ha2ha.md/docs)
+- [MDSync API discovery](https://sync.ha2ha.md/.well-known/mdsync.json)
+- [HA2HA documentation](https://ha2ha.md)
 
 Installing a skill grants no workspace access. Viewer and Collaborator URLs
 remain transferable capability secrets.

@@ -75,7 +75,7 @@ external distribution gaps.
 
 - Publish `ha2ha` and `mdsync` together from `pax-k/ha2ha-mdsync` under release
   `v0.1.0`.
-- Use `https://mdsync-web-pax.pax.workers.dev/.well-known/mdsync.json` as the
+- Use `https://sync.ha2ha.md/.well-known/mdsync.json` as the
   production publishing discovery entrypoint. Joining remains driven by the
   pasted workspace URL.
 - Keep the historical core alpha reference non-discoverable. Repository skill
@@ -115,12 +115,12 @@ Run the URL-only handoff against both local and deployed services:
 
 ```bash
 MDSYNC_BASE_URL=http://127.0.0.1:3200 pnpm run test:mdsync-handoff
-MDSYNC_BASE_URL=https://mdsync-server-pax.pax.workers.dev pnpm run test:mdsync-handoff
+MDSYNC_BASE_URL=https://sync-api.ha2ha.md pnpm run test:mdsync-handoff
 ```
 
 Run the stochastic four-context release proof manually after deterministic
 checks pass:
 
 ```bash
-MDSYNC_BASE_URL=https://mdsync-server-pax.pax.workers.dev pnpm run test:mdsync-codex-dogfood
+MDSYNC_BASE_URL=https://sync-api.ha2ha.md pnpm run test:mdsync-codex-dogfood
 ```

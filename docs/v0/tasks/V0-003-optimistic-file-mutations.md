@@ -14,7 +14,7 @@ acceptance:
 evidence:
   - "2026-07-08: scripts/smoke-backend.sh passed locally and exercised stale update conflict with 409 version_conflict."
   - "2026-07-08: scripts/update-file.mjs updated local workspace kL8JfjajAB_l README.md from version 1 to version 2 using --base-version 1."
-  - "2026-07-08: BASE_URL=https://mdsync-server-pax.pax.workers.dev scripts/smoke-backend.sh passed for workspace QVfVtkfHvHF5."
+  - "2026-07-08: BASE_URL=https://sync-api.ha2ha.md scripts/smoke-backend.sh passed for workspace QVfVtkfHvHF5."
 ---
 
 ## Intent

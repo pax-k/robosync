@@ -62,9 +62,9 @@ Response:
 {
   "id": "abc123",
   "title": "Sprint evidence",
-  "workspaceUrl": "https://mdsync.dev/w/abc123?k=read_token",
-  "rawUrl": "https://mdsync.dev/w/abc123/raw?k=read_token",
-  "editUrl": "https://mdsync.dev/w/abc123?edit=write_token",
+  "workspaceUrl": "https://sync.ha2ha.md/w/abc123?k=read_token",
+  "rawUrl": "https://sync-api.ha2ha.md/w/abc123/raw?k=read_token",
+  "editUrl": "https://sync.ha2ha.md/w/abc123?edit=write_token",
   "createdAt": "2026-07-08T15:30:00.000Z"
 }
 ```

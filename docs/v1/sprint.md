@@ -10,8 +10,8 @@ Turn HA2HA from documented direction into an enforceable protocol with reusable 
 - `packages/ha2ha-protocol` exports constants, schemas, examples, and validator APIs.
 - `packages/ha2ha-http` runs the HA2HA HTTP conformance suite against mock and live targets.
 - MDSync is the first measured conformance target for core workspace, workspace convention, HTTP, event, and file-history profiles.
-- Deployed MDSync conformance passes at `https://mdsync-server-pax.pax.workers.dev`.
-- `apps/ha2ha` publishes the protocol docs independently from MDSync product UX at `https://mdsync-ha2ha-pax.pax.workers.dev`.
+- Deployed MDSync conformance passes at `https://sync-api.ha2ha.md`.
+- `apps/ha2ha` publishes the protocol docs independently from MDSync product UX at `https://ha2ha.md`.
 - Event and file-history capabilities are protocol-level v1 work, not v2 product UI.
 - The core HA2HA agent skill alpha remains historical repo-local evidence for
   V1-008.

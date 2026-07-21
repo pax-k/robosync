@@ -187,7 +187,7 @@ API:
 
 ```bash
 MDSYNC_BASE_URL=http://127.0.0.1:3200 pnpm run test:mdsync-handoff
-MDSYNC_BASE_URL=https://mdsync-server-pax.pax.workers.dev pnpm run test:mdsync-handoff
+MDSYNC_BASE_URL=https://sync-api.ha2ha.md pnpm run test:mdsync-handoff
 ```
 
 After deterministic release checks, run the manual Codex dogfood harness. It
@@ -196,7 +196,7 @@ emit only redacted structured role outcomes, and scan captured agent output,
 workspace files, and comments for leakage:
 
 ```bash
-MDSYNC_BASE_URL=https://mdsync-server-pax.pax.workers.dev pnpm run test:mdsync-codex-dogfood
+MDSYNC_BASE_URL=https://sync-api.ha2ha.md pnpm run test:mdsync-codex-dogfood
 ```
 
 Extract pure helpers from `apps/web/src/app.tsx` only if unit tests need them:

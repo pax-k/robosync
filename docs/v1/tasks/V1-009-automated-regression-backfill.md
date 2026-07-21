@@ -21,10 +21,10 @@ evidence:
   - "2026-07-08: Updated ready v2 and v3 task docs so task-specific automated tests are required before moving those tasks to `done`."
   - "2026-07-08: `pnpm run check`, `pnpm run check-types`, `pnpm run test`, `pnpm run test:integration`, `pnpm run build`, and `pnpm run test:e2e` passed."
   - "2026-07-08: Live deployed HA2HA conformance remains external proof; committed regression coverage now uses deterministic package, route, and browser tests."
-  - "2026-07-08: `pnpm run deploy` completed and published web `https://mdsync-web-pax.pax.workers.dev`, HA2HA docs `https://mdsync-ha2ha-pax.pax.workers.dev`, and server `https://mdsync-server-pax.pax.workers.dev`."
-  - "2026-07-08: Deployed backend smoke passed with `BASE_URL=https://mdsync-server-pax.pax.workers.dev scripts/smoke-backend.sh` for workspace `PJFn-fdZgjYE`."
-  - "2026-07-08: Deployed HA2HA conformance passed 17/17 checks against `https://mdsync-server-pax.pax.workers.dev` at `2026-07-08T19:26:48.752Z`."
-  - "2026-07-08: Deployed browser smoke created workspace `iXViQQdftvjR` at `https://mdsync-web-pax.pax.workers.dev` and saved `README.md` to version 2; deployed raw response returned `X-HA2HA-File-Version: 2`."
+  - "2026-07-08: `pnpm run deploy` completed; web is now available at `https://sync.ha2ha.md`, HA2HA docs at `https://ha2ha.md`, and server at `https://sync-api.ha2ha.md`."
+  - "2026-07-08: Deployed backend smoke passed with `BASE_URL=https://sync-api.ha2ha.md scripts/smoke-backend.sh` for workspace `PJFn-fdZgjYE`."
+  - "2026-07-08: Deployed HA2HA conformance passed 17/17 checks against `https://sync-api.ha2ha.md` at `2026-07-08T19:26:48.752Z`."
+  - "2026-07-08: Deployed browser smoke created workspace `iXViQQdftvjR` at `https://sync.ha2ha.md` and saved `README.md` to version 2; deployed raw response returned `X-HA2HA-File-Version: 2`."
 ---
 
 ## Intent

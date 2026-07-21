@@ -12,7 +12,7 @@ const EXPECTED_SKILLS = new Map([
 	[
 		"packages/ha2ha-skills/skills/ha2ha/SKILL.md",
 		{
-			homepage: "https://mdsync-ha2ha-pax.pax.workers.dev",
+			homepage: "https://ha2ha.md",
 			name: "ha2ha",
 			packageDirectory: "packages/ha2ha-skills",
 			packageName: "@ha2ha/skills",
@@ -21,7 +21,7 @@ const EXPECTED_SKILLS = new Map([
 	[
 		"packages/mdsync-skills/skills/mdsync/SKILL.md",
 		{
-			homepage: "https://mdsync-web-pax.pax.workers.dev",
+			homepage: "https://sync.ha2ha.md",
 			name: "mdsync",
 			packageDirectory: "packages/mdsync-skills",
 			packageName: "@mdsync/skills",
@@ -59,9 +59,9 @@ const FRONTMATTER_PATTERN = /^---\n([\s\S]*?)\n---/u;
 const HA2HA_PORTABILITY_PATTERN = /Keep the skill portable/u;
 const MARKDOWN_LINK_PATTERN = /\[[^\]]+\]\(([^)]+)\)/gu;
 const REFERENCE_PATH_PATTERN = /^references\/[^/]+$/u;
-const PRODUCTION_WEB_ORIGIN = "https://mdsync-web-pax.pax.workers.dev";
-const PRODUCTION_API_ORIGIN = "https://mdsync-server-pax.pax.workers.dev";
-const PRODUCTION_HA2HA_ORIGIN = "https://mdsync-ha2ha-pax.pax.workers.dev";
+const PRODUCTION_WEB_ORIGIN = "https://sync.ha2ha.md";
+const PRODUCTION_API_ORIGIN = "https://sync-api.ha2ha.md";
+const PRODUCTION_HA2HA_ORIGIN = "https://ha2ha.md";
 const PUBLIC_GITHUB = "https://github.com/pax-k/ha2ha-mdsync";
 const PUBLIC_HA2HA_SKILL = "https://skills.sh/pax-k/ha2ha-mdsync/ha2ha";
 const PUBLIC_MDSYNC_SKILL = "https://skills.sh/pax-k/ha2ha-mdsync/mdsync";
@@ -85,18 +85,9 @@ const PUBLIC_UI_FILES = [
 	"apps/web/src/public-content.ts",
 ];
 const PUBLIC_PACKAGES = new Map([
-	[
-		"packages/ha2ha-protocol",
-		["@ha2ha/protocol", "https://mdsync-ha2ha-pax.pax.workers.dev"],
-	],
-	[
-		"packages/ha2ha-client",
-		["@ha2ha/client", "https://mdsync-ha2ha-pax.pax.workers.dev"],
-	],
-	[
-		"packages/ha2ha-skills",
-		["@ha2ha/skills", "https://mdsync-ha2ha-pax.pax.workers.dev"],
-	],
+	["packages/ha2ha-protocol", ["@ha2ha/protocol", "https://ha2ha.md"]],
+	["packages/ha2ha-client", ["@ha2ha/client", "https://ha2ha.md"]],
+	["packages/ha2ha-skills", ["@ha2ha/skills", "https://ha2ha.md"]],
 	["packages/mdsync-contracts", ["@mdsync/contracts", PRODUCTION_WEB_ORIGIN]],
 	["packages/mdsync-client", ["@mdsync/client", PRODUCTION_WEB_ORIGIN]],
 	["packages/mdsync-skills", ["@mdsync/skills", PRODUCTION_WEB_ORIGIN]],
@@ -144,7 +135,7 @@ test("public skills point at the production Cloudflare deployment", async () => 
 		"utf8"
 	);
 	assert.match(ha2ha, HA2HA_PORTABILITY_PATTERN);
-	assert.ok(ha2ha.includes("https://mdsync-ha2ha-pax.pax.workers.dev"));
+	assert.ok(ha2ha.includes("https://ha2ha.md"));
 
 	const mdsyncRoot = path.join(
 		ROOT_DIR,

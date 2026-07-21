@@ -12,7 +12,7 @@ acceptance:
   - Evidence is attached from local smoke or focused route tests before this task moves to done.
 evidence:
   - "2026-07-08: scripts/smoke-backend.sh passed locally against http://localhost:3000 for workspace k0FA8EHF_BSj."
-  - "2026-07-08: BASE_URL=https://mdsync-server-pax.pax.workers.dev scripts/smoke-backend.sh passed for workspace QVfVtkfHvHF5."
+  - "2026-07-08: BASE_URL=https://sync-api.ha2ha.md scripts/smoke-backend.sh passed for workspace QVfVtkfHvHF5."
   - "2026-07-08: pnpm run check-types passed."
 ---
 
@@ -43,7 +43,7 @@ Confirm that the implemented backend substrate is ready for v0 and matches the d
 ## Completion Evidence
 
 - Local smoke passed against `http://localhost:3000` for workspace `k0FA8EHF_BSj`.
-- Deployed smoke passed against `https://mdsync-server-pax.pax.workers.dev` for workspace `QVfVtkfHvHF5`.
+- Deployed smoke passed against `https://sync-api.ha2ha.md` for workspace `QVfVtkfHvHF5`.
 - `pnpm run check-types` passed.
 
 ## Verification

@@ -22,22 +22,22 @@ implementations that do not need MDSync product routes.
 
 Use these canonical production origins for new workspaces:
 
-- Web and discovery: `https://mdsync-web-pax.pax.workers.dev`
-- API: `https://mdsync-server-pax.pax.workers.dev`
-- HA2HA documentation: `https://mdsync-ha2ha-pax.pax.workers.dev`
+- Web and discovery: `https://sync.ha2ha.md`
+- API and raw HA2HA routes: `https://sync-api.ha2ha.md`
+- HA2HA documentation: `https://ha2ha.md`
 
 Public references:
 
-- Product docs: `https://mdsync-web-pax.pax.workers.dev/docs`
-- Getting started: `https://mdsync-web-pax.pax.workers.dev/docs/getting-started`
-- Agent handoff: `https://mdsync-web-pax.pax.workers.dev/docs/agent-handoff`
-- Security: `https://mdsync-web-pax.pax.workers.dev/docs/security`
+- Product docs: `https://sync.ha2ha.md/docs`
+- Getting started: `https://sync.ha2ha.md/docs/getting-started`
+- Agent handoff: `https://sync.ha2ha.md/docs/agent-handoff`
+- Security: `https://sync.ha2ha.md/docs/security`
 - Source: `https://github.com/pax-k/ha2ha-mdsync`
 - Published MDSync skill: `https://skills.sh/pax-k/ha2ha-mdsync/mdsync`
 - Portable HA2HA skill: `https://skills.sh/pax-k/ha2ha-mdsync/ha2ha`
 
 Discover the API from
-`https://mdsync-web-pax.pax.workers.dev/.well-known/mdsync.json` before
+`https://sync.ha2ha.md/.well-known/mdsync.json` before
 publishing. Honor an explicit `MDSYNC_BASE_URL` for another conformant
 deployment. When joining, always discover from the pasted workspace URL
 instead of replacing its origin with the production default.

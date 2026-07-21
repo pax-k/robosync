@@ -4,6 +4,7 @@ import path from "node:path";
 const DEFAULT_BASE_URL = "http://localhost:3000";
 const DEFAULT_LOCAL_SERVER_PORT = "3000";
 const DEFAULT_LOCAL_WEB_PORT = "5173";
+const PRODUCTION_WEB_URL = "https://sync.ha2ha.md";
 const BINARY_BYTE = 0;
 const TRAILING_SLASH_PATTERN = /\/$/;
 const SKIPPED_DIRECTORIES = new Set([
@@ -187,6 +188,9 @@ function webBaseUrl() {
 	if (url.hostname === "localhost" && url.port === DEFAULT_LOCAL_SERVER_PORT) {
 		url.port = DEFAULT_LOCAL_WEB_PORT;
 		return url.origin;
+	}
+	if (url.hostname === "sync-api.ha2ha.md") {
+		return PRODUCTION_WEB_URL;
 	}
 	url.hostname = url.hostname.replace("mdsync-server-", "mdsync-web-");
 	return url.origin;

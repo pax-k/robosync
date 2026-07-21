@@ -47,7 +47,7 @@ Turn v0 from implemented pieces into a verifiable release candidate.
 - `pnpm run check` passed.
 - `pnpm run check-types` passed.
 - `pnpm run build` passed.
-- `scripts/smoke-backend.sh` passed locally; deployed smoke passed with `BASE_URL=https://mdsync-server-pax.pax.workers.dev`.
+- `scripts/smoke-backend.sh` passed locally; deployed smoke passed with `BASE_URL=https://sync-api.ha2ha.md`.
 
 ## Verification
 

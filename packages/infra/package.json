@@ -4,8 +4,8 @@
   "type": "module",
   "scripts": {
     "dev": "alchemy dev --stage local",
-    "deploy": "alchemy deploy",
-    "deploy:server": "alchemy deploy",
+    "deploy": "BETTER_AUTH_URL=https://sync-api.ha2ha.md WEB_ORIGIN=https://sync.ha2ha.md VITE_API_BASE_URL=https://sync-api.ha2ha.md alchemy deploy",
+    "deploy:server": "BETTER_AUTH_URL=https://sync-api.ha2ha.md WEB_ORIGIN=https://sync.ha2ha.md VITE_API_BASE_URL=https://sync-api.ha2ha.md alchemy deploy",
     "destroy": "alchemy destroy"
   },
   "dependencies": {

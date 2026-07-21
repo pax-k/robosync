@@ -35,7 +35,7 @@ const removeInternalVersionLabel = (value: string) =>
 export const SITE_LINKS: SiteLinks = {
 	github: "https://github.com/pax-k/ha2ha-mdsync",
 	ha2haSkill: "https://skills.sh/pax-k/ha2ha-mdsync/ha2ha",
-	mdsync: "https://mdsync-web-pax.pax.workers.dev",
+	mdsync: "https://sync.ha2ha.md",
 	mdsyncSkill: "https://skills.sh/pax-k/ha2ha-mdsync/mdsync",
 };
 

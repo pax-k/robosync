@@ -79,15 +79,18 @@ test("MDSync skills exposes a built runtime adapter with explicit dependencies",
 	assert.equal(runtime.includes('from "@ha2ha/protocol"'), false);
 });
 
-test("Alchemy local development cannot mutate the deployed shared stage", async () => {
+test("Alchemy scripts separate local development from production deploys", async () => {
 	const infraManifest = JSON.parse(
 		await readFile(path.join(ROOT_DIR, "packages/infra/package.json"), "utf8")
 	);
 	const rootManifest = JSON.parse(
 		await readFile(path.join(ROOT_DIR, "package.json"), "utf8")
 	);
+	const productionDeployCommand =
+		"BETTER_AUTH_URL=https://sync-api.ha2ha.md WEB_ORIGIN=https://sync.ha2ha.md VITE_API_BASE_URL=https://sync-api.ha2ha.md alchemy deploy";
 	assert.equal(infraManifest.scripts.dev, "alchemy dev --stage local");
-	assert.equal(infraManifest.scripts["deploy:server"], "alchemy deploy");
+	assert.equal(infraManifest.scripts.deploy, productionDeployCommand);
+	assert.equal(infraManifest.scripts["deploy:server"], productionDeployCommand);
 	assert.equal(
 		rootManifest.scripts["dev:server"],
 		"ROBOSYNC_SERVER_ONLY=1 ROBOSYNC_DEV_SERVER_PORT=3200 WEB_ORIGIN=http://127.0.0.1:3200 pnpm --filter @mdsync/infra run dev"

@@ -14,8 +14,8 @@ Ship MDSync v0 as a usable foundation/demo implementation: workspace create/read
 - Upload/update helper scripts exist in `scripts/upload-file.mjs`, `scripts/upload-workspace.mjs`, and `scripts/update-file.mjs`.
 - Verification is green for v0: `pnpm run check`, `pnpm run check-types`, `pnpm run build`, local smoke, and deployed smoke.
 - Deployment is current:
-  - Web: `https://mdsync-web-pax.pax.workers.dev`
-  - Server: `https://mdsync-server-pax.pax.workers.dev`
+  - Web: `https://sync.ha2ha.md`
+  - Server: `https://sync-api.ha2ha.md`
 - Known non-blocking warning: `pnpm run build` emits the existing `cloudflare:workers` tsdown external warning and exits successfully.
 
 ## Execution Order
@@ -53,7 +53,7 @@ Ship MDSync v0 as a usable foundation/demo implementation: workspace create/read
 - `pnpm run check-types` passed on 2026-07-08.
 - `pnpm run build` passed on 2026-07-08 with the non-blocking `cloudflare:workers` external warning.
 - `scripts/smoke-backend.sh` passed locally against `http://localhost:3000` for workspace `k0FA8EHF_BSj`.
-- `BASE_URL="https://mdsync-server-pax.pax.workers.dev" scripts/smoke-backend.sh` passed for deployed workspace `QVfVtkfHvHF5`.
+- `BASE_URL="https://sync-api.ha2ha.md" scripts/smoke-backend.sh` passed for deployed workspace `QVfVtkfHvHF5`.
 - Local script smoke created single-file workspace `kL8JfjajAB_l`, uploaded `docs/v0` as workspace `Ak9BCHxa3NAm`, and updated `README.md` from version 1 to 2.
 - Deployed script smoke created workspace `TEGiOsOt3iTi`; `scripts/update-file.mjs` updated `README.md` to version 2 and printed raw listing, raw file, and edit links.
 - Local browser smoke created workspace `wLBn_WfmXUWV`, saved `README.md` to version 2, and reported no console errors or warnings.
@@ -67,5 +67,5 @@ pnpm run check
 pnpm run check-types
 pnpm run build
 scripts/smoke-backend.sh
-BASE_URL="https://mdsync-server-pax.pax.workers.dev" scripts/smoke-backend.sh
+BASE_URL="https://sync-api.ha2ha.md" scripts/smoke-backend.sh
 ```

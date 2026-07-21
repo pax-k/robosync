@@ -107,12 +107,12 @@ test("URL builders map deployed server hosts to deployed web hosts", () => {
 	const previousBaseUrl = process.env.MDSYNC_BASE_URL;
 	const previousWebUrl = process.env.MDSYNC_WEB_URL;
 	try {
-		process.env.MDSYNC_BASE_URL = "https://mdsync-server-pax.pax.workers.dev";
+		process.env.MDSYNC_BASE_URL = "https://sync-api.ha2ha.md";
 		delete process.env.MDSYNC_WEB_URL;
 
 		assert.equal(
 			buildWorkspaceUrl("workspace-1", "token"),
-			"https://mdsync-web-pax.pax.workers.dev/w/workspace-1?edit=token"
+			"https://sync.ha2ha.md/w/workspace-1?edit=token"
 		);
 	} finally {
 		restoreEnv("MDSYNC_BASE_URL", previousBaseUrl);

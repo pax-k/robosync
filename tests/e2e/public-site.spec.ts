@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 
 const WEB_ORIGIN = "http://localhost:4173";
 const GITHUB_URL = "https://github.com/pax-k/ha2ha-mdsync";
-const HA2HA_URL = "https://mdsync-ha2ha-pax.pax.workers.dev";
+const HA2HA_URL = "https://ha2ha.md";
 const MDSYNC_SKILL_URL = "https://skills.sh/pax-k/ha2ha-mdsync/mdsync";
 const INSTALL_COMMAND = "npx skills add pax-k/ha2ha-mdsync --skill mdsync";
 const MDSYNC_TITLE_PATTERN = /MDSync/u;
