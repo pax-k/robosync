@@ -33,7 +33,8 @@
     "build": "tsdown",
     "check-types": "tsc -b",
     "pack:dry-run": "npm pack --dry-run --json",
-    "prepack": "pnpm run build",
+    "postpack": "node ../../scripts/stage-skill-package.mjs mdsync clean",
+    "prepack": "pnpm run build && node ../../scripts/stage-skill-package.mjs mdsync",
     "test": "node ../../scripts/mdsync-skill-package-smoke.mjs"
   },
   "dependencies": {

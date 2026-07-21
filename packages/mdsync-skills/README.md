@@ -17,9 +17,10 @@ skills.sh installation and its complete HTTP fallback. The SDK-backed runtime
 becomes the preferred path when `@mdsync/skills/runtime` resolves from an
 installed source build or future registry release.
 
-The same skill directory can be registered directly from a public source
-checkout at `packages/mdsync-skills/skills/mdsync`. The included HTTP fallback
-does not require repo-local scripts.
+The canonical skill directory can be registered directly from a public source
+checkout at `skills/mdsync`. The npm package stages the exported
+`@mdsync/skills/skills/mdsync` payload from that source during packing. The
+included HTTP fallback does not require repo-local scripts.
 
 New hosted workspaces default to discovery at
 `https://sync.ha2ha.md/.well-known/mdsync.json`. Set

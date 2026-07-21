@@ -16,8 +16,9 @@ Public protocol documentation: `https://ha2ha.md`.
 Source: `https://github.com/pax-k/ha2ha-mdsync`.
 
 Alternatively, install this package from a tarball or registry, then copy or
-register `skills/ha2ha` with the agent surface that supports Codex-style
-skills.
+register the exported `@ha2ha/skills/skills/ha2ha` payload with the agent
+surface that supports Codex-style skills. The package stages that payload from
+the canonical repository-level `skills/ha2ha` source during packing.
 
 The skill uses `ha2ha-validate` when an installed source or package build makes
 the CLI available. Registry publication remains pending, so the public skill

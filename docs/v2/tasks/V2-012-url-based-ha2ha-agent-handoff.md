@@ -40,6 +40,7 @@ evidence:
   - "2026-07-14: Warning-free gh skill publish validation passed and a fresh GitHub install contained both complete skill payloads. The HTTP 200-only skills.sh listing check is superseded because it did not detect the catalog's internal 404 state."
   - "2026-07-21: pnpm run test:mdsync-live-skills passed against https://sync-api.ha2ha.md with eight isolated codex exec --ephemeral agents, public skills pinned to v0.1.2 at 407fd43123edaa8c753d8b15957659139a6542e0, independent verification, capabilityLeak false, one retained Viewer-readable workspace, and edit revocation verified."
   - "2026-07-21: Failed-run remediation revoked 11 active edit capabilities, removed 177 failed-run R2 objects and 20 failed D1 workspace rows, and verified exactly one read-only acceptance workspace with zero active edit capabilities remains."
+  - "2026-07-21: Published v0.1.3 at 079befdd6d16ce1441005b2b258d38f482205da2 with catalog-compatible skills/ha2ha and skills/mdsync roots. pnpm run test:public-skills-live verified that both rendered skills.sh pages are available after catalog ingest, and the skills.sh download API returned complete hashed snapshots for both skills."
 ---
 
 # V2-012 URL-Based HA2HA Agent Handoff

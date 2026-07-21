@@ -28,10 +28,6 @@ const EXPECTED_SKILLS = new Map([
 		},
 	],
 ]);
-const PACKAGE_SKILL_MIRRORS = new Map([
-	["skills/ha2ha", "packages/ha2ha-skills/skills/ha2ha"],
-	["skills/mdsync", "packages/mdsync-skills/skills/mdsync"],
-]);
 const IGNORED_DIRECTORIES = new Set([
 	".alchemy",
 	".git",
@@ -59,6 +55,8 @@ const TOKEN_LIKE_PATTERNS = [
 ];
 const UNAVAILABLE_NPM_INSTALL_PATTERN = /npm install\s+@(ha2ha|mdsync)\//u;
 const PENDING_REGISTRY_PATTERN = /registry publication remains pending/iu;
+const SKILL_PACKAGE_CLEAN_PATTERN = / clean$/u;
+const SKILL_PACKAGE_STAGING_PATTERN = /stage-skill-package\.mjs/u;
 const FRONTMATTER_PATTERN = /^---\n([\s\S]*?)\n---/u;
 const HA2HA_PORTABILITY_PATTERN = /Keep the skill portable/u;
 const MARKDOWN_LINK_PATTERN = /\[[^\]]+\]\(([^)]+)\)/gu;
@@ -101,24 +99,38 @@ test("only supported public skills are discoverable", async () => {
 	const skillPaths = (await findFiles(ROOT_DIR, "SKILL.md"))
 		.map((file) => path.relative(ROOT_DIR, file))
 		.sort();
-	const expectedPaths = [
-		...EXPECTED_SKILLS.keys(),
-		...[...PACKAGE_SKILL_MIRRORS.values()].map(
-			(directory) => `${directory}/SKILL.md`
-		),
-	].sort();
+	const expectedPaths = [...EXPECTED_SKILLS.keys()].sort();
 	assert.deepEqual(skillPaths, expectedPaths);
 });
 
-test("catalog skills and npm package mirrors are identical", async () => {
+test("npm packages stage the canonical catalog skills only for packing", async () => {
 	await Promise.all(
-		[...PACKAGE_SKILL_MIRRORS].map(
-			async ([catalogDirectory, packageDirectory]) => {
-				const catalogFiles = await readSkillPayload(catalogDirectory);
-				const packageFiles = await readSkillPayload(packageDirectory);
-				assert.deepEqual(packageFiles, catalogFiles);
-			}
-		)
+		[...EXPECTED_SKILLS].map(async ([skillPath, expected]) => {
+			const packageManifest = JSON.parse(
+				await readFile(
+					path.join(ROOT_DIR, expected.packageDirectory, "package.json"),
+					"utf8"
+				)
+			);
+			assert.match(
+				packageManifest.scripts.prepack,
+				SKILL_PACKAGE_STAGING_PATTERN
+			);
+			assert.ok(packageManifest.scripts.prepack.endsWith(expected.name));
+			assert.match(
+				packageManifest.scripts.postpack,
+				SKILL_PACKAGE_STAGING_PATTERN
+			);
+			assert.match(
+				packageManifest.scripts.postpack,
+				SKILL_PACKAGE_CLEAN_PATTERN
+			);
+			assert.equal(
+				packageManifest.exports[`./skills/${expected.name}`],
+				`./skills/${expected.name}/SKILL.md`
+			);
+			assert.ok(skillPath.startsWith("skills/"));
+		})
 	);
 });
 
@@ -283,18 +295,6 @@ const findPublishedTextFiles = async (directory) => {
 		})
 	);
 	return results.flat();
-};
-
-const readSkillPayload = async (relativeDirectory) => {
-	const root = path.join(ROOT_DIR, relativeDirectory);
-	const files = await findPublishedTextFiles(root);
-	const entries = await Promise.all(
-		files.map(async (file) => [
-			path.relative(root, file),
-			await readFile(file, "utf8"),
-		])
-	);
-	return Object.fromEntries(entries);
 };
 
 const frontmatterField = (frontmatter, field) => {

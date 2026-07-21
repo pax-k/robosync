@@ -28,6 +28,8 @@
   ],
   "scripts": {
     "pack:dry-run": "npm pack --dry-run --json",
+    "postpack": "node ../../scripts/stage-skill-package.mjs ha2ha clean",
+    "prepack": "node ../../scripts/stage-skill-package.mjs ha2ha",
     "test": "node ../../scripts/ha2ha-skill-package-smoke.mjs"
   },
   "dependencies": {

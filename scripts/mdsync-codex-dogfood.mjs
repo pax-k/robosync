@@ -91,7 +91,7 @@ try {
 
 function rolePrompt(role, task) {
 	return [
-		`Read only ${ROOT_DIR}/packages/mdsync-skills/skills/mdsync/SKILL.md and ${ROOT_DIR}/packages/mdsync-skills/skills/mdsync/references/url-handoff.md before acting.`,
+		`Read only ${ROOT_DIR}/skills/mdsync/SKILL.md and ${ROOT_DIR}/skills/mdsync/references/url-handoff.md before acting.`,
 		`You are the ${role} context in a controlled MDSync release dogfood.`,
 		task,
 		"Execute that exact command once. Do not inspect or edit repository files.",
