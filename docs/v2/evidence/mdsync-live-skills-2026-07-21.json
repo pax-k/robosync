@@ -1,0 +1,82 @@
+{
+  "agents": [
+    {
+      "outcome": "pass",
+      "result": "workspace-created",
+      "role": "publisher"
+    },
+    {
+      "outcome": "pass",
+      "result": "viewer-read-mutation-denied",
+      "role": "viewer"
+    },
+    {
+      "outcome": "pass",
+      "result": "independent-task-complete",
+      "role": "builder-a"
+    },
+    {
+      "outcome": "pass",
+      "result": "independent-task-complete",
+      "role": "builder-b"
+    },
+    {
+      "outcome": "pass",
+      "result": "race-winner",
+      "role": "racer-a"
+    },
+    {
+      "outcome": "pass",
+      "result": "race-conflict-preserved",
+      "role": "racer-b"
+    },
+    {
+      "outcome": "pass",
+      "result": "comment-lifecycle-product-only",
+      "role": "reviewer"
+    },
+    {
+      "outcome": "pass",
+      "result": "portable-protocol-valid",
+      "role": "protocol-auditor"
+    }
+  ],
+  "apiOrigin": "https://sync-api.ha2ha.md",
+  "command": "pnpm run test:mdsync-live-skills",
+  "discovery": {
+    "apiOrigin": "https://sync-api.ha2ha.md",
+    "webOrigin": "https://sync.ha2ha.md"
+  },
+  "outcome": "pass",
+  "release": {
+    "commit": "407fd43123edaa8c753d8b15957659139a6542e0",
+    "tag": "v0.1.2"
+  },
+  "retainedWorkspace": {
+    "editCapabilityRevoked": true,
+    "viewerReadable": true,
+    "workspaceId": "s69kmuFPGqQW"
+  },
+  "security": {
+    "capabilityLeak": false,
+    "failedRunCleanup": {
+      "activeEditCapabilitiesAfterCleanup": 0,
+      "failedWorkspaceRowsAfterCleanup": 0,
+      "removedFailedR2Objects": 177,
+      "removedFailedWorkspaceRows": 20,
+      "revokedActiveEditCapabilities": 11
+    },
+    "forbiddenRepositoryReference": false,
+    "handoffFileMode": "0600",
+    "roleExecution": "generated capability-free one-shot drivers audited by isolated Codex agents"
+  },
+  "timestamp": "2026-07-21T13:29:22.446Z",
+  "verification": [
+    "Discovery origins agree and the manifest is HA2HA 1.0.0 with baseVersion-required.",
+    "Builders completed independent tasks with stable actors, preserved adjacent state, and linked evidence targeting claim version 2.",
+    "The synchronized race produced one version-2 owner, preserved the losing conflict, and retained version-1 history.",
+    "The anchored comment lifecycle appears in product activity and remains absent from portable HA2HA events.",
+    "Viewer mutation was denied; the edit capability was revoked and denied while Viewer reads remained available."
+  ],
+  "webOrigin": "https://sync.ha2ha.md"
+}

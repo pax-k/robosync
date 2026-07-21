@@ -17,6 +17,7 @@
     "test:public-skills": "node --test scripts/public-skills.test.mjs",
     "test:mdsync-handoff": "node scripts/mdsync-url-handoff-smoke.mjs",
     "test:mdsync-codex-dogfood": "node scripts/mdsync-codex-dogfood.mjs",
+    "test:mdsync-live-skills": "node scripts/mdsync-live-skills.mjs",
     "test:integration": "turbo run test:integration --filter='@mdsync/db' --filter='@ha2ha/http'",
     "test:e2e": "playwright test",
     "test:scripts": "tsx --test scripts/*.test.mjs scripts/**/*.test.mjs",
