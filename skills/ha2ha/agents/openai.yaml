@@ -1,0 +1,4 @@
+interface:
+  display_name: "HA2HA"
+  short_description: "Coordinate through HA2HA workspaces"
+  default_prompt: "Use $ha2ha to join this HA2HA workspace, claim a task, and write evidence."

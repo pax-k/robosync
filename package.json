@@ -15,6 +15,7 @@
     "test:ha2ha-packages": "node scripts/ha2ha-package-smoke.mjs && node scripts/ha2ha-skill-package-smoke.mjs && node scripts/ha2ha-client-package-smoke.mjs",
     "test:mdsync-packages": "node scripts/mdsync-client-package-smoke.mjs && node scripts/mdsync-skill-package-smoke.mjs",
     "test:public-skills": "node --test scripts/public-skills.test.mjs",
+    "test:public-skills-live": "node scripts/skills-sh-listing-smoke.mjs",
     "test:mdsync-handoff": "node scripts/mdsync-url-handoff-smoke.mjs",
     "test:mdsync-codex-dogfood": "node scripts/mdsync-codex-dogfood.mjs",
     "test:mdsync-live-skills": "node scripts/mdsync-live-skills.mjs",

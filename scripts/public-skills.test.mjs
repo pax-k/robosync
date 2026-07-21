@@ -10,7 +10,7 @@ const ROOT_DIR = path.resolve(
 );
 const EXPECTED_SKILLS = new Map([
 	[
-		"packages/ha2ha-skills/skills/ha2ha/SKILL.md",
+		"skills/ha2ha/SKILL.md",
 		{
 			homepage: "https://ha2ha.md",
 			name: "ha2ha",
@@ -19,7 +19,7 @@ const EXPECTED_SKILLS = new Map([
 		},
 	],
 	[
-		"packages/mdsync-skills/skills/mdsync/SKILL.md",
+		"skills/mdsync/SKILL.md",
 		{
 			homepage: "https://sync.ha2ha.md",
 			name: "mdsync",
@@ -27,6 +27,10 @@ const EXPECTED_SKILLS = new Map([
 			packageName: "@mdsync/skills",
 		},
 	],
+]);
+const PACKAGE_SKILL_MIRRORS = new Map([
+	["skills/ha2ha", "packages/ha2ha-skills/skills/ha2ha"],
+	["skills/mdsync", "packages/mdsync-skills/skills/mdsync"],
 ]);
 const IGNORED_DIRECTORIES = new Set([
 	".alchemy",
@@ -97,7 +101,25 @@ test("only supported public skills are discoverable", async () => {
 	const skillPaths = (await findFiles(ROOT_DIR, "SKILL.md"))
 		.map((file) => path.relative(ROOT_DIR, file))
 		.sort();
-	assert.deepEqual(skillPaths, [...EXPECTED_SKILLS.keys()].sort());
+	const expectedPaths = [
+		...EXPECTED_SKILLS.keys(),
+		...[...PACKAGE_SKILL_MIRRORS.values()].map(
+			(directory) => `${directory}/SKILL.md`
+		),
+	].sort();
+	assert.deepEqual(skillPaths, expectedPaths);
+});
+
+test("catalog skills and npm package mirrors are identical", async () => {
+	await Promise.all(
+		[...PACKAGE_SKILL_MIRRORS].map(
+			async ([catalogDirectory, packageDirectory]) => {
+				const catalogFiles = await readSkillPayload(catalogDirectory);
+				const packageFiles = await readSkillPayload(packageDirectory);
+				assert.deepEqual(packageFiles, catalogFiles);
+			}
+		)
+	);
 });
 
 test("public skills have valid metadata, safe content, and working references", async () => {
@@ -131,16 +153,13 @@ test("public skills have valid metadata, safe content, and working references", 
 
 test("public skills point at the production Cloudflare deployment", async () => {
 	const ha2ha = await readFile(
-		path.join(ROOT_DIR, "packages/ha2ha-skills/skills/ha2ha/SKILL.md"),
+		path.join(ROOT_DIR, "skills/ha2ha/SKILL.md"),
 		"utf8"
 	);
 	assert.match(ha2ha, HA2HA_PORTABILITY_PATTERN);
 	assert.ok(ha2ha.includes("https://ha2ha.md"));
 
-	const mdsyncRoot = path.join(
-		ROOT_DIR,
-		"packages/mdsync-skills/skills/mdsync"
-	);
+	const mdsyncRoot = path.join(ROOT_DIR, "skills/mdsync");
 	const mdsyncText = (
 		await Promise.all(
 			(
@@ -264,6 +283,18 @@ const findPublishedTextFiles = async (directory) => {
 		})
 	);
 	return results.flat();
+};
+
+const readSkillPayload = async (relativeDirectory) => {
+	const root = path.join(ROOT_DIR, relativeDirectory);
+	const files = await findPublishedTextFiles(root);
+	const entries = await Promise.all(
+		files.map(async (file) => [
+			path.relative(root, file),
+			await readFile(file, "utf8"),
+		])
+	);
+	return Object.fromEntries(entries);
 };
 
 const frontmatterField = (frontmatter, field) => {

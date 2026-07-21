@@ -180,7 +180,11 @@ Validate the public skill surface before packaging or release:
 pnpm run test:public-skills
 gh skill publish --dry-run .
 npx --yes skills add . --list
+pnpm run test:public-skills-live
 ```
+
+The live check must inspect the rendered listing content. HTTP 200 alone is not
+sufficient because skills.sh uses an HTTP 200 page for an unavailable skill.
 
 Run the same executable handoff against localhost and the deployed Cloudflare
 API:

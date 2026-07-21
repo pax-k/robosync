@@ -37,7 +37,7 @@ evidence:
   - "2026-07-14: Gitleaks 8.30.1 found no secrets in the public working-tree projection or all 14 Git commits after narrowly allowlisting the two intentional protocol secret-leak fixtures."
   - "2026-07-14: Production URL handoff passed with capabilityLeak false, comment lifecycle coverage, protocol-only events, and preserved version_conflict; four-context Codex dogfood also passed with capabilityFileMode 0600 and capabilityLeak false."
   - "2026-07-14: Created the public pax-k/ha2ha-mdsync repository, protected v* tags against deletion and non-fast-forward updates, and published the immutable v0.1.0 GitHub skill release."
-  - "2026-07-14: Warning-free gh skill publish validation passed; a fresh GitHub install contained both complete skill payloads, and the ha2ha and mdsync skills.sh listings both resolved with HTTP 200."
+  - "2026-07-14: Warning-free gh skill publish validation passed and a fresh GitHub install contained both complete skill payloads. The HTTP 200-only skills.sh listing check is superseded because it did not detect the catalog's internal 404 state."
   - "2026-07-21: pnpm run test:mdsync-live-skills passed against https://sync-api.ha2ha.md with eight isolated codex exec --ephemeral agents, public skills pinned to v0.1.2 at 407fd43123edaa8c753d8b15957659139a6542e0, independent verification, capabilityLeak false, one retained Viewer-readable workspace, and edit revocation verified."
   - "2026-07-21: Failed-run remediation revoked 11 active edit capabilities, removed 177 failed-run R2 objects and 20 failed D1 workspace rows, and verified exactly one read-only acceptance workspace with zero active edit capabilities remains."
 ---
@@ -105,6 +105,7 @@ node scripts/mdsync-client-package-smoke.mjs
 pnpm --filter @mdsync/skills test
 node scripts/mdsync-skill-package-smoke.mjs
 pnpm run test:public-skills
+pnpm run test:public-skills-live
 pnpm --filter web test
 pnpm run test:mdsync-handoff
 pnpm run test:e2e
