@@ -2,7 +2,7 @@
 
 ## Outcome
 
-**PASS** against `https://sync-api.ha2ha.md` using eight isolated `codex exec --ephemeral` agents and public skills pinned to `v0.1.2` (`407fd43123edaa8c753d8b15957659139a6542e0`).
+**PASS** against `https://sync-api.ha2ha.md` using eight isolated `codex exec --ephemeral` agents and public skills pinned to `v0.1.5` (`140541f200723f3ef5e1a3c0273f67f39b533b3e`).
 
 No capability URL or token is included in this artifact. The edit capability was revoked after verification; the Viewer capability remains readable and was returned only to the initiating user.
 
@@ -14,8 +14,8 @@ No capability URL or token is included in this artifact. The edit capability was
 | viewer | pass | viewer-read-mutation-denied |
 | builder-a | pass | independent-task-complete |
 | builder-b | pass | independent-task-complete |
-| racer-a | pass | race-winner |
-| racer-b | pass | race-conflict-preserved |
+| racer-a | pass | race-conflict-preserved |
+| racer-b | pass | race-winner |
 | reviewer | pass | comment-lifecycle-product-only |
 | protocol-auditor | pass | portable-protocol-valid |
 
@@ -33,8 +33,6 @@ No capability URL or token is included in this artifact. The edit capability was
 - Exact-secret and capability-pattern scans passed across agent output, temporary files, hosted files, comments, activity, events, and evidence.
 - No agent command event referenced the robosync checkout, workspace packages, or repository helper scripts.
 - The old edit credential was denied after revocation while Viewer reads remained successful.
-- Early free-form Publisher attempts exposed an idempotency gap and created failed test workspaces. Eleven active edit capabilities were revoked immediately; 177 failed-run R2 objects and 20 failed D1 workspace rows were removed. The final production audit found one retained read-only workspace and zero active edit capabilities.
-- The final harness uses generated capability-free one-shot role drivers. Each isolated Codex agent audits its driver against the installed public skill before executing it, eliminating repeated side effects without mounting repository helpers.
 
 ## Command
 

@@ -42,6 +42,7 @@ evidence:
   - "2026-07-21: Failed-run remediation revoked 11 active edit capabilities, removed 177 failed-run R2 objects and 20 failed D1 workspace rows, and verified exactly one read-only acceptance workspace with zero active edit capabilities remains."
   - "2026-07-21: Published v0.1.3 at 079befdd6d16ce1441005b2b258d38f482205da2 with catalog-compatible skills/ha2ha and skills/mdsync roots. pnpm run test:public-skills-live verified that both rendered skills.sh pages are available after catalog ingest, and the skills.sh download API returned complete hashed snapshots for both skills."
   - "2026-07-21: Fresh pinned GitHub installation exposed duplicate names between the new catalog roots and the npm package mirrors in v0.1.3. Published v0.1.4 at a0ea335e23b15d3bf9448e82174bce890b97d149 with the repository roots as the only discoverable skills and pack-time npm staging; gh skill install pax-k/ha2ha-mdsync --all --agent codex --scope project --pin v0.1.4 then installed exactly ha2ha and mdsync with tag provenance."
+  - "2026-07-21: pnpm run test:mdsync-live-skills passed against https://sync-api.ha2ha.md with eight isolated codex exec --ephemeral agents and public skills pinned to v0.1.5 at 140541f200723f3ef5e1a3c0273f67f39b533b3e. Independent verification passed for Viewer denial, parallel builders, the synchronized race, comment lifecycle separation, portable protocol behavior, capabilityLeak false, edit revocation, and retained Viewer reads."
 ---
 
 # V2-012 URL-Based HA2HA Agent Handoff

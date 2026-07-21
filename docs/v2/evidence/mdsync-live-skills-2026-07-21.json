@@ -22,12 +22,12 @@
     },
     {
       "outcome": "pass",
-      "result": "race-winner",
+      "result": "race-conflict-preserved",
       "role": "racer-a"
     },
     {
       "outcome": "pass",
-      "result": "race-conflict-preserved",
+      "result": "race-winner",
       "role": "racer-b"
     },
     {
@@ -49,28 +49,21 @@
   },
   "outcome": "pass",
   "release": {
-    "commit": "407fd43123edaa8c753d8b15957659139a6542e0",
-    "tag": "v0.1.2"
+    "commit": "140541f200723f3ef5e1a3c0273f67f39b533b3e",
+    "tag": "v0.1.5"
   },
   "retainedWorkspace": {
     "editCapabilityRevoked": true,
     "viewerReadable": true,
-    "workspaceId": "s69kmuFPGqQW"
+    "workspaceId": "aDqmxQAHO4zb"
   },
   "security": {
     "capabilityLeak": false,
-    "failedRunCleanup": {
-      "activeEditCapabilitiesAfterCleanup": 0,
-      "failedWorkspaceRowsAfterCleanup": 0,
-      "removedFailedR2Objects": 177,
-      "removedFailedWorkspaceRows": 20,
-      "revokedActiveEditCapabilities": 11
-    },
     "forbiddenRepositoryReference": false,
     "handoffFileMode": "0600",
     "roleExecution": "generated capability-free one-shot drivers audited by isolated Codex agents"
   },
-  "timestamp": "2026-07-21T13:29:22.446Z",
+  "timestamp": "2026-07-21T14:27:59.866Z",
   "verification": [
     "Discovery origins agree and the manifest is HA2HA 1.0.0 with baseVersion-required.",
     "Builders completed independent tasks with stable actors, preserved adjacent state, and linked evidence targeting claim version 2.",

@@ -2,8 +2,8 @@ import assert from "node:assert/strict";
 
 export const API_ORIGIN = "https://sync-api.ha2ha.md";
 export const WEB_ORIGIN = "https://sync.ha2ha.md";
-export const RELEASE_COMMIT = "407fd43123edaa8c753d8b15957659139a6542e0";
-export const RELEASE_TAG = "v0.1.2";
+export const RELEASE_COMMIT = "140541f200723f3ef5e1a3c0273f67f39b533b3e";
+export const RELEASE_TAG = "v0.1.5";
 const WORKSPACE_URL_PATTERN = /^\/w\/([^/]+)$/u;
 
 export const parseCapabilityUrl = (value, expectedName) => {
